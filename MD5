@@ -1,0 +1,13 @@
+d047af9f39488e8f5ed4075488413428 *DESCRIPTION
+4de9eeed8375305aecb6a22b555745b3 *NAMESPACE
+8d44927ebf441e907c901eb684b69d64 *R/cpfa.R
+ba3dbb0ae6308747e8f216b93c175e54 *R/cpm.R
+333fc4369e16f96b3f53070cfb4c987f *R/kcv.plr.R
+11a756f5beb2b725a325da7da0b379cb *R/kcv.rf.R
+18ebc2efad8e3ac28d197eeb49f7ec98 *R/kcv.svm.R
+62a93acaa4604a0cfbc87b940f873b94 *R/predict.cpfa.R
+9fae35fa6715149ba4a220688f141717 *R/print.cpfa.R
+40b1543ba9892b187c830037e36562dc *man/cpfa-internals.Rd
+2776b2ae1fbab4ac1b0ca752372d0204 *man/cpfa.Rd
+69300acc5737ab5009e14eb010d6af3f *man/cpm.Rd
+791634627809c386c050076d845b554b *man/predict.cpfa.Rd

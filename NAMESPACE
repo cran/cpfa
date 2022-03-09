@@ -1,0 +1,17 @@
+exportPattern("^[[:alpha:]]+")
+
+import(doParallel)
+import(glmnet)
+import(randomForest)
+import(e1071)
+import(multiway)
+
+S3method(print, cpfa)
+S3method(predict, cpfa)
+
+importFrom("stats", "na.omit", "predict")
+importFrom("parallel", "makeCluster", "detectCores", "clusterEvalQ", "stopCluster")
+importFrom(doParallel,registerDoParallel)
+importFrom(foreach,"%do%")
+importFrom(foreach,"%dopar%")
+importFrom(foreach,foreach)
