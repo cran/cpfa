@@ -16,7 +16,7 @@ kcv.svm <-
     }
     npred <- ncol(x)
     grid.row <- nrow(svm.grid)
-    cv.svm <- matrix(rep(0, grid.row * nfolds*2), ncol = nfolds)
+    cv.svm <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
     if (parallel == TRUE) {
       cv.svm <- foreach (gg = 1:nfolds, .combine = cbind, 
                        .packages = 'e1071') %dopar% {

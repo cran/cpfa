@@ -1,10 +1,10 @@
 cpfa <-
   function(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
-           method = c("PLR", "SVM", "RF"), 
+           method = c("PLR", "SVM", "RF", "NN"), 
            family = c("binomial", "multinomial"),
            alpha = NULL, lambda = NULL, cost = NULL, gamma = NULL, 
-           ntree = NULL, nodesize = NULL, parallel = FALSE, cl = NULL, 
-           verbose = TRUE, cmode = NULL, ...) 
+           ntree = NULL, nodesize = NULL, size = NULL, decay = NULL,
+           parallel = FALSE, cl = NULL, verbose = TRUE, cmode = NULL, ...) 
 {
     xdim <- dim(x)
     lxdim <- length(xdim)
@@ -37,10 +37,13 @@ cpfa <-
     if (length(nfolds) != 1 | nfolds < 2 | nfolds != floor(nfolds))
       stop("Input 'nfolds' must be a single whole 
            number equal to or greater than 2.")
+    if (nfolds > length(y))
+      stop("Input 'nfolds' must be a single whole
+           number equal to or less than the number of labels in 'y'.")
     if (is.null(foldid)) {
       foldid <- sample(rep(1:nfolds, length.out = length(y)))
     }
-    if (length(foldid) != dim(x)[3]) {
+    if (length(foldid) != xdim[cmode]) {
       stop("Input 'foldid' must match number of levels in classification mode")
     }
     if (!is.integer(foldid))
@@ -49,7 +52,7 @@ cpfa <-
       stop("Input 'foldid' must contain IDs for two or more folds.")
     if (!all(foldid == floor(foldid)))
       stop("Input 'foldid' must contain integers.")
-    methods <- c("PLR", "SVM", "RF")
+    methods <- c("PLR", "SVM", "RF", "NN")
     method <- pmatch(toupper(method), methods)
     if (length(method) == 0) {
       method <- c(1)
@@ -108,6 +111,25 @@ cpfa <-
       nodesize <- sort(nodesize)
       rf.grid <- expand.grid(ntree, nodesize)
     }
+    if ('4' %in% method) {
+      if (is.null(size)) {
+        size = c(1, 2, 4, 8, 16, 32, 64)
+      } 
+      if (any(size < 0L))
+        stop("Input 'size' must be greater than or equal to zero.")
+      if (!all(size == floor(size)))
+        stop("Input 'size' must contain only integers.")
+      if (!is.numeric(size))
+        stop("Input 'size' must be numeric.")
+      size <- sort(size)
+      if (is.null(decay)) {
+        decay = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16)
+      }
+      if (!is.numeric(decay))
+        stop("Input 'decay' must be numeric.")
+      decay <- sort(decay)
+      nn.grid <- expand.grid(size, decay)
+    }
     families <- c("binomial", "multinomial")
     family <- pmatch(tolower(family), families)
     lfam <- length(family)
@@ -129,18 +151,6 @@ cpfa <-
     }
     if (lfam == 1L & family == 2L) {
       family <- "multinomial"
-    }
-    if (is.null(prior)) {
-      frac <- table(y)/length(y)
-      prior <- as.numeric(frac)
-      if (family == "binomial") {
-        names(frac) <- c(0, 1)
-        weight <- as.numeric(frac[y])
-      }
-      if (family == "multinomial") {
-        names(frac) <- 1:length(levels(y)) - 1
-        weight <- as.numeric(frac[y])
-      }
     }
     if (!is.null(prior)) {
       if (sum(prior) != 1)
@@ -168,6 +178,18 @@ cpfa <-
         weight <- as.numeric(frac[y])
       }
     }
+    if (is.null(prior)) {
+      frac <- table(y)/length(y)
+      prior <- as.numeric(frac)
+      if (family == "binomial") {
+        names(frac) <- c(0, 1)
+        weight <- as.numeric(frac[y])
+      }
+      if (family == "multinomial") {
+        names(frac) <- 1:length(levels(y)) - 1
+        weight <- as.numeric(frac[y])
+      }
+    }
     opt.model <- vector("list", lnfac)
     Aweights <- vector("list", lnfac)
     Bweights <- vector("list", lnfac)
@@ -175,6 +197,7 @@ cpfa <-
     Cweights <- vector("list", lnfac)
     opt.param <- NULL
     est.time <- NULL
+    kcv.error <- NULL
     clstop <- FALSE
     if (parallel == TRUE) {
       if (is.null(cl)) {
@@ -184,8 +207,10 @@ cpfa <-
         ce <- clusterEvalQ(cl, library(multiway))
         registerDoParallel(cl)
     }
+    if (('1' %in% method) && (nfolds == 2))
+      warning("For 'nfolds = 2', method 'PLR' might give warnings.")
     for (w in 1:lnfac) {
-       optmodel.new <- vector("list", 3)
+       optmodel.new <- vector("list", 4)
        if (verbose == TRUE) {
          cat("nfac =", nfac[w], "method = parafac", fill = TRUE)
        }
@@ -276,18 +301,43 @@ cpfa <-
            rf.opt <- data.frame(NA, NA)
            optmodel.new[[3]] <- NULL
        }
+       if ('4' %in% method) {
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "method = nn", fill = TRUE)
+         }
+         tic <- proc.time()
+         nn.results <- kcv.nn(x = train, y = y, nfolds = nfolds,
+                              foldid = foldid, nn.grid = nn.grid, 
+                              weights = weight, parallel = parallel)
+         toc <- proc.time()
+         time.nn <- toc[3] - tic[3]
+         error.nn <- nn.results$error
+         nn.id <- nn.results$nn.grid.id
+         nn.opt <- nn.grid[nn.id,]
+         optmodel.new[[4]] <- nn.fit <- nn.results$nn.fit
+       }
+       else {
+         time.nn <- NA
+         error.nn <- NA
+         nn.opt <- NA
+         nn.opt <- data.frame(NA, NA)
+         optmodel.new[[4]] <- NULL
+       }
        opt.model[[w]] <- optmodel.new
        optparam.new <- data.frame(nfac = nfac[w], alpha = plr.opt,
                                   lambda = lambda.min, 
                                   gamma = svm.opt[1,1], cost = svm.opt[1,2],
-                                  ntree = rf.opt[1,1], nodesize = rf.opt[1,2])
+                                  ntree = rf.opt[1,1], nodesize = rf.opt[1,2],
+                                  size = nn.opt[1,1], decay = nn.opt[1,2])
        esttime.new <- data.frame(nfac = nfac[w], time.pfac = time.pfac,
                                  time.plr = time.plr, time.svm = time.svm,
-                                 time.rf = time.rf)
-       kcv.error <- data.frame(nfac = nfac[w], error.plr = error.plr,
-                               error.svm = error.svm, error.rf = error.rf)
+                                 time.rf = time.rf, time.nn = time.nn)
+       kcv.error.new <- data.frame(nfac = nfac[w], error.plr = error.plr,
+                               error.svm = error.svm, error.rf = error.rf,
+                               error.nn = error.nn)
        opt.param <- rbind(opt.param, optparam.new)
        est.time <- rbind(est.time, esttime.new)
+       kcv.error <- rbind(kcv.error, kcv.error.new)
     } 
     if (clstop == TRUE) {
       stopCluster(cl)

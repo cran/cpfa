@@ -64,7 +64,7 @@ All evaluation measures calculated are between 0 and 1, inclusive. For multiclas
 }
 \value{
 
-  Returns list where first element is a full confusion matrix \code{cm} and second element is a data frame containing performance measures. Note that for multiclass classification, macro-averaged values are provided (each measure calculated for each class, then averaged over all classes; average is weighted by argument \code{prior} if provided). Excluding \code{cm}, second list element contains following performance measures:
+Returns list where first element is a full confusion matrix \code{cm} and second element is a data frame containing performance measures. Note that for multiclass classification, macro-averaged values are provided (each measure calculated for each class, then averaged over all classes; average is weighted by argument \code{prior} if provided). Excluding \code{cm}, second list element contains following performance measures:
 
   \item{cm}{
   A confusion matrix with counts for each of possible outcomes.
@@ -114,7 +114,7 @@ Matthew Snodgress <snodg031@umn.edu>
 \examples{
 ########## Random binary example with 3-way array ##########
 
-# create random data array with Parafac structure and random class labels
+# create random data array with Parafac structure
 set.seed(3)
 mydim <- c(60, 16, 80)
 nf <- 3
@@ -133,17 +133,20 @@ gamma <- c(0, 0.01)
 cost <- c(1, 2)
 ntree <- c(100, 200)
 nodesize <- c(1, 2)
-method <- c("PLR", "SVM", "RF")
+size <- c(1, 2)
+decay <- c(0, 1)
+method <- c("PLR", "SVM", "RF", "NN")
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
 foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
 # estimate Parafac models and use third mode to tune classification methods
 tune.object <- cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
-                    foldid = foldid, method = method, alpha = alpha,
-                    gamma = gamma, cost = cost, ntree = ntree,
-                    nodesize = nodesize, parallel = FALSE, const = const)
-
+                         foldid = foldid, method = method, alpha = alpha,
+                         gamma = gamma, cost = cost, ntree = ntree,
+                         nodesize = nodesize, size = size, decay = decay,
+                         parallel = FALSE, const = const)
+                         
 # create random data array with Parafac structure and same A and B weights
 mydim.new <- c(60, 16, 20)
 Cmat <- matrix(runif(mydim.new[3]*nf), nrow = mydim.new[3], ncol = nf)
@@ -154,13 +157,13 @@ Xnew <- Xmat + Emat
 
 # predict class labels
 predict.labels <- predict(object = tune.object, newdata = Xnew,
-                               type = "response")
+                                    type = "response")
 
 # create new random class labels for two levels
 newlabel <- as.numeric(factor(rbinom(mydim.new[3], 1, 0.4))) - 1 
  
-# calculate evaluation measure for predicted
-y.pred <- predict.labels[,1]
+# calculate evaluation measure for PLR predicted
+y.pred <- predict.labels[, 1]
 evalmeasure <- cpm(x = newlabel, y = y.pred)
 evalmeasure
 }

@@ -28,7 +28,7 @@ Predict Method for Classification with Parallel Factor Analysis
   Character vector indicating type of prediction to return. Possible values include: (1) \code{"response"}, returning predicted class labels; (2) \code{"prob"}, returning predicted class probabilities; or (3) \code{"classify.weights"}, returning predicted factor weights used in classification from Parafac models specified. Defaults to \code{"response"}.
 }
   \item{threshold}{
-  For binary classification, value indicating prediction threshold over which observations are classified as the positive class. If not provided, calculates threshold using class proportions in original data. For multiclass classification, threshold is not currently implemented. 
+  For binary classification, value indicating prediction threshold over which observations are classified as the positive class. If not provided, calculates threshold using class proportions in original data. For multiclass classification, \code{threshold} is not currently implemented. 
 }
   \item{...}{
 additional arguments affecting the prediction produced (currently ignored).  
@@ -100,17 +100,20 @@ gamma <- c(0, 0.01)
 cost <- c(1, 2)
 ntree <- c(100, 200)
 nodesize <- c(1, 2)
-method <- c("PLR", "SVM", "RF")
+size <- c(1, 2)
+decay <- c(0, 1)
+method <- c("PLR", "SVM", "RF", "NN")
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
 foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
 # estimate Parafac models and use third mode to tune classification methods
 tune.object <- cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
-                    foldid = foldid, method = method, alpha = alpha,
-                    gamma = gamma, cost = cost, ntree = ntree,
-                    nodesize = nodesize, parallel = FALSE, const = const)
-
+                         foldid = foldid, method = method, alpha = alpha,
+                         gamma = gamma, cost = cost, ntree = ntree,
+                         nodesize = nodesize, size = size, decay = decay,
+                         parallel = FALSE, const = const)
+                         
 # create random data array with Parafac structure and same A and B weights
 mydim.new <- c(60, 16, 20)
 Cmat <- matrix(runif(mydim.new[3]*nf), nrow = mydim.new[3], ncol = nf)

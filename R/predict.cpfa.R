@@ -21,7 +21,7 @@ predict.cpfa <-
       noperm <- FALSE
     }
     if (!((lxdim == 3L) | (lxdim == 4L)))
-      stop("Input 'x' must be a 3-way or 4-way array.")
+      stop("Input 'newdata' must be a 3-way or 4-way array.")
     if (noperm == TRUE) {
       if (xdim[1] != xold.dim[1])
         stop("Number of levels for A mode of input 'newdata' must 
@@ -30,9 +30,9 @@ predict.cpfa <-
         stop("Number of levels for B mode of input 'newdata' must 
              match number of levels for B mode used in 'object'.")
       if (lxdim == 4L) {
-        if (xdim[4] != xold.dim[4])
-          stop("Number of levels for D mode of input 'newdata' must 
-             match number of levels for D mode used in 'object'.")
+        if (xdim[3] != xold.dim[3])
+          stop("Number of levels for C mode of input 'newdata' must 
+             match number of levels for C mode used in 'object'.")
       }
     }
     if (noperm == FALSE) {
@@ -57,7 +57,7 @@ predict.cpfa <-
     opt.param <- object$opt.param
     lnfac <- length(nfac)
     nfac.names <- paste("fac.", nfac, sep ="")
-    methods <- c("PLR", "SVM", "RF")
+    methods <- c("PLR", "SVM", "RF", "NN")
     method <- pmatch(toupper(method), methods)
     b.lmethod <- length(method)
     if (is.null(method) | b.lmethod == 0) {
@@ -68,6 +68,7 @@ predict.cpfa <-
     if (1 %in% method) {meth.names <- c(meth.names, "PLR")}
     if (2 %in% method) {meth.names <- c(meth.names, "SVM")}
     if (3 %in% method) {meth.names <- c(meth.names, "RF")}
+    if (4 %in% method) {meth.names <- c(meth.names, "NN")}
     meth.names <- tolower(meth.names)
     opt.model <- object$opt.model
     Aweights <- object$Aweights
@@ -90,14 +91,19 @@ predict.cpfa <-
     }
     family <- object$family
     if (family == "binomial") {
+      if (!(is.null(threshold))) {
+        if ((threshold < 0) | (threshold > 1) | (length(threshold) > 1))
+          stop("Input 'threshold' must be a single real number from 0 to 1, 
+              inclusive, for binary classification.")
+      }
       if ((is.null(threshold)) && (type == "response")) {
         yt <- object$y
         fraction <- table(yt)/length(yt)
         threshold <- fraction[which(names(fraction) == "0")]
       }
-      if ((threshold < 0) | (threshold > 1) | (length(threshold) > 1))
-        stop("Input 'threshold' must be a single real number from 0 to 1, 
-              inclusive, for binary classification.")
+      if ((is.null(threshold)) && (type == "prob")) {
+        threshold <- 0.5
+      }
     }
     if (family == "multinomial") {
       if (!(is.null(threshold))) {
@@ -106,18 +112,23 @@ predict.cpfa <-
              multiclass classification.")
         if (sum(threshold) != 1)
           stop("Input 'threshold' must sum to 1 for multiclass classification.")
+        warning("Argument 'threshold' is not currently implemented for 
+                multiclass classification.")
       }
       if ((is.null(threshold)) & (type == "response")) {
         yt <- object$y
         fraction <- table(yt)/length(yt)
         threshold <- as.numeric(fraction)
       }
+      if ((is.null(threshold)) & (type == "prob")) {
+        threshold <- 0.5
+      }
     }
     stor.name <- NULL
     for (i in 1:lnfac) {
        stor.name <- c(stor.name, paste0(nfac.names[i], meth.names)) 
     }
-    storfac <- matrix(NA, nrow = dim(newdata)[3], ncol = lmethod*lnfac)
+    storfac <- matrix(NA, nrow = dim(newdata)[lxdim], ncol = lmethod*lnfac)
     storprob <- vector("list", lmethod*lnfac)
     for (w in 1:lnfac) {
        colcount <- lmethod*(w - 1) + 1
@@ -174,26 +185,30 @@ predict.cpfa <-
                                             s = lambda.min,
                                             levels = plr.fit.class)
                  storfac[, colcount] <- as.numeric((apply(vals, 
-                                                          1, which.max))) - 1
+                                                    1, which.max))) - 1
                  colcount <- colcount + 1
                }
              }
              if (type == "prob") {
                type.plr <- "response"
                if (family == "binomial") {
-                 storfac[, colcount] <- predict(plr.fit, 
+                 storprob[[colcount]] <- as.numeric(predict(plr.fit, 
                                               newx = C.pred.plr, 
                                               type = type.plr, 
                                               s = lambda.min,
-                                              levels = plr.fit.class)
+                                              levels = plr.fit.class))
                  colcount <- colcount + 1
                }
                if (family == "multinomial") {
-                 storprob[[colcount]] <- predict(plr.fit, 
+                 plr.vals <- as.numeric(predict(plr.fit, 
                                                 newx = C.pred.plr, 
                                                 type = type.plr, 
                                                 s = lambda.min,
-                                                levels = plr.fit.class)
+                                                levels = plr.fit.class))
+                 plr.dim <- dim(C.pred.plr)
+                 lplr.class <- length(plr.fit.class)
+                 storprob[[colcount]] <- matrix(plr.vals, nrow = plr.dim[1], 
+                                                ncol = lplr.class)
                  colcount <- colcount + 1
                }
              }
@@ -222,7 +237,7 @@ predict.cpfa <-
                  svm.prob <- attr(predict(svm.fit, C.pred, type = type.svm,
                                   probability = TRUE),"probabilities")
                  svm.prob <- svm.prob[, which(colnames(svm.prob) == "1")]
-                 storfac[, colcount] <- as.numeric(svm.prob)
+                 storprob[[colcount]] <- as.numeric(svm.prob)
                  colcount <- colcount + 1
                }
                if (family == "multinomial") {
@@ -240,41 +255,67 @@ predict.cpfa <-
                  rf.prob <- predict(rf.fit, C.pred, type = "prob")
                  rf.prob <- rf.prob[, which(colnames(rf.prob) == "1")]
                  storfac[, colcount] <- as.numeric(rf.prob > threshold)
+                 colcount <- colcount + 1
                }
                if (family == "multinomial") {
                  rf.prob <- predict(rf.fit, C.pred, type = "prob")
                  storfac[, colcount] <- as.numeric((apply(rf.prob, 
                                                           1, which.max))) - 1
+                 colcount <- colcount + 1
                }
              }
              if (type == "prob") {
                if (family == "binomial") {
                  rf.prob <- predict(rf.fit, C.pred, type = "prob")
                  rf.prob <- rf.prob[, which(colnames(rf.prob) =="1")]
-                 storfac[, colcount] <- as.numeric(rf.prob)
+                 storprob[[colcount]] <- as.numeric(rf.prob)
+                 colcount <- colcount + 1
                }
                if (family == "multinomial") {
                  storprob[[colcount]]  <- predict(rf.fit, C.pred, type = "prob")
+                 colcount <- colcount + 1
                }
              }
            }
+         if ('4' %in% method) {
+           nn.fit <- opt.model[[w]][[4]]
+           if (type == "response") {
+             if (family == "binomial") {
+               nn.prob <- predict(nn.fit, newdata = C.pred, type = "raw")
+               nn.prob <- nn.prob[, which(colnames(nn.prob) == "y1")]
+               storfac[, colcount] <- as.numeric(nn.prob > threshold)
+             }
+             if (family == "multinomial") {
+               nn.prob <- predict(nn.fit, newdata = C.pred, type = "raw")
+               storfac[, colcount] <- as.numeric((apply(nn.prob, 
+                                                        1, which.max))) - 1
+             }
+           }
+           if (type == "prob") {
+             if (family == "binomial") {
+               nn.prob <- predict(nn.fit, newdata = C.pred, type = "raw")
+               nn.prob <- nn.prob[, which(colnames(nn.prob) =="y1")]
+               storprob[[colcount]] <- as.numeric(nn.prob)
+             }
+             if (family == "multinomial") {
+               storprob[[colcount]]  <- predict(nn.fit, C.pred, type = "raw")
+             }
+           }
+         }
        }
     }
     storfac <- as.data.frame(storfac)
     colnames(storfac) <- stor.name
     names(storprob) <- stor.name
-    if (type == "response") {
-      return(storfac)
-    }
-    if ((type == "prob") & (family == "binomial")) {
-      return(storfac)
-    }
-    if ((type == "prob") & (family == "multinomial")) {
-      return(storprob)
-    }
     if (type == "classify.weights") {
       classify.weight.names <- paste(nfac, "-factor(s)", sep ="")
       names(classify.weights) <- classify.weight.names
       return(classify.weights)
+    }
+    if (type == "response") {
+      return(storfac)
+    }
+    if (type == "prob") {
+      return(storprob)
     }
 }

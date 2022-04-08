@@ -4,14 +4,15 @@
 Tuning for Classification with Parallel Factor Analysis
 }
 \description{
-Fits Richard A. Harshman's Parallel Factors (Parafac) model to a 3-way or 4-way data array. Uses Parafac factor weights from a single mode of this model as predictors to tune parameters for one or more classification methods. Supports binary and multiclass classification.
+Fits Richard A. Harshman's Parallel Factors (Parafac) model to a 3-way or 4-way data array/tensor. Uses Parafac factor weights from a single mode of this model as predictors to tune parameters for one or more classification methods. Supports binary and multiclass classification.
 }
 \usage{
 cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
-           method = c("PLR", "SVM", "RF"), 
+           method = c("PLR", "SVM", "RF", "NN"), 
            family = c("binomial", "multinomial"),
            alpha = NULL, lambda = NULL, cost = NULL, gamma = NULL, 
-           ntree = NULL, nodesize = NULL, parallel = FALSE, cl = NULL, 
+           ntree = NULL, nodesize = NULL, size = NULL, decay = NULL, 
+           parallel = FALSE, cl = NULL, 
            verbose = TRUE, cmode = NULL, ...)
 }
 \arguments{
@@ -39,23 +40,29 @@ cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
   Character value specifying binary classification (\code{family = "binomial"}) or multiclass classification (\code{family = "multinomial"}). If not provided, number of levels of input 'y' is used, where two levels is binary, and where three or more levels is multiclass.
 }
 \item{alpha}{
-   Values for penalized logistic regression alpha parameter; default is alpha = seq(0, 1, length = 6).
+   Values for penalized logistic regression alpha parameter; default is alpha = seq(0, 1, length = 6). Must be numeric and contain only real numbers between 0 and 1, inclusive.
 }
 \item{lambda}{
    Optional user-supplied lambda sequence for \code{cv.glmnet}. Default is NULL.
 }
 \item{cost}{
-  Values for support vector machine cost parameter; default is cost = c(1, 2, 4, 8, 16, 32, 64).
+  Values for support vector machine cost parameter; default is cost = c(1, 2, 4, 8, 16, 32, 64). Must be numeric and contain only real numbers greater than or equal to zero.
 }
 \item{gamma}{
   Values for support vector machine gamma parameter; default is
-gamma = c(0, 0.01, 0.1, 1, 10, 100, 1000).
+gamma = c(0, 0.01, 0.1, 1, 10, 100, 1000). Must be numeric and greater than or equal to 0.
 }
 \item{ntree}{
-  Values for random forest number of trees parameter; default is ntree = c(100, 200, 400, 600, 800, 1600, 3200).
+  Values for random forest number of trees parameter; default is ntree = c(100, 200, 400, 600, 800, 1600, 3200). Must be numeric and contain only integers greater than or equal to 1.
 }
 \item{nodesize}{
-  Values for random forest node size parameter; default is nodesize = c(1, 2, 4, 8, 16, 32, 64).
+  Values for random forest node size parameter; default is nodesize = c(1, 2, 4, 8, 16, 32, 64). Must be numeric and contain only integers greater than or equal to 1.
+}
+\item{size}{
+  Values for single-layer neural network size parameter; default is size = c(1, 2, 4, 8, 16, 32, 64). Must be numeric and contain only integers greater than or equal to 0.
+}
+\item{decay}{
+  Values for neural network decay parameter; default is decay = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16). Must be numeric and contain only real numbers.
 }
 \item{parallel}{
   Logical indicating if package \code{parallel} should be used for parallel computing. For support vector machine and random forest, \code{doParallel} package is used as a wrapper. Defaults to FALSE, which implements sequential computing.
@@ -75,11 +82,11 @@ gamma = c(0, 0.01, 0.1, 1, 10, 100, 1000).
 
 }
 \details{
-After fitting a Parafac model with package \code{multiway} (see \code{parafac} in \code{multiway} for details), estimated classification mode weight matrix is passed to one or several of three classification methods--including penalized logistic regression (PLR); support vector machine (SVM); and random forest (RF).
+After fitting a Parafac model with package \code{multiway} (see \code{parafac} in \code{multiway} for details), estimated classification mode weight matrix is passed to one or several of four classification methods--including penalized logistic regression (PLR); support vector machine (SVM); random forest (RF); and feed-forward neural network (NN). 
 
-Package \code{glmnet} fits models for PLR. PLR tunes penalty parameter lambda; elastic net parameter alpha is set by user (see \code{cv.glmnet} in package \code{glmnet}). For SVM, package \code{e1071} is used with a radial basis kernel. Penalty parameter cost and radial basis parameter gamma are used (see \code{svm} in package \code{e1071}). For RF, package \code{randomForest} is used and implements Breiman's random forest algorithm. Number of predictors sampled at each node split is set at default of sqrt(R), where R is the number of Parafac factors. Two tuning parameters allowed are ntree, the number of trees to be grown, and nodesize, the minimum size of terminal nodes (see \code{randomForest} in package \code{randomForest}).
+Package \code{glmnet} fits models for PLR. PLR tunes penalty parameter lambda; elastic net parameter alpha is set by user (see \code{cv.glmnet} in package \code{glmnet}). For SVM, package \code{e1071} is used with a radial basis kernel. Penalty parameter cost and radial basis parameter gamma are used (see \code{svm} in package \code{e1071}). For RF, package \code{randomForest} is used and implements Breiman's random forest algorithm. Number of predictors sampled at each node split is set at default of sqrt(R), where R is the number of Parafac factors. Two tuning parameters allowed are ntree, the number of trees to be grown, and nodesize, the minimum size of terminal nodes (see \code{randomForest} in package \code{randomForest}). For NN, package \code{nnet} fits a single-hidden-layer, feed-forward neural network model. Penalty parameters size (number of hidden layer units) and decay (weight decay) are used (see \code{nnet}).
 
-For all three methods, k-fold cross-validation is implemented to tune classification parameters where the number of folds is set by argument \code{nfolds}.
+For all four methods, k-fold cross-validation is implemented to tune classification parameters where the number of folds is set by argument \code{nfolds}.
 }
 \value{
   Returns an object of class 'cpfa' with the following elements:
@@ -126,7 +133,7 @@ For all three methods, k-fold cross-validation is implemented to tune classifica
 
 }
 \note{
-If argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is last. Estimated mode A and B (and mode C for a 4-way array \code{x}) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a 4-way array and \code{cmode = 2}, original modes/dimensions 1, 2, 3, and 4 will correspond to output order 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e. second mode specified by \code{cmode} has been moved to the last/D mode).  
+If argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a 4-way array \code{x}) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a 4-way array and \code{cmode = 2}, original modes/dimensions 1, 2, 3, and 4 will correspond to output order 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e. second mode specified by \code{cmode} has been moved to the last/D mode).  
 }
 \author{
 Matthew A. Snodgress <snodg031@umn.edu>
@@ -147,6 +154,10 @@ Helwig, N. E. (2019). multiway: Component Models for Multi-Way Data. R package v
 Liaw, A. and Wiener, M. (2002). Classification and Regression by randomForest. R News 2(3), 18--22.
 
 Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2021). e1071: Misc Functions of the Department of Statistics, Probability Theory Group (Formerly: E1071), TU Wien. R package version 1.7-6.
+
+Ripley, B. (1994). Neural networks and related methods for classification. Journal ofthe Royal Statistical Society: Series B (Methodological), 56(3), 409-437.
+
+Venables, W. and Ripley, B. (2002) Modern Applied Statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0.
 
 Zou, H. and Hastie, T. (2005). Regularization and variable selection via the elastic net. Journal of the royal statistical society: series B (statistical methodology), 67(2), 301-320.
 }
@@ -172,7 +183,9 @@ gamma <- c(0, 0.01)
 cost <- c(1, 2)
 ntree <- c(100, 200)
 nodesize <- c(1, 2)
-method <- c("PLR", "SVM", "RF")
+size <- c(1, 2)
+decay <- c(0, 1)
+method <- c("PLR", "SVM", "RF", "NN")
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
 foldid <- sample(rep(1:nfolds, length.out = length(y)))
@@ -181,6 +194,7 @@ foldid <- sample(rep(1:nfolds, length.out = length(y)))
 tune.object <- cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          foldid = foldid, method = method, alpha = alpha,
                          gamma = gamma, cost = cost, ntree = ntree,
-                         nodesize = nodesize, parallel = FALSE, const = const)
+                         nodesize = nodesize, size = size, decay = decay,
+                         parallel = FALSE, const = const)
 print.cpfa(tune.object)
 }

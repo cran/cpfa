@@ -58,7 +58,7 @@ cpm <-
         stop("When inputted, 'prior' must contain as many values as the 
               number of classes.")
       }
-      if ((any(prior) < 0) | (any(prior) > 1))
+      if ((any(prior < 0)) | (any(prior > 1)))
         stop("When inputted, 'prior' must only contain values between 0 and 1,
              inclusive.")
       if (sum(prior) != 1) {

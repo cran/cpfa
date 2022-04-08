@@ -7,6 +7,7 @@
 \alias{kcv.plr}
 \alias{kcv.svm}
 \alias{kcv.rf}
+\alias{kcv.nn}
 \alias{print.cpfa}
 
 \description{

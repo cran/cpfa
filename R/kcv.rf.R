@@ -15,7 +15,7 @@ kcv.rf <-
       foldid <- sample(rep(1:nfolds, length.out = length(y)))
     }
     grid.row <- nrow(rf.grid)
-    cv.rf <- matrix(rep(0, grid.row * nfolds*2), ncol = nfolds)
+    cv.rf <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
     if (parallel == TRUE) {
     cv.rf <- foreach (gg = 1:nfolds, .combine = cbind,
                         .packages = 'randomForest') %dopar% {
