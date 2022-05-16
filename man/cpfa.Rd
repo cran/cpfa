@@ -4,7 +4,7 @@
 Tuning for Classification with Parallel Factor Analysis
 }
 \description{
-Fits Richard A. Harshman's Parallel Factors (Parafac) model to a 3-way or 4-way data array/tensor. Uses Parafac factor weights from a single mode of this model as predictors to tune parameters for one or more classification methods. Supports binary and multiclass classification.
+Fits Richard A. Harshman's Parallel Factor Analysis (Parafac) model-1 to a three-way or four-way data tensor/array. Uses Parafac factor weights from a single mode of this model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure (see package vignette for procedure's details). Supports binary and multiclass classification.
 }
 \usage{
 cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
@@ -74,7 +74,7 @@ gamma = c(0, 0.01, 0.1, 1, 10, 100, 1000). Must be numeric and greater than or e
   If TRUE, progress is printed.
 }
 \item{cmode}{
-  Integer value of 1, 2, or 3 (or 4 if 'x' is a 4-way array) specifying mode whose factor weights will be predictors for classification. Defaults to last mode of inputted array (i.e. 3 for 3-way array, and 4 for 4-way array). 
+  Integer value of 1, 2, or 3 (or 4 if 'x' is a four-way array) specifying mode whose factor weights will be predictors for classification. Defaults to last mode of inputted array (i.e. 3 for three-way array, and 4 for four-way array). 
 }
 \item{...}{
   Additional arguments to be passed to function 'parafac' for Parafac model estimation.
@@ -107,7 +107,7 @@ For all four methods, k-fold cross-validation is implemented to tune classificat
   Numeric indicating classification methods used. Value of '1' indicates PLR; value of '2' indicates SVM; and value of '3' indicates 'RF'.
 }
   \item{x}{
-  3-way or 4-way array used. 
+  three-way or four-way array used. 
 }
   \item{y}{
   Factor containing class labels used. Note that output \code{y} is recoded such that the input labels of \code{y} are converted to numeric integers from 0 through the number of levels, which are then applied as labels for output \code{y}. 
@@ -125,7 +125,7 @@ For all four methods, k-fold cross-validation is implemented to tune classificat
   Constraints used in Parafac model estimation. If argument \code{const} was not inputted, output value will be unconstrained for all modes.
 }
   \item{cmode}{
-  Integer value of 1, 2, or 3 (or 4 if \code{x} is a 4-way array) specifying mode whose factor weights were predictors for classification.
+  Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying mode whose factor weights were predictors for classification.
 }
   \item{family}{
   Character value specifying whether classification was binary  (\code{family = "binomial"}) or multiclass (\code{family = "multinomial"}).
@@ -133,17 +133,19 @@ For all four methods, k-fold cross-validation is implemented to tune classificat
 
 }
 \note{
-If argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a 4-way array \code{x}) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a 4-way array and \code{cmode = 2}, original modes/dimensions 1, 2, 3, and 4 will correspond to output order 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e. second mode specified by \code{cmode} has been moved to the last/D mode).  
+If argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a four-way array \code{x}) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a four-way array and \code{cmode = 2}, original modes/dimensions 1, 2, 3, and 4 will correspond to output order 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e. second mode specified by \code{cmode} has been moved to the last/D mode).  
 }
 \author{
 Matthew A. Snodgress <snodg031@umn.edu>
 }
 \references{
-Breiman, L. (2001). Random forests. Machine learning, 45(1), 5-32.
+Breiman, L. (2001). Random forests. Machine Learning, 45(1), 5-32.
 
-Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine learning, 20(3), 273-297.
+Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine Learning, 20(3), 273-297.
 
 Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. Journal of Statistical Software, 33(1), 1-22.
+
+Harshman, R. A. (1970). Foundations of the PARAFAC procedure: Models and conditions for an "explanatory" multimodal factor analysis. UCLA Working Papers in Phonetics, 16, 1-84.
 
 Harshman, R. A. and Lundy, M. E. (1994). PARAFAC: Parallel factor analysis. Computational Statistics and Data Analysis, 18, 39-72.
 
@@ -155,11 +157,11 @@ Liaw, A. and Wiener, M. (2002). Classification and Regression by randomForest. R
 
 Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2021). e1071: Misc Functions of the Department of Statistics, Probability Theory Group (Formerly: E1071), TU Wien. R package version 1.7-6.
 
-Ripley, B. (1994). Neural networks and related methods for classification. Journal ofthe Royal Statistical Society: Series B (Methodological), 56(3), 409-437.
+Ripley, B. (1994). Neural networks and related methods for classification. Journal of the Royal Statistical Society: Series B (Methodological), 56(3), 409-437.
 
 Venables, W. and Ripley, B. (2002) Modern Applied Statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0.
 
-Zou, H. and Hastie, T. (2005). Regularization and variable selection via the elastic net. Journal of the royal statistical society: series B (statistical methodology), 67(2), 301-320.
+Zou, H. and Hastie, T. (2005). Regularization and variable selection via the elastic net. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 67(2), 301-320.
 }
 \examples{
 ########## Random binary example with 3-way array ##########
@@ -197,4 +199,6 @@ tune.object <- cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          nodesize = nodesize, size = size, decay = decay,
                          parallel = FALSE, const = const)
 print.cpfa(tune.object)
+
+# Note: see package vignette for more examples
 }

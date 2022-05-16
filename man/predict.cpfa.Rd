@@ -16,7 +16,7 @@ Predict Method for Classification with Parallel Factor Analysis
     A fit object of class 'cpfa' from function 'cpfa'.
 }
   \item{newdata}{
-    An optional 3-way or 4-way data array used to predict Parafac factor weights using estimated Parafac model factor weights from inputted object. Dimensions must match dimensions of original data for all modes except classification mode. If omitted, the original data are used.
+    An optional three-way or four-way data array used to predict Parafac factor weights using estimated Parafac model factor weights from inputted object. Dimensions must match dimensions of original data for all modes except classification mode. If omitted, the original data are used.
 }
   \item{nfac}{
     Number of factors in models for prediction. Defaults to number of factors for each Parafac model from input 'object'.
@@ -36,7 +36,7 @@ additional arguments affecting the prediction produced (currently ignored).
 }
 
 \details{
-Predicts class labels for a binary or a multiclass outcome. Specifically, predicts factor weights for one mode of a Parallel Factor Analysis model using newdata and previously estimated mode weights from original data. Passes predicted factor weights to one or several classification methods as new data for predicting class labels.
+Predicts class labels for a binary or a multiclass outcome. Specifically, predicts factor weights for one mode of a Parallel Factor Analysis (Parafac) model-1 using newdata and previously estimated mode weights from original data. Passes predicted factor weights to one or several classification methods as new data for predicting class labels.
 
 Tuning parameters optimized by k-fold cross-validation are used for each classification method (see help for \code{cpfa}). If not supplied in argument 'threshold', prediction threshold for all classification methods is calculated using proportions of class labels for original data in the binary case (and positive proportion is set as threshold). For multiclass case, class with highest probability is chosen. Calculates and returns only predicted probabilities without class assignment by specifying type = "prob". Returns only predicted factor weights if type = "classify.weights".
 }
@@ -67,6 +67,8 @@ Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization Paths for Gen
 
 Harshman, R. A. (1970). Foundations of the PARAFAC procedure: Models and conditions for an "explanatory" multimodal factor analysis. UCLA Working Papers in Phonetics, 16, 1-84.
 
+Harshman, R. A. and Lundy, M. E. (1994). PARAFAC: Parallel factor analysis. Computational Statistics and Data Analysis, 18, 39-72.
+
 Helwig, N. E. (2017). Estimating latent trends in multivariate longitudinal data via Parafac2 with functional and structural constraints. Biometrical Journal, 59(4), 783-803.
 
 Helwig, N. E. (2019). multiway: Component Models for Multi-Way Data. R Package version 1.0-6.
@@ -74,6 +76,10 @@ Helwig, N. E. (2019). multiway: Component Models for Multi-Way Data. R Package v
 Liaw, A., and Wiener, M. (2002). Classification and Regression by randomForest. R News 2(3), 18-22.
 
 Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2021). e1071: Misc Functions of the Department of Statistics, Probability Theory Group (Formerly: E1071), TU Wien. R package version 1.7-6.
+
+Ripley, B. (1994). Neural networks and related methods for classification. Journal of the Royal Statistical Society: Series B (Methodological), 56(3), 409-437.
+
+Venables, W. and Ripley, B. (2002) Modern Applied Statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0.
 
 Zou, H. and Hastie, T. (2005). Regularization and variable selection via the elastic net. Journal of the Royal Statistical Society: Series B (Statistical Methodology). 67(2), 301-320.
 
@@ -126,4 +132,6 @@ Xnew <- Xmat + Emat
 predict.labels <- predict(object = tune.object, newdata = Xnew,
                                     type = "response")
 head(predict.labels)
+
+# Note: see package vignette for more examples
 }

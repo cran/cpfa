@@ -5,7 +5,7 @@ kcv.svm <-
            shrinking = TRUE, cross = 0, probability = TRUE, fitted = TRUE,
            na.action = na.omit, parallel = FALSE) 
 {
-    if (class(y) != "factor") {
+    if (!is.factor(y)) {
       y <- factor(y)
     }
     if (is.null(nfolds)) {

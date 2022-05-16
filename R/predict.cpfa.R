@@ -3,7 +3,7 @@ predict.cpfa <-
            type = c("response", "prob", "classify.weights"),
            threshold = NULL, ...) 
 {   
-    if (class(object) != "cpfa") {
+    if (!inherits(object, "cpfa")) {
       stop("Input 'object' must be of class 'cpfa'.")
     }
     xold <- x <- object$x

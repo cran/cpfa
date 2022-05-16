@@ -52,7 +52,7 @@ cpm <-
              class numeric.")
     }
     if (!(is.null(prior))) {
-      if (class(prior) != "numeric")
+      if (!is.numeric(prior))
         stop("Input 'prior' must be of class 'numeric' when provided.")
       if (length(prior) != llev) {
         stop("When inputted, 'prior' must contain as many values as the 

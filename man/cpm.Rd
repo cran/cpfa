@@ -106,7 +106,7 @@ given to recall over precision (see Details section and argument \code{fbeta}).
 
 }
 \references{
-Sokolova, M., and Lapalme, G. (2009). A systematic analysis of performance measures for classification tasks. Information processing and management, 45(4), 427-437.
+Sokolova, M., and Lapalme, G. (2009). A systematic analysis of performance measures for classification tasks. Information Processing and Management, 45(4), 427-437.
 }
 \author{
 Matthew Snodgress <snodg031@umn.edu>
@@ -166,4 +166,6 @@ newlabel <- as.numeric(factor(rbinom(mydim.new[3], 1, 0.4))) - 1
 y.pred <- predict.labels[, 1]
 evalmeasure <- cpm(x = newlabel, y = y.pred)
 evalmeasure
+
+# Note: see package vignette for more examples
 }

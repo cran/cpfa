@@ -5,7 +5,7 @@ kcv.plr <-
            type.measure = "class", grouped = TRUE, keep = FALSE,
            parallel = FALSE, maxit = 1e+06) 
 {
-    if (class(y) != "factor") {
+    if (!is.factor(y)) {
       y <- factor(y)
     } 
     if (is.null(nfolds)) {

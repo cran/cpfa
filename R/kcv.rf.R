@@ -5,7 +5,7 @@ kcv.rf <-
            norm.votes = TRUE, do.trace = FALSE, corr.bias = FALSE,
            keep.inbag = FALSE, parallel = FALSE) 
 {
-    if (class(y) != "factor") {
+    if (!is.factor(y)) {
       y <- factor(y)
     }
     if (is.null(nfolds)) {

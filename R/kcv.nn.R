@@ -3,7 +3,7 @@ kcv.nn <-
            linout = FALSE, censored = FALSE, skip = FALSE, 
            rang = 0.5, parallel = FALSE) 
 {
-    if (class(y) != "factor") {
+    if (!is.factor(y)) {
       y <- factor(y)
     }
     if (is.null(nfolds)) {

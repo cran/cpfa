@@ -25,7 +25,7 @@ cpfa <-
     if (is.null(cmode)) {
       cmode <- lxdim
     }
-    if (class(y) != "factor")
+    if (!is.factor(y))
       stop("Input 'y' must be of class 'factor'.")
     if (!(length(y) == xdim[cmode]))
       stop("Length of 'y' must match number of levels in 
