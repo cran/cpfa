@@ -28,7 +28,7 @@ M <- t(chol(S))
 Minv <- solve(M)
 L <- t(chol(R))
 Xq <- Y %*% t(Minv) %*% t(L)
-Cmat <- Xq[, 1:3]*2
+Cmat <- Xq[, 1:3]
 Amat <- matrix(rnorm(mydim[1]*nfac), nrow = mydim[1], ncol = nfac)
 Bmat <- matrix(runif(mydim[2]*nfac), nrow = mydim[2], ncol = nfac)
 Xmat <- tcrossprod(Amat, krprod(Cmat, Bmat))
@@ -138,7 +138,7 @@ M <- t(chol(S))
 Minv <- solve(M)
 L <- t(chol(R))
 Xq <- Y %*% t(Minv) %*% t(L)
-Cmat <- Xq[, 1:3]*2
+Cmat <- Xq[, 1:3]
 y <- Xq[,4]
 for(i in 1:length(y)){
   if(abs(y[i]) > 0.09){

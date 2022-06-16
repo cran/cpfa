@@ -9,7 +9,7 @@ vignette: >
 
 ### Matthew Snodgress
 
-#### University of Minnesota, May 16, 2022
+#### University of Minnesota, June 17, 2022
 
 > Overview
 
@@ -33,7 +33,7 @@ vignette: >
 
 Package $\textbf{cpfa}$ implements a k-fold cross-validation procedure to
 predict class labels using component loadings from a single mode of a
-Parallel Factor (Parafac) model-1 (Harshman, 1970; Harshman & Lundy,
+Parallel Factor Analysis (Parafac) model-1 (Harshman, 1970; Harshman & Lundy,
 1994), which is fit to a three-way or four-way data tensor. After
 fitting a Parafac model with package $\textbf{multiway}$ via an
 alternating least squares algorithm (Helwig, 2019), estimated component
@@ -193,8 +193,7 @@ First, we load the $\textbf{cpfa}$ package:
 library(cpfa)
 ```
 
-We load a data set found within $\textbf{cpfa}$ for this example. Users can
-either use example data created below or load their own data.  We start by creating a random three-way tensor and response vector where one mode (a classification mode) is related to the response, in this case the third mode. To generate the data, we identify a target correlation matrix that sets the correlations among the columns of the classification mode's weight matrix and between these weight matrix columns and a response vector. We then use a Cholesky decomposition to generate random data that would give rise to this correlation matrix and modify that data to generate a tensor related to the response (see Gentle, 1998; see also examples under `help(parafac)`). In R:
+We start by creating a random three-way tensor and response vector where one mode (a classification mode) is related to the response, in this case the third mode. To generate the data, we identify a target correlation matrix that sets the correlations among the columns of the classification mode's weight matrix and between these weight matrix columns and a response vector. We then use a Cholesky decomposition to generate random data that would give rise to this correlation matrix and modify that data to generate a tensor related to the response (see Gentle, 1998). In R:
 
 ```{r}
 
@@ -220,7 +219,7 @@ M <- t(chol(S))
 Minv <- solve(M)
 L <- t(chol(R))
 Xq <- Y %*% t(Minv) %*% t(L)
-Cmat <- Xq[, 1:3]*2
+Cmat <- Xq[, 1:3]
 Amat <- matrix(rnorm(mydim[1]*nfac), nrow = mydim[1], ncol = nfac)
 Bmat <- matrix(runif(mydim[2]*nfac), nrow = mydim[2], ncol = nfac)
 Xmat <- tcrossprod(Amat, krprod(Cmat, Bmat))
@@ -393,7 +392,7 @@ M <- t(chol(S))
 Minv <- solve(M)
 L <- t(chol(R))
 Xq <- Y %*% t(Minv) %*% t(L)
-Cmat <- Xq[, 1:3]*2
+Cmat <- Xq[, 1:3]
 y <- Xq[,4]
 for(i in 1:length(y)){
   if(abs(y[i]) > 0.09){
