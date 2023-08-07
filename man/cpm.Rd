@@ -141,7 +141,7 @@ const <- c("orthog", "uncons", "uncons")
 foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
 # estimate Parafac models and use third mode to tune classification methods
-tune.object <- cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
+tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          foldid = foldid, method = method, alpha = alpha,
                          gamma = gamma, cost = cost, ntree = ntree,
                          nodesize = nodesize, size = size, decay = decay,
@@ -166,6 +166,4 @@ newlabel <- as.numeric(factor(rbinom(mydim.new[3], 1, 0.4))) - 1
 y.pred <- predict.labels[, 1]
 evalmeasure <- cpm(x = newlabel, y = y.pred)
 evalmeasure
-
-# Note: see package vignette for more examples
 }

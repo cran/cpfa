@@ -13,7 +13,7 @@ Predict Method for Classification with Parallel Factor Analysis
 }
 \arguments{
   \item{object}{
-    A fit object of class 'cpfa' from function 'cpfa'.
+    A fit object of class 'cpfa' from function 'tune.cpfa'.
 }
   \item{newdata}{
     An optional three-way or four-way data array used to predict Parafac factor weights using estimated Parafac model factor weights from inputted object. Dimensions must match dimensions of original data for all modes except classification mode. If omitted, the original data are used.
@@ -38,7 +38,7 @@ additional arguments affecting the prediction produced (currently ignored).
 \details{
 Predicts class labels for a binary or a multiclass outcome. Specifically, predicts factor weights for one mode of a Parallel Factor Analysis (Parafac) model-1 using newdata and previously estimated mode weights from original data. Passes predicted factor weights to one or several classification methods as new data for predicting class labels.
 
-Tuning parameters optimized by k-fold cross-validation are used for each classification method (see help for \code{cpfa}). If not supplied in argument 'threshold', prediction threshold for all classification methods is calculated using proportions of class labels for original data in the binary case (and positive proportion is set as threshold). For multiclass case, class with highest probability is chosen. Calculates and returns only predicted probabilities without class assignment by specifying type = "prob". Returns only predicted factor weights if type = "classify.weights".
+Tuning parameters optimized by k-fold cross-validation are used for each classification method (see help for \code{tune.cpfa}). If not supplied in argument 'threshold', prediction threshold for all classification methods is calculated using proportions of class labels for original data in the binary case (and positive proportion is set as threshold). For multiclass case, class with highest probability is chosen. Calculates and returns only predicted probabilities without class assignment by specifying type = "prob". Returns only predicted factor weights if type = "classify.weights".
 }
 \value{
 
@@ -114,7 +114,7 @@ const <- c("orthog", "uncons", "uncons")
 foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
 # estimate Parafac models and use third mode to tune classification methods
-tune.object <- cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
+tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          foldid = foldid, method = method, alpha = alpha,
                          gamma = gamma, cost = cost, ntree = ntree,
                          nodesize = nodesize, size = size, decay = decay,
@@ -132,6 +132,4 @@ Xnew <- Xmat + Emat
 predict.labels <- predict(object = tune.object, newdata = Xnew,
                                     type = "response")
 head(predict.labels)
-
-# Note: see package vignette for more examples
 }

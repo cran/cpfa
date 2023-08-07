@@ -1,18 +1,18 @@
-\name{cpfa}
-\alias{cpfa}
+\name{tune.cpfa}
+\alias{tune.cpfa}
 \title{
-Classification with Parallel Factor Analysis
+Tuning for Classification with Parallel Factor Analysis
 }
 \description{
-Fits Richard A. Harshman's Parallel Factor Analysis (Parafac) model-1 to a three-way or four-way data tensor/array. Uses Parafac factor weights from a single mode of this model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Predicts class labels and calculates multiple performance measures for binary or multiclass classification over some number of replications.
+Fits Richard A. Harshman's Parallel Factor Analysis (Parafac) model-1 to a three-way or four-way data tensor/array. Uses Parafac factor weights from a single mode of this model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Supports binary and multiclass classification.
 }
 \usage{
-cpfa(x, y, nrep = 5, ratio = 0.8, seeds = NULL,
-           type.out = c("measures", "descriptives"), nfac = 1, nfolds = 10, 
-           foldid = NULL, prior = NULL, method = c("PLR", "SVM", "RF", "NN"), 
-           family = c("binomial", "multinomial"), alpha = NULL, lambda = NULL, 
-           cost = NULL, gamma = NULL, ntree = NULL, nodesize = NULL, 
-           size = NULL, decay = NULL, parallel = FALSE, cl = NULL, 
+tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
+           method = c("PLR", "SVM", "RF", "NN"), 
+           family = c("binomial", "multinomial"),
+           alpha = NULL, lambda = NULL, cost = NULL, gamma = NULL, 
+           ntree = NULL, nodesize = NULL, size = NULL, decay = NULL, 
+           parallel = FALSE, cl = NULL, 
            verbose = TRUE, cmode = NULL, ...)
 }
 \arguments{
@@ -21,18 +21,6 @@ cpfa(x, y, nrep = 5, ratio = 0.8, seeds = NULL,
 } 
 \item{y}{
   A factor with two or more levels containing class labels. For binary case, ensure the order of factor levels (left to right) is such that negative class is first and positive class is second.
-}
-\item{nrep}{
-  Number of replications to repeat the procedure. Default is nrep = 5.
-}
-\item{ratio}{
-  Split ratio for dividing data into training and test sets. Default is 0.8.
-}
-\item{seeds}{
-  Random seeds to be associated with each replication. Default is to use the seeds 1:nrep.
-}
-\item{type.out}{
-  Type of output desired: type.out = "measures" gives array containing classification performance measures for all replications while type.out = "descriptives" gives list of descriptive statistics calculated across all replications for each performance measure.
 }
 \item{nfac}{
   Number of factors for each Parafac model to estimate. Default is nfac = 1.
@@ -99,13 +87,50 @@ After fitting a Parafac model with package \code{multiway} (see \code{parafac} i
 Package \code{glmnet} fits models for PLR. PLR tunes penalty parameter lambda; elastic net parameter alpha is set by user (see \code{cv.glmnet} in package \code{glmnet}). For SVM, package \code{e1071} is used with a radial basis kernel. Penalty parameter cost and radial basis parameter gamma are used (see \code{svm} in package \code{e1071}). For RF, package \code{randomForest} is used and implements Breiman's random forest algorithm. Number of predictors sampled at each node split is set at default of sqrt(R), where R is the number of Parafac factors. Two tuning parameters allowed are ntree, the number of trees to be grown, and nodesize, the minimum size of terminal nodes (see \code{randomForest} in package \code{randomForest}). For NN, package \code{nnet} fits a single-hidden-layer, feed-forward neural network model. Penalty parameters size (number of hidden layer units) and decay (weight decay) are used (see \code{nnet}).
 
 For all four methods, k-fold cross-validation is implemented to tune classification parameters where the number of folds is set by argument \code{nfolds}.
-
-After tuning, class labels are predicted using optimal parameters; and classification performance measures are calculated. 
-
-The process is repeated over a number of replications with different random splits of the input array and class labels at each replication.
 }
 \value{
-  Returns either an array with classification performance measures for each replication or a list containing descritpive statistics for peformance measures calculated across all replications. Specify \code{type.out = "measures"} to output array of performance measures. Specify \code{type.out = "descriptives"} to output descriptive statistics across replications.
+  Returns an object of class 'cpfa' with the following elements:
+
+  \item{opt.model}{
+  List containing optimal model for tuned classification methods for each Parafac model estimated.
+}
+  \item{opt.param}{
+  Data frame containing optimal parameters for tuned classification methods.
+}
+  \item{kcv.error}{
+  Data frame containing KCV misclassification error for optimal parameters for tuned classification methods.
+}
+  \item{est.time}{
+  Data frame containing estimation times for fitting Parafac model and for tuning classification methods.
+}
+  \item{method}{
+  Numeric indicating classification methods used. Value of '1' indicates PLR; value of '2' indicates SVM; and value of '3' indicates 'RF'.
+}
+  \item{x}{
+  three-way or four-way array used. 
+}
+  \item{y}{
+  Factor containing class labels used. Note that output \code{y} is recoded such that the input labels of \code{y} are converted to numeric integers from 0 through the number of levels, which are then applied as labels for output \code{y}. 
+}
+  \item{Aweights}{
+  List containing estimated A weights for each Parafac model estimated.
+}
+  \item{Bweights}{
+  List containing estimated B weights for each Parafac model estimated.
+}
+  \item{Cweights}{
+  List containing estimated C weights for each Parafac model estimated. Null if inputted argument \code{x} was a 3 array.
+}
+  \item{const}{
+  Constraints used in Parafac model estimation. If argument \code{const} was not inputted, output value will be unconstrained for all modes.
+}
+  \item{cmode}{
+  Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying mode whose factor weights were predictors for classification.
+}
+  \item{family}{
+  Character value specifying whether classification was binary  (\code{family = "binomial"}) or multiclass (\code{family = "multinomial"}).
+}
+
 }
 \note{
 If argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a four-way array \code{x}) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a four-way array and \code{cmode = 2}, original modes/dimensions 1, 2, 3, and 4 will correspond to output order 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e. second mode specified by \code{cmode} has been moved to the last/D mode).  
@@ -165,14 +190,13 @@ decay <- c(0, 1)
 method <- c("PLR", "SVM", "RF", "NN")
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
-foldid <- sample(rep(1:nfolds, length.out = 64))
+foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
-# estimate Parafac models and use third mode to tune classification methods,
-# to predict class labels, and to return classificaiton performance measures
-output <- cpfa(x = X, y = y, nrep = 2, ratio = 0.8, seeds = NULL,
-               type.out = "descriptives", nfac = 3, nfolds = nfolds,
-               foldid = foldid, method = method, alpha = alpha, gamma = gamma, 
-               cost = cost, ntree = ntree, nodesize = nodesize, size = size, 
-               decay = decay, parallel = FALSE, const = const)
-output$mean
+# estimate Parafac models and use third mode to tune classification methods
+tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
+                         foldid = foldid, method = method, alpha = alpha,
+                         gamma = gamma, cost = cost, ntree = ntree,
+                         nodesize = nodesize, size = size, decay = decay,
+                         parallel = FALSE, const = const)
+print.cpfa(tune.object)
 }
