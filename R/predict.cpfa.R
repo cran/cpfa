@@ -1,56 +1,115 @@
 predict.cpfa <-
   function(object, newdata = NULL, nfac = NULL, method = NULL,
-           type = c("response", "prob", "classify.weights"),
-           threshold = NULL, ...) 
+           type = c("response", "prob", "classify.weights"), 
+           threshold = NULL, ...)                                               
 {   
     if (!inherits(object, "cpfa")) {
       stop("Input 'object' must be of class 'cpfa'.")
     }
-    xold <- x <- object$x
+    model <- object$model
+    xold.dim <- object$xdim
+    cmode <- object$cmode
     if (is.null(newdata)) {
       newdata <- object$x
     }
-    xold.dim <- dim(xold)
-    cmode <- object$cmode
-    xdim <- dim(newdata)
-    lxdim <- length(xdim)
-    if (cmode == lxdim) {
-      noperm <- TRUE
+    if (is.array(newdata) && (model == "parafac")) {
+      xdim <- dim(newdata)                                                            
+      lxdim <- length(xdim)
+      if (!((lxdim == 3L) || (lxdim == 4L))) 
+        stop("Input 'newdata' must be a 3-way or 4-way array.")
+      if (any(is.nan(newdata)) || any(is.infinite(newdata))) 
+        stop("Input 'newdata' cannot contain NaN or Inf values.")
+      if (any(is.na(newdata))) 
+        stop("Input 'newdata' cannot contain missing values.")
+      if (cmode != length(xold.dim)) {
+        modeval <- 1:lxdim
+        mode.re <- c(modeval[-cmode], cmode)
+        newdata <- aperm(newdata, mode.re)
+        xdim <- dim(newdata)
+      }
+    } else if (is.array(newdata) && (model == "parafac2")) {
+      xdim <- dim(newdata)                                                            
+      lxdim <- length(xdim)
+      if (!((lxdim == 3L) || (lxdim == 4L))) 
+        stop("Input 'newdata' must be a 3-way or 4-way array.")
+      if (any(is.nan(newdata)) || any(is.infinite(newdata))) 
+        stop("Input 'newdata' cannot contain NaN or Inf values.")
+      if (any(is.na(newdata))) 
+        stop("Input 'newdata' cannot contain missing values.")
+      if (lxdim == 3L) {
+        storlist <- vector("list", xdim[3])
+        for (k in 1:xdim[3]) {
+          storlist[[k]] <- newdata[, , k]
+        }
+      } else {
+        storlist <- vector("list", xdim[3])
+        for (k in 1:xdim[3]) {
+          storlist[[k]] <- newdata[, , , k]
+        }
+      }
+      newdata <- storlist
+      rm(storlist)
+    } else if (is.list(newdata) && (model == "parafac2")) {
+      xdim1 <- dim(newdata[[1]])
+      lxdim <- length(xdim1) + 1L
+      if (!((lxdim == 3L) || (lxdim == 4L))) 
+        stop("Input 'newdata' must be a list of matrices or 3-way arrays.")
+      if (any(as.logical(lapply(newdata, function(a){return(any(is.nan(a)))}))))
+        stop("Input 'newdata' cannot contain NaN values")
+      if (any(as.logical(lapply(newdata,
+                                function(a){return(any(is.infinite(a)))}))))
+        stop("Input 'newdata' cannot contain Inf values")
+      if (any(as.logical(lapply(newdata,function(a){return(any(is.na(a)))}))))
+        stop("Input 'newdata' cannot contain missing values")
+      if (lxdim == 3L) {
+        xdim <- rep(NA, 3)
+        xdim[2] <- xdim1[2]
+        xdim[3] <- length(newdata)
+        if (any(unlist(lapply(newdata, ncol)) != xdim[2])) {
+          stop("Input 'newdata' must be list of matrices with same \n 
+                  number of columns.")
+        }
+      } else {
+        xdim <- rep(NA, 4)
+        xdim[2] <- xdim1[2]
+        xdim[3] <- xdim1[3]
+        xdim[4] <- length(newdata)
+        index2 <- seq(2, (3*length(newdata) - 1), by = 3)
+        index3 <- seq(3, (3*length(newdata)), by = 3)
+        if (any(unlist(lapply(newdata, dim))[index2] != xdim[2]))
+          stop("Input 'newdata' must be list of arrays with same \n
+               number of columns.")
+        if (any(unlist(lapply(newdata, dim))[index3] != xdim[3]))
+          stop("Input 'newdata' must be list of arrays with same \n
+               number of slabs.")
+      }
+    } else if (is.list(newdata) && (model == "parafac")) {
+      stop("Input 'newdata' must be of class 'array' if 'model = parafac'.")
+    } else {
+      stop("Input 'newdata' must be of class 'array' or 'list'.")
     }
-    if (cmode != lxdim) {
-      noperm <- FALSE
-    }
-    if (!((lxdim == 3L) | (lxdim == 4L)))
-      stop("Input 'newdata' must be a 3-way or 4-way array.")
-    if (noperm == TRUE) {
+    if (model == "parafac") {
       if (xdim[1] != xold.dim[1])
         stop("Number of levels for A mode of input 'newdata' must 
-             match number of levels for A mode used in 'object'.")
+            match number of levels for A mode used in 'object'.")
       if (xdim[2] != xold.dim[2])
         stop("Number of levels for B mode of input 'newdata' must 
-             match number of levels for B mode used in 'object'.")
+           match number of levels for B mode used in 'object'.")
+      if (lxdim == 4L) {
+        if (xdim[3] != xold.dim[3])
+          stop("Number of levels for C mode of input 'newdata' must 
+             match number of levels for C mode used in 'object'.")
+      }
+    } else {
+      if (xdim[2] != xold.dim[2])
+        stop("Number of levels for B mode of input 'newdata' must 
+           match number of levels for B mode used in 'object'.")
       if (lxdim == 4L) {
         if (xdim[3] != xold.dim[3])
           stop("Number of levels for C mode of input 'newdata' must 
              match number of levels for C mode used in 'object'.")
       }
     }
-    if (noperm == FALSE) {
-      modeval <- 1:lxdim
-      mode.re <- modeval[-cmode]
-      for (w in 1:length(mode.re)) {
-         if (xdim[mode.re[w]] != xold.dim[mode.re[w]])
-           stop("Number of levels for each mode of input 'newdata' must 
-                match number of levels for each mode used in 'object', excluding
-                the classification mode.")
-      }
-      newmode <- c(mode.re, cmode)
-      newdata <- aperm(newdata, newmode)
-    }
-    if (any(is.nan(newdata)) | any(is.infinite(newdata))) 
-      stop("Input 'newdata' cannot contain NaN or Inf values.")
-    if (any(is.na(newdata)))
-      stop("Input 'newdata' cannot contain missing values.")
     if (is.null(nfac)) {
       nfac <- object$opt.param$nfac
     }
@@ -60,7 +119,7 @@ predict.cpfa <-
     methods <- c("PLR", "SVM", "RF", "NN")
     method <- pmatch(toupper(method), methods)
     b.lmethod <- length(method)
-    if (is.null(method) | b.lmethod == 0) {
+    if (is.null(method) || b.lmethod == 0) {
       method <- object$method
     }
     lmethod <- length(method)
@@ -72,27 +131,24 @@ predict.cpfa <-
     meth.names <- tolower(meth.names)
     opt.model <- object$opt.model
     Aweights <- object$Aweights
-    Bweights <- object$Bweights
+    Bweights <- object$Bweights   
     Cweights <- object$Cweights
+    Phi <- object$Phi
     const <- object$const
     storfac <- vector("list", lnfac)
     names(storfac) <- nfac.names
     classify.weights <- vector("list", lnfac)
     names(classify.weights) <- nfac.names
+    if (length(type) != 1)
+      stop("Input 'type' must be a character of length equal to 1.")
     types <- c("response", "prob", "classify.weights")
-    type.num <- pmatch(toupper(type), types)
-    if (length(type.num) == 0) {
-      type <- c("response")
-    }
-    if(length(type.num) >= 2) {
-      warning("Input 'type' either not specified or contains more than one type,
-              defaulting to 'type = response'.")
-      type <- c("response")
-    }
+    if (!(tolower(type) %in% types))
+      stop("Input 'type' must be 'response', 'prob', or 'classify.weights'.")
+    type <- tolower(type)
     family <- object$family
     if (family == "binomial") {
       if (!(is.null(threshold))) {
-        if ((threshold < 0) | (threshold > 1) | (length(threshold) > 1))
+        if ((threshold < 0) || (threshold > 1) || (length(threshold) > 1))
           stop("Input 'threshold' must be a single real number from 0 to 1, 
               inclusive, for binary classification.")
       }
@@ -107,7 +163,7 @@ predict.cpfa <-
     }
     if (family == "multinomial") {
       if (!(is.null(threshold))) {
-        if (any(threshold < 0) | any(threshold > 1))
+        if (any(threshold < 0) || any(threshold > 1))
           stop("Input 'threshold' must contain real numbers from 0 to 1 for
              multiclass classification.")
         if (sum(threshold) != 1)
@@ -115,12 +171,12 @@ predict.cpfa <-
         warning("Argument 'threshold' is not currently implemented for 
                 multiclass classification.")
       }
-      if ((is.null(threshold)) & (type == "response")) {
+      if ((is.null(threshold)) && (type == "response")) {
         yt <- object$y
         fraction <- table(yt)/length(yt)
         threshold <- as.numeric(fraction)
       }
-      if ((is.null(threshold)) & (type == "prob")) {
+      if ((is.null(threshold)) && (type == "prob")) {
         threshold <- 0.5
       }
     }
@@ -128,27 +184,58 @@ predict.cpfa <-
     for (i in 1:lnfac) {
        stor.name <- c(stor.name, paste0(nfac.names[i], meth.names)) 
     }
-    storfac <- matrix(NA, nrow = dim(newdata)[lxdim], ncol = lmethod*lnfac)
+    if (model == "parafac") {
+      storfac <- matrix(NA, nrow = dim(newdata)[lxdim], ncol = lmethod*lnfac)
+    } else {
+      storfac <- matrix(NA, nrow = length(newdata), ncol = lmethod*lnfac)
+    }
     storprob <- vector("list", lmethod*lnfac)
     for (w in 1:lnfac) {
        colcount <- lmethod*(w - 1) + 1
-       Afixed <- Aweights[[w]]
-       Bfixed <- Bweights[[w]]
-       if (lxdim == 3L) {
-         ppfac <- parafac(X = newdata, nfac = nfac[w], nstart = 1, 
-                          ctol = sqrt(.Machine$double.eps), 
-                          verbose = FALSE, const = const,
-                          Afixed = Afixed, Bfixed = Bfixed)
-         classify.weights[[w]] <- C.pred <- ppfac$C
-       }
-       if (lxdim == 4L) {
-         Cfixed <- Cweights[[w]]
-         ppfac <- parafac(X = newdata, nfac = nfac[w], nstart = 1, 
-                          ctol = sqrt(.Machine$double.eps), 
-                          verbose = FALSE, const = const,
-                          Afixed = Afixed, Bfixed = Bfixed,
-                          Cfixed = Cfixed)
-         classify.weights[[w]] <- C.pred <- ppfac$D
+       if (model == "parafac") {
+         Afixed <- Aweights[[w]]
+         Bfixed <- Bweights[[w]]
+         if (lxdim == 3L) {
+           ppfac <- parafac(X = newdata, nfac = nfac[w], nstart = 1, 
+                            ctol = sqrt(.Machine$double.eps), 
+                            verbose = FALSE, const = const,
+                            Afixed = Afixed, Bfixed = Bfixed)                
+           classify.weights[[w]] <- C.pred <- ppfac$C
+         }
+         if (lxdim == 4L) {
+           Cfixed <- Cweights[[w]]
+           ppfac <- parafac(X = newdata, nfac = nfac[w], nstart = 1, 
+                            ctol = sqrt(.Machine$double.eps), 
+                            verbose = FALSE, const = const,
+                            Afixed = Afixed, Bfixed = Bfixed,
+                            Cfixed = Cfixed)                                
+           classify.weights[[w]] <- C.pred <- ppfac$D
+         }
+       } else {
+         Phifixed <- Phi[[w]]
+         phi.pfac2 <- eigen(Phifixed, symmetric = TRUE)
+         if (nfac[w] == 1) {
+           Gfixed <- t(phi.pfac2$vectors * sqrt(phi.pfac2$values))
+         } else {
+           Gfixed <- t(phi.pfac2$vectors %*% diag(sqrt(phi.pfac2$values)))
+         }
+         Bfixed <- Bweights[[w]]
+         if (lxdim == 3L) {
+           ppfac <- parafac2(X = newdata, nfac = nfac[w], nstart = 1, 
+                            ctol = sqrt(.Machine$double.eps), 
+                            verbose = FALSE, const = const,
+                            Gfixed = Gfixed, Bfixed = Bfixed)                
+           classify.weights[[w]] <- C.pred <- ppfac$C
+         }
+         if (lxdim == 4L) {
+           Cfixed <- Cweights[[w]]
+           ppfac <- parafac2(X = newdata, nfac = nfac[w], nstart = 1, 
+                            ctol = sqrt(.Machine$double.eps), 
+                            verbose = FALSE, const = const,
+                            Gfixed = Gfixed, Bfixed = Bfixed,
+                            Cfixed = Cfixed)                                
+           classify.weights[[w]] <- C.pred <- ppfac$D
+         }
        }
        if (type != "classify.weights") {
          C.pred <- as.matrix(C.pred)

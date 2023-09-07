@@ -8,7 +8,6 @@
 \alias{kcv.svm}
 \alias{kcv.rf}
 \alias{kcv.nn}
-\alias{print.cpfa}
 
 \description{
   Internal functions for "cpfa" package.
@@ -16,4 +15,4 @@
 \details{
   These functions are not intended to be called by the user.
 }
-\keyword{ internal }
+\keyword{internal}

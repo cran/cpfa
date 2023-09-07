@@ -1,11 +1,11 @@
 exportPattern("^[[:alpha:]]+")
 
-import(doParallel)
-import(randomForest)
-import(nnet)
-import(e1071)
 import(multiway)
 import(glmnet)
+import(e1071)
+import(randomForest)
+import(nnet)
+import(doParallel)
 
 S3method(print, cpfa)
 S3method(predict, cpfa)

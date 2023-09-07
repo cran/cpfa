@@ -19,7 +19,6 @@ kcv.nn <-
     weights <- as.matrix(weights)
     grid.row <- nrow(nn.grid)
     cv.nn <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
-    data.xy <- data.frame(x, y)
     if (parallel == TRUE) {
     cv.nn <- foreach (gg = 1:nfolds, .combine = cbind,
                         .packages = 'nnet') %dopar% {

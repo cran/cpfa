@@ -35,7 +35,7 @@ cpm <-
     x <- as.integer(factor(x, levels = level)) - 1
     y <- as.integer(factor(y, levels = level)) - 1
     llev <- length(level)
-    cm <- cmn <- matrix(0, nrow = llev, ncol = llev)
+    cm <- matrix(0, nrow = llev, ncol = llev)
     colnames(cm) <- rownames(cm) <- 1:llev - 1
     for (k in 1:length(x)) {
        roww <- which(rownames(cm) == x[k])
@@ -47,7 +47,7 @@ cpm <-
       fbeta <- 1
     }
     if (!(is.null(fbeta))) {
-      if ((length(fbeta) != 1) | (!(is.numeric(fbeta))))
+      if ((length(fbeta) != 1) || (!(is.numeric(fbeta))))
         stop("Input 'fbeta' must be a single real number when inputted and of
              class numeric.")
     }
@@ -58,7 +58,7 @@ cpm <-
         stop("When inputted, 'prior' must contain as many values as the 
               number of classes.")
       }
-      if ((any(prior < 0)) | (any(prior > 1)))
+      if ((any(prior < 0)) || (any(prior > 1)))
         stop("When inputted, 'prior' must only contain values between 0 and 1,
              inclusive.")
       if (sum(prior) != 1) {
@@ -83,7 +83,6 @@ cpm <-
     if (llev > 2) {
       tpr.sum <- ppv.sum <- fpr.sum <- npv.sum <- rep(0, llev)
       fom.sum <- fdr.sum <- fnr.sum <- tnr.sum <- tpr.sum
-      fs.sum <- fom.sum
       for (h in 1:llev) {
          tpr.sum[h] <- (cm[h,h] / sum(cm[h, ]))
          ppv.sum[h] <- (cm[h,h] / sum(cm[, h]))

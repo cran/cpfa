@@ -1,6 +1,6 @@
 kcv.svm <-
   function(x, y, foldid, svm.grid, nfolds = 10, scale = TRUE,
-           type = NULL, kernel = "radial", degree = 3, coef0 = 0, nu = 0.5,
+           kernel = "radial", degree = 3, coef0 = 0, nu = 0.5,
            class.weights = NULL, cachesize = 40, tolerance = 0.001,
            shrinking = TRUE, cross = 0, probability = TRUE, fitted = TRUE,
            na.action = na.omit, parallel = FALSE) 
@@ -14,7 +14,6 @@ kcv.svm <-
     if (is.null(foldid)) {
       foldid <- sample(rep(1:nfolds, length.out = length(y)))
     }
-    npred <- ncol(x)
     grid.row <- nrow(svm.grid)
     cv.svm <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
     if (parallel == TRUE) {

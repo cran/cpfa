@@ -2,8 +2,7 @@ kcv.plr <-
   function(x, y, foldid = NULL, alpha, nfolds = 10,
            family = c("binomial", "multinomial"), 
            offset = NULL, lambda = NULL, weights = NULL, standardize = FALSE,
-           type.measure = "class", grouped = TRUE, keep = FALSE,
-           parallel = FALSE, maxit = 1e+06) 
+           grouped = TRUE, keep = FALSE, parallel = FALSE, maxit = 1e+06) 
 {
     if (!is.factor(y)) {
       y <- factor(y)
@@ -16,7 +15,6 @@ kcv.plr <-
     }
     lalpha <- length(alpha)
     yweight <- cbind(y, weights)
-    plr.results <- vector('list', 5)
     cvlist <- vector("list", lalpha)
     if (ncol(x) == 1) {
       x <- cbind(0, x)
@@ -77,7 +75,7 @@ kcv.plr <-
     if (nfolds >= 3) {
       for (h in 1:lalpha) {
          cvlist[[h]] <- cv.glmnet(x, y, family = family, offset = offset,
-                             weights = weights, type.measure = type.measure, 
+                             weights = weights, type.measure = "class", 
                              nfolds = nfolds, foldid = foldid, alpha = alpha[h], 
                              lambda = lambda, grouped = grouped, keep = keep, 
                              parallel = parallel, maxit = maxit, 

@@ -4,17 +4,17 @@
 Wrapper for Calculating Classification Performance Measures
 }
 \description{
-Applies function \code{cpm} to multiple sets of class labels. Each set of class labels is evaluated against the same set of predicted labels. Works with output from function \code{predict.cpfa} and calculates classification performance measures for multiple classifiers or numbers of components.
+Applies function \code{cpm} to multiple sets of class labels. Each set of class labels is evaluated against the same set of predicted labels. Works with output from function \code{predict.tune.cpfa} and calculates classification performance measures for multiple classifiers or numbers of components.
 }
 \usage{
 cpm.all(x, y,  ...)
 }
 \arguments{
   \item{x}{
-  A data frame where each column contains a set of known class labels of class numeric, factor, or integer. If a set is of class factor, that set is converted to class integer in order of factor levels with integers beginning at 0 (i.e. for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.). 
+  A data frame where each column contains a set of known class labels of class numeric, factor, or integer. If a set is of class factor, that set is converted to class integer in order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.). 
 }
   \item{y}{
-  Predicted class labels of class numeric, factor, or integer. If factor, converted to class integer in order of factor levels with integers beginning at 0 (i.e. for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.).
+  Predicted class labels of class numeric, factor, or integer. If factor, converted to class integer in order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.).
 }
  \item{...}{
   Additional arguments to be passed to function \code{cpm} for calculating classification performance measures.
@@ -62,6 +62,7 @@ ntree <- c(100, 200)
 nodesize <- c(1, 2)
 size <- c(1, 2)
 decay <- c(0, 1)
+model <- "parafac"
 method <- c("PLR", "SVM", "RF", "NN")
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
@@ -69,10 +70,10 @@ foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
 # estimate Parafac models and use third mode to tune classification methods
 tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
-                         foldid = foldid, method = method, alpha = alpha,
-                         gamma = gamma, cost = cost, ntree = ntree,
-                         nodesize = nodesize, size = size, decay = decay,
-                         parallel = FALSE, const = const)
+                         foldid = foldid, model = model, method = method, 
+                         alpha = alpha, gamma = gamma, cost = cost, 
+                         ntree = ntree, nodesize = nodesize, size = size, 
+                         decay = decay, parallel = FALSE, const = const)
                          
 # create random data array with Parafac structure and same A and B weights
 mydim.new <- c(60, 16, 20)
@@ -84,7 +85,7 @@ Xnew <- Xmat + Emat
 
 # predict class labels
 predict.labels <- predict(object = tune.object, newdata = Xnew,
-                                    type = "response")
+                          type = "response")
 
 # create new random class labels for two levels
 newlabel <- as.numeric(factor(rbinom(mydim.new[3], 1, 0.4))) - 1 

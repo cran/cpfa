@@ -14,11 +14,11 @@ cpm.all <-
     nvar <- ncol(x)
     cmat <- vector('list', nvar)
     cpms <- NULL
-    values <- apply(x, 2, function(x){cpm(x, y, ...)})
+    values <- apply(x, 2, function(a){cpm(a, y, ...)})
     for (i in 1:nvar) {
        cmat[[i]] <- values[[i]][[1]]
        cpms <- rbind(cpms, values[[i]][[2]]) 
-     }
+    }
     nam <- colnames(x)
     names(cmat) <- nam
     rownames(cpms) <- nam

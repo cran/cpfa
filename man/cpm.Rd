@@ -11,20 +11,20 @@ cpm(x, y, level = NULL, fbeta = NULL, prior = NULL)
 }
 \arguments{
   \item{x}{
-  Known class labels of class numeric, factor, or integer. If factor, converted to class integer in order of factor levels with integers beginning at 0 (i.e. for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.). 
+  Known class labels of class numeric, factor, or integer. If factor, converted to class integer in order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.). 
 }
   \item{y}{
-  Predicted class labels of class numeric, factor, or integer. If factor, converted to class integer in order of factor levels with integers beginning at 0 (i.e. for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.).
+  Predicted class labels of class numeric, factor, or integer. If factor, converted to class integer in order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.).
 }
   \item{level}{
-  Optional argument specifying possible class labels. For cases when \code{x} or \code{y} do not contain all possible classes. Can be of class numeric, integer, or character. Must contain two elements for binary classification, and contain three or more elements for multiclass classification. If integer, integers should be ordered (e.g. \code{c(0, 1)}; or \code{c(0, 1, 2)}). Note: if both \code{x} and \code{y} jointly contain only a single value (e.g. 1), must specify argument \code{level} in order to identify classification as binary or multiclass. 
+  Optional argument specifying possible class labels. For cases when \code{x} or \code{y} do not contain all possible classes. Can be of class numeric, integer, or character. Must contain two elements for binary classification, and contain three or more elements for multiclass classification. If integer, integers should be ordered (e.g. \code{c(0, 1)}; or \code{c(0, 1, 2)}). Note: if both \code{x} and \code{y} jointly contain only a single value (e.g., 1), must specify argument \code{level} in order to identify classification as binary or multiclass. 
 }
 
   \item{fbeta}{
-  Optional numeric argument specifying beta value for F-score. Defaults to \code{fbeta = 1}, providing an F1-score (balanced harmonic mean between precision and recall).
+  Optional numeric argument specifying beta value for F-score. Defaults to \code{fbeta = 1}, providing an F1-score (i.e., the balanced harmonic mean between precision and recall).
 }
   \item{prior}{
-  Optional numeric argument specifying weights for classes. Defaults to \code{prior = c(rep(1/llev, llev))}, where 'llev' is the number of classes, providing equal importance across classes.
+  Optional numeric argument specifying weights for classes. Defaults to \code{prior = c(rep(1/llev, llev))}, where \code{llev} is the number of classes, providing equal importance across classes.
   }
 }
 \details{
@@ -34,7 +34,7 @@ Multiple evaluation measures are calculated using these four outcomes. Measures 
 
 In multiclass classification, the four outcomes are possible for each individual class in macro-averaging, and evaluation measures are averaged over classes. Macro-averaging gives equal importance to all classes. For multiclass classification, calculated measures are currently only macro-averaged.
 
-Note that binary classification assumes a positive class and negative class (i.e. contains a reference group) and is ordered. Multiclass classification is currently unordered. 
+Note that binary classification assumes a positive class and negative class (i.e., contains a reference group) and is ordered. Multiclass classification is currently unordered. 
 
 Computational details:
 
@@ -64,10 +64,10 @@ All evaluation measures calculated are between 0 and 1, inclusive. For multiclas
 }
 \value{
 
-Returns list where first element is a full confusion matrix \code{cm} and second element is a data frame containing performance measures. Note that for multiclass classification, macro-averaged values are provided (each measure calculated for each class, then averaged over all classes; average is weighted by argument \code{prior} if provided). Excluding \code{cm}, second list element contains following performance measures:
+Returns list where first element is a full confusion matrix \code{cm} and second element is a data frame containing performance measures. Note that for multiclass classification, macro-averaged values are provided (i.e., each measure is calculated for each class, then averaged over all classes; average is weighted by argument \code{prior} if provided). Excluding \code{cm}, second list element contains following performance measures:
 
   \item{cm}{
-  A confusion matrix with counts for each of possible outcomes.
+  A confusion matrix with counts for each of the possible outcomes.
 }
   \item{err}{
   Overall error (ERR). Also called fraction incorrect.
@@ -135,6 +135,7 @@ ntree <- c(100, 200)
 nodesize <- c(1, 2)
 size <- c(1, 2)
 decay <- c(0, 1)
+model <- "parafac"
 method <- c("PLR", "SVM", "RF", "NN")
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
@@ -142,10 +143,10 @@ foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
 # estimate Parafac models and use third mode to tune classification methods
 tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
-                         foldid = foldid, method = method, alpha = alpha,
-                         gamma = gamma, cost = cost, ntree = ntree,
-                         nodesize = nodesize, size = size, decay = decay,
-                         parallel = FALSE, const = const)
+                         foldid = foldid, model = model, method = method, 
+                         alpha = alpha, gamma = gamma, cost = cost, 
+                         ntree = ntree, nodesize = nodesize, size = size, 
+                         decay = decay, parallel = FALSE, const = const)
                          
 # create random data array with Parafac structure and same A and B weights
 mydim.new <- c(60, 16, 20)
@@ -157,7 +158,7 @@ Xnew <- Xmat + Emat
 
 # predict class labels
 predict.labels <- predict(object = tune.object, newdata = Xnew,
-                                    type = "response")
+                          type = "response")
 
 # create new random class labels for two levels
 newlabel <- as.numeric(factor(rbinom(mydim.new[3], 1, 0.4))) - 1 

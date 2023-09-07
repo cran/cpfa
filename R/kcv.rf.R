@@ -28,11 +28,14 @@ kcv.rf <-
                             rf.fit <- randomForest(x.train, y.train,
                                      ntree = rf.grid[yy, 1],
                                      nodesize = rf.grid[yy, 2], xtest = xtest, 
-                                     ytest=ytest, classwt=classwt, 
-                                     maxnodes = maxnodes, importance=importance, 
-                                     localImp=localImp, nPerm=nPerm, 
-                                     norm.votes=norm.votes, do.trace=do.trace, 
-                                     corr.bias=corr.bias, keep.inbag=keep.inbag)
+                                     ytest = ytest, classwt = classwt, 
+                                     maxnodes = maxnodes, 
+                                     importance = importance, 
+                                     localImp = localImp, nPerm = nPerm, 
+                                     norm.votes = norm.votes, 
+                                     do.trace = do.trace, 
+                                     corr.bias = corr.bias, 
+                                     keep.inbag = keep.inbag)
                             rf.pred <- predict(rf.fit, x.test, type = 'class')
                             stortune[yy, 1] <- 1 - mean(rf.pred == y.test) 
                          }
@@ -50,7 +53,8 @@ kcv.rf <-
               rf.fit <- randomForest(x.train, y.train, ntree = rf.grid[yy, 1],
                                      nodesize = rf.grid[yy, 2], xtest = xtest, 
                                      ytest = ytest, classwt = classwt, 
-                                     maxnodes = maxnodes, importance=importance, 
+                                     maxnodes = maxnodes, 
+                                     importance = importance, 
                                      localImp = localImp, nPerm = nPerm, 
                                      norm.votes = norm.votes, 
                                      do.trace = do.trace, corr.bias = corr.bias,
@@ -64,12 +68,12 @@ kcv.rf <-
     rf.mean <- apply(cv.rf, 1, mean)
     minid <- which.min(rf.mean)
     rf.fit.best <- randomForest(x, y, ntree = rf.grid[minid, 1],
-                                nodesize = rf.grid[minid, 2], xtest=xtest, 
-                                ytest=ytest, classwt=classwt, 
-                                maxnodes = maxnodes, importance=importance, 
-                                localImp=localImp, nPerm=nPerm, 
-                                norm.votes=norm.votes, do.trace=do.trace, 
-                                corr.bias=corr.bias, keep.inbag=keep.inbag)
+                                nodesize = rf.grid[minid, 2], xtest = xtest, 
+                                ytest = ytest, classwt = classwt, 
+                                maxnodes = maxnodes, importance = importance, 
+                                localImp = localImp, nPerm = nPerm, 
+                                norm.votes = norm.votes, do.trace = do.trace, 
+                                corr.bias = corr.bias, keep.inbag = keep.inbag)
     return(list(rf.grid.id = minid, rf.fit = rf.fit.best, 
                 error = rf.mean[minid]))
 }

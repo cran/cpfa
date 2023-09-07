@@ -1,27 +1,32 @@
 print.cpfa <-
   function(x, ...)
 {
+   if (!inherits(x, "cpfa")) {
+     stop("Input 'x' must be of class 'cpfa'.")
+   }
    kcv.error <- x$kcv.error
    est.time <- x$est.time
    method <- x$method
    nfac <- x$opt.param$nfac
-   nway <- length(dim(x$x))
+   nway <- x$lxdim
+   model <- x$model
    method.char <- NULL
    if ('1' %in% method) {method.char <- c(method.char, "PLR")}
    if ('2' %in% method) {method.char <- c(method.char, "SVM")}
    if ('3' %in% method) {method.char <- c(method.char, "RF")}
    if ('4' %in% method) {method.char <- c(method.char, "NN")}
    cat(paste0("Parafac Models Estimated:"))
-   cat(paste0("\n", nway, "-way Parafac with ", nfac, " factors"), "\n")
+   cat(paste0("\n", nway, "-way ", toupper(model), " with ", nfac, " factors"),
+       "\n")
    cat(paste0("\n", "Classification Methods Tuned:"))
    cat(paste0("\n",method.char), "\n")
-   cat(paste0("\n", "KCV Misclassification Error (estimation time in seconds) by 
-Model and Method:"), "\n")
-   for (w in 1:length(nfac)) {
+   cat(paste0("\n", "KCV Misclassification Error (estimation time in seconds) \n 
+              by Model and Method:"), "\n")
+   for (w in seq_along(nfac)) {
       cnfac <- nfac[w]
       cerror <- kcv.error[which(nfac == cnfac),]
       ctime <- est.time[which(nfac == cnfac),]
-      cat(paste0("\n","Parafac with ", cnfac, " factors:"), "\n")
+      cat(paste0("\n", toupper(model), " with ", cnfac, " factors:"), "\n")
       if ('1' %in% method) {
         error <- round(cerror$error.plr, 4)
         time <- round(ctime$time.plr, 4)
