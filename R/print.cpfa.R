@@ -15,6 +15,7 @@ print.cpfa <-
    if ('2' %in% method) {method.char <- c(method.char, "SVM")}
    if ('3' %in% method) {method.char <- c(method.char, "RF")}
    if ('4' %in% method) {method.char <- c(method.char, "NN")}
+   if ('5' %in% method) {method.char <- c(method.char, "RDA")}
    cat(paste0("Parafac Models Estimated:"))
    cat(paste0("\n", nway, "-way ", toupper(model), " with ", nfac, " factors"),
        "\n")
@@ -49,6 +50,12 @@ print.cpfa <-
         error <- round(cerror$error.nn, 4)
         time <- round(ctime$time.nn, 4)
         cat(paste0("\n", "  NN:"))
+        cat(paste0("  ", " Error = ", error, " (", time, ")"))
+      }
+      if ('5' %in% method) {
+        error <- round(cerror$error.rda, 4)
+        time <- round(ctime$time.rda, 4)
+        cat(paste0("\n", "  RDA:"))
         cat(paste0("  ", " Error = ", error, " (", time, ")"))
       }
    }

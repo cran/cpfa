@@ -1,11 +1,12 @@
 tune.cpfa <- 
   function(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,            
            model = c("parafac", "parafac2"),
-           method = c("PLR", "SVM", "RF", "NN"), 
+           method = c("PLR", "SVM", "RF", "NN", "RDA"), 
            family = c("binomial", "multinomial"),
            alpha = NULL, lambda = NULL, cost = NULL, gamma = NULL, 
            ntree = NULL, nodesize = NULL, size = NULL, decay = NULL,
-           parallel = FALSE, cl = NULL, verbose = TRUE, cmode = NULL, ...)
+           rda.alpha = NULL, delta = NULL, parallel = FALSE, cl = NULL, 
+           verbose = TRUE, cmode = NULL, ...)
 {
     models <- c("parafac", "parafac2")
     model0 <- pmatch(tolower(model), models)
@@ -136,7 +137,7 @@ tune.cpfa <-
       stop("Input 'foldid' must contain IDs for two or more folds.")
     if (!all(foldid == floor(foldid)))
       stop("Input 'foldid' must contain integers.")
-    methods <- c("PLR", "SVM", "RF", "NN")
+    methods <- c("PLR", "SVM", "RF", "NN", "RDA")
     method <- pmatch(toupper(method), methods)
     if (length(method) == 0) {
       method <- c(1)
@@ -214,6 +215,27 @@ tune.cpfa <-
       decay <- sort(decay)
       nn.grid <- expand.grid(size, decay)
     }
+    if ('5' %in% method) {
+      if (is.null(rda.alpha)) {
+        rda.alpha = seq(0, 0.999, length = 6)
+      }
+      if (any(rda.alpha < 0L) | any(rda.alpha >= 1L)) 
+        stop("Input 'rda.alpha' must contain real numbers equal \n
+                  to or greater than zero, and less than one.")
+      if (!is.numeric(rda.alpha))
+        stop("Input 'rda.alpha' must be numeric.")
+      rda.alpha <- sort(rda.alpha)
+      if (is.null(delta)) {
+        delta = c(0, 0.1, 1, 2, 3, 4)
+      }
+      if (any(delta < 0L))
+        stop("Input 'delta' must be a real number greater than or equal \n 
+                to zero.")
+      if (!is.numeric(delta))
+        stop("Input 'delta' must be numeric.")
+      delta <- sort(delta)
+      rda.grid <- expand.grid(rda.alpha, delta)
+    }
     families <- c("binomial", "multinomial")
     family <- pmatch(tolower(family), families)
     lfam <- length(family)
@@ -279,6 +301,7 @@ tune.cpfa <-
     Bweights <- vector("list", lnfac)
     Cweights <- vector("list", lnfac)
     Phi <- vector("list", lnfac)
+    train.weights <- vector("list", lnfac)
     opt.param <- NULL
     est.time <- NULL
     kcv.error <- NULL
@@ -293,7 +316,7 @@ tune.cpfa <-
     if (('1' %in% method) && (nfolds == 2))
       warning("For 'nfolds = 2', method 'PLR' might give warnings.")
     for (w in 1:lnfac) {
-       optmodel.new <- vector("list", 4)
+       optmodel.new <- vector("list", 5)
        if (model == "parafac") {
          if (verbose == TRUE) {
            cat("nfac =", nfac[w], "method = parafac", fill = TRUE)
@@ -306,10 +329,10 @@ tune.cpfa <-
          time.pfac <- toc[3] - tic[3]
          Aweights[[w]] <- pfac$A
          Bweights[[w]] <- pfac$B                                               
-         train <- as.matrix(pfac$C)
+         train <- train.weights[[w]] <- as.matrix(pfac$C)
          if (lxdim == 4L) {
            Cweights[[w]] <- pfac$C                                               
-           train <- as.matrix(pfac$D)
+           train <- train.weights[[w]] <- as.matrix(pfac$D)
          }
        } else {
          if (verbose == TRUE) {
@@ -323,10 +346,10 @@ tune.cpfa <-
          time.pfac <- toc[3] - tic[3]
          Aweights[[w]] <- pfac$A
          Bweights[[w]] <- pfac$B                                                  
-         train <- as.matrix(pfac$C)
+         train <- train.weights[[w]] <- as.matrix(pfac$C)
          if (lxdim == 4L) {
            Cweights[[w]] <- pfac$C                                              
-           train <- as.matrix(pfac$D)
+           train <- train.weights[[w]] <- as.matrix(pfac$D)
          }
          Phi[[w]] <- pfac$Phi
        }
@@ -419,18 +442,41 @@ tune.cpfa <-
          nn.opt <- data.frame(NA, NA)
          optmodel.new[[4]] <- NULL
        }
+       if ('5' %in% method) {
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "method = rda", fill = TRUE)
+         }
+         tic <- proc.time()
+         rda.results <- kcv.rda(x = train, y = as.numeric(y) - 1, 
+                                nfolds = nfolds, foldid = foldid, 
+                                rda.grid = rda.grid, prior = frac,
+                                parallel = parallel)
+         toc <- proc.time()
+         time.rda <- toc[3] - tic[3]
+         error.rda <- rda.results$error
+         rda.id <- rda.results$rda.grid.id
+         rda.opt <- rda.grid[rda.id,]
+         optmodel.new[[5]] <- rda.fit <- rda.results$rda.fit
+       } else {
+         time.rda <- NA
+         error.rda <- NA
+         rda.opt <- data.frame(NA, NA)
+         optmodel.new[[5]] <- NULL
+       }
        opt.model[[w]] <- optmodel.new
        optparam.new <- data.frame(nfac = nfac[w], alpha = plr.opt,
-                                  lambda = lambda.min, 
-                                  gamma = svm.opt[1,1], cost = svm.opt[1,2],
-                                  ntree = rf.opt[1,1], nodesize = rf.opt[1,2],
-                                  size = nn.opt[1,1], decay = nn.opt[1,2])
+                                  lambda = lambda.min, gamma = svm.opt[1,1], 
+                                  cost = svm.opt[1,2], ntree = rf.opt[1,1], 
+                                  nodesize = rf.opt[1,2], size = nn.opt[1,1], 
+                                  decay = nn.opt[1,2], rda.alpha = rda.opt[1,1], 
+                                  delta = rda.opt[1,2])
        esttime.new <- data.frame(nfac = nfac[w], time.pfac = time.pfac,
                                  time.plr = time.plr, time.svm = time.svm,
-                                 time.rf = time.rf, time.nn = time.nn)
+                                 time.rf = time.rf, time.nn = time.nn,
+                                 time.rda = time.rda)
        kcv.error.new <- data.frame(nfac = nfac[w], error.plr = error.plr,
                                    error.svm = error.svm, error.rf = error.rf,
-                                   error.nn = error.nn)
+                                   error.nn = error.nn, error.rda = error.rda)
        opt.param <- rbind(opt.param, optparam.new)
        est.time <- rbind(est.time, esttime.new)
        kcv.error <- rbind(kcv.error, kcv.error.new)
@@ -446,7 +492,7 @@ tune.cpfa <-
                        Aweights = Aweights, Bweights = Bweights, 
                        Cweights = NULL, Phi = Phi, const = const,
                        cmode = cmode, family = family, xdim = xdim, 
-                       lxdim = lxdim)
+                       lxdim = lxdim, train.weights = train.weights)
     }
     if (lxdim == 4L) {
       cpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
@@ -455,7 +501,7 @@ tune.cpfa <-
                        Aweights = Aweights, Bweights = Bweights, 
                        Cweights = Cweights, Phi = Phi, const = const, 
                        cmode = cmode, family = family, xdim = xdim, 
-                       lxdim = lxdim)
+                       lxdim = lxdim, train.weights = train.weights)
     }
     class(cpfalist) <- "cpfa"
     return(cpfalist)

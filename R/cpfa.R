@@ -2,11 +2,11 @@ cpfa <-
   function(x, y, nrep = 5, ratio = 0.8, seeds = NULL,
            type.out = c("measures", "descriptives"), nfac = 1, nfolds = 10, 
            foldid = NULL, prior = NULL, model = c("parafac", "parafac2"),
-           method = c("PLR", "SVM", "RF", "NN"), 
+           method = c("PLR", "SVM", "RF", "NN", "RDA"), 
            family = c("binomial", "multinomial"), alpha = NULL, lambda = NULL, 
            cost = NULL, gamma = NULL, ntree = NULL, nodesize = NULL, 
-           size = NULL, decay = NULL, parallel = FALSE, cl = NULL, 
-           verbose = TRUE, cmode = NULL, ...) 
+           size = NULL, decay = NULL, rda.alpha = NULL, delta = NULL, 
+           parallel = FALSE, cl = NULL, verbose = TRUE, cmode = NULL, ...) 
 {   
     models <- c("parafac", "parafac2")
     model0 <- pmatch(tolower(model), models)
@@ -164,6 +164,11 @@ cpfa <-
       }
     }
     stor <- array(0, dim = c(length(nfac)*length(method), 11, nrep))
+    predstor <- vector(mode = "list", length = nrep)
+    Aw <- vector(mode = "list", length = nrep)
+    Bw <- vector(mode = "list", length = nrep)
+    Cw <- vector(mode = "list", length = nrep)
+    Pw <- vector(mode = "list", length = nrep)
     if (cmode <- lxdim) {
       cmode <- NULL
     }
@@ -192,18 +197,28 @@ cpfa <-
                              model = model, method = method, family = family, 
                              alpha = alpha, lambda = lambda, cost = cost, 
                              gamma = gamma, ntree = ntree, nodesize = nodesize, 
-                             size = size, decay = decay, parallel = parallel, 
-                             cl = cl, verbose = verbose, cmode = cmode, ...)    
+                             size = size, decay = decay, rda.alpha = rda.alpha,
+                             delta = delta, parallel = parallel, cl = cl, 
+                             verbose = verbose, cmode = cmode, ...)
+       Aw[[i]] <- cpfalist$Aweights
+       Bw[[i]] <- cpfalist$Bweights
+       Cw[[i]] <- cpfalist$Cweights
+       Pw[[i]] <- cpfalist$Phi
        yhat <- predict(object = cpfalist, newdata = X.test, type = "response")                        
-       out <- cpm.all(x = yhat, y = y.test)
+       out <- cpm.all(x = yhat, y = y.test, level = levels(y))
        stor[,,i] <- as.matrix(out$cpms)
+       predstor[[i]] <- predict(object = cpfalist, newdata = X.test, 
+                                type = "classify.weights")
     }
     rnam <- rownames(out$cpms)
     cnam <- colnames(out$cpms)
     dimnames(stor)[[1]] <- rnam
     dimnames(stor)[[2]] <- cnam
+    train.weights <- list(Atrain.weights = Aw, Btrain.weights = Bw, 
+                          Ctrain.weights = Cw, Phitrain = Pw)
     if (typelow == "measures") {
-      return(stor)                                                              
+      return(list(measure = stor, predweights = predstor,
+                  train.weights = train.weights))                                                              
     } else {
       dfun <- c("mean", "median", "sd")
       output <- vector(mode = "list", length = length(dfun))
@@ -214,6 +229,8 @@ cpfa <-
          colnames(output[[j]]) <- cnam
       }
       names(output) <- dfun                                                     
-      return(output)
+      return(list(descriptive = output, 
+                  predweights = predstor,
+                  train.weights = train.weights))
     }
 }

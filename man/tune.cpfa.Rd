@@ -4,16 +4,16 @@
 Tuning for Classification with Parallel Factor Analysis
 }
 \description{
-Fits Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or Parallel Factor Analysis-2 (Parafac2) model to a three-way or four-way data tensor/array. Uses Parafac component weights from a single mode of this model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Supports binary and multiclass classification.
+Fits Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or Parallel Factor Analysis-2 (Parafac2) model to a three-way or four-way data tensor/array. Allows for multiple constraint options. Uses component weights from a single mode of the model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Supports binary and multiclass classification.
 }
 \usage{
 tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
            model = c("parafac", "parafac2"),
-           method = c("PLR", "SVM", "RF", "NN"), 
+           method = c("PLR", "SVM", "RF", "NN", "RDA"), 
            family = c("binomial", "multinomial"),
            alpha = NULL, lambda = NULL, cost = NULL, gamma = NULL, 
            ntree = NULL, nodesize = NULL, size = NULL, decay = NULL, 
-           parallel = FALSE, cl = NULL, 
+           rda.alpha = NULL, delta = NULL, parallel = FALSE, cl = NULL, 
            verbose = TRUE, cmode = NULL, ...)
 }
 \arguments{
@@ -39,7 +39,7 @@ tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
   Character designating the Parafac model to use, either \code{model = "parafac"} to fit the Parafac model or \code{model = "parafac2"} to fit the Parafac2 model.
 }
 \item{method}{
-  Character vector indicating classification methods to use. Possible methods include penalized logistic regression (PLR), support vector machine (SVM), random forest (RF), and feed-forward neural networks (NN). If none selected, default is to use all methods. See example.
+  Character vector indicating classification methods to use. Possible methods include penalized logistic regression (PLR), support vector machine (SVM), random forest (RF), feed-forward neural networks (NN), and regularized discriminant analysis (RDA). If none selected, default is to use all methods.
 }
 \item{family}{
   Character value specifying binary classification (\code{family = "binomial"}) or multiclass classification (\code{family = "multinomial"}). If not provided, number of levels of input \code{y} is used, where two levels is binary, and where three or more levels is multiclass.
@@ -69,6 +69,12 @@ tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
 \item{decay}{
   Values for feed-forward neural network decay parameter; default is \code{decay = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16)}. Must be numeric and contain only real numbers.
 }
+\item{rda.alpha}{
+  Values for regularized discriminant analysis alpha parameter; default is \code{rda.alpha = seq(0, 0.999, length = 6)}. Must be numeric and contain only real numbers between 0 (inclusive) and 1 (exclusive).
+}
+\item{delta}{
+  Values for regularized discriminant analysis delta parameter; default is \code{delta = c(0, 0.1, 1, 2, 3, 4)}. Must be numeric and contain only real numbers greater than or equal to 0.
+}
 \item{parallel}{
   Logical indicating if package \bold{parallel} should be used for parallel computing. For support vector machine and random forest, \bold{doParallel} package is used as a wrapper. Defaults to FALSE, which implements sequential computing.
 }
@@ -86,11 +92,11 @@ tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
 }
 }
 \details{
-After fitting a Parafac or Parafac2 model with package \bold{multiway} (see \code{parafac} or \code{parafac2} in \bold{multiway} for details), estimated classification mode weight matrix is passed to one or several of four classification methods--including penalized logistic regression (PLR); support vector machine (SVM); random forest (RF); and feed-forward neural network (NN). 
+After fitting a Parafac or Parafac2 model with package \bold{multiway} (see \code{parafac} or \code{parafac2} in \bold{multiway} for details), estimated classification mode weight matrix is passed to one or several of four classification methods--including penalized logistic regression (PLR); support vector machine (SVM); random forest (RF); feed-forward neural network (NN); and regularized discriminant analysis (RDA).
 
-Package \bold{glmnet} fits models for PLR. PLR tunes penalty parameter lambda; elastic net parameter alpha is set by user (see \code{cv.glmnet} in package \bold{glmnet}). For SVM, package \bold{e1071} is used with a radial basis kernel. Penalty parameter cost and radial basis parameter gamma are used (see \code{svm} in package \bold{e1071}). For RF, package \bold{randomForest} is used and implements Breiman's random forest algorithm. Number of predictors sampled at each node split is set at default of sqrt(R), where R is the number of Parafac or Parafac2 components. Two tuning parameters allowed are ntree, the number of trees to be grown, and nodesize, the minimum size of terminal nodes (see \code{randomForest} in package \bold{randomForest}). For NN, package \bold{nnet} fits a single-hidden-layer, feed-forward neural network model. Penalty parameters size (i.e., number of hidden layer units) and decay (i.e., weight decay) are used (see \bold{nnet}).
+Package \bold{glmnet} fits models for PLR. PLR tunes penalty parameter lambda; elastic net parameter alpha is set by user (see \code{cv.glmnet} in package \bold{glmnet}). For SVM, package \bold{e1071} is used with a radial basis kernel. Penalty parameter cost and radial basis parameter gamma are used (see \code{svm} in package \bold{e1071}). For RF, package \bold{randomForest} is used and implements Breiman's random forest algorithm. Number of predictors sampled at each node split is set at default of sqrt(R), where R is the number of Parafac or Parafac2 components. Two tuning parameters allowed are ntree, the number of trees to be grown, and nodesize, the minimum size of terminal nodes (see \code{randomForest} in package \bold{randomForest}). For NN, package \bold{nnet} fits a single-hidden-layer, feed-forward neural network model. Penalty parameters size (i.e., number of hidden layer units) and decay (i.e., weight decay) are used (see \bold{nnet}). For RDA, package \bold{rda} fits a shrunken centroids regularized discriminant analysis model. Tuning parameters include alpha, shrinkage penalty for the within-class covariance matrix, and delta, the shrinkage penalty of class centroids towards the total dataset centroid.
 
-For all four methods, k-fold cross-validation is implemented to tune classification parameters where the number of folds is set by argument \code{nfolds}.
+For all five methods, k-fold cross-validation is implemented to tune classification parameters where the number of folds is set by argument \code{nfolds}.
 }
 \value{
   Returns an object of class \code{cpfa} with the following elements:
@@ -108,7 +114,7 @@ For all four methods, k-fold cross-validation is implemented to tune classificat
   Data frame containing times for fitting Parafac or Parafac2 model and for tuning classification methods.
 }
   \item{method}{
-  Numeric indicating classification methods used. Value of '1' indicates PLR; value of '2' indicates SVM; value of '3' indicates 'RF'; and value of '4' indicates 'NN'.
+  Numeric indicating classification methods used. Value of '1' indicates 'PLR'; value of '2' indicates 'SVM'; value of '3' indicates 'RF'; value of '4' indicates 'NN'; and value of '5' indicates 'RDA'.
 }
   \item{x}{
   Three-way or four-way array used. If a list was used with \code{model = "parafac2"}, list of matrices or three-way arrays used.
@@ -143,10 +149,13 @@ For all four methods, k-fold cross-validation is implemented to tune classificat
   \item{lxdim}{
   Numeric value specifying number of modes of input \code{x}.
 }
+  \item{train.weights}{
+  List containing classification component weights for each fit Parafac or Parafac2 model, for possibly different numbers of components. The weights used to train classifiers.
+}
 
 }
 \note{
-For fitting the Parafac model, if argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a four-way array \code{x}) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a four-way array and \code{cmode = 2}, original modes/dimensions 1, 2, 3, and 4 will correspond to output order 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e. second mode specified by \code{cmode} has been moved to the last/D mode). For \code{model = "parafac2"}, classification mode is assumed to be the last mode (i.e., mode C for three-way array and mode D for four-way array).
+For fitting the Parafac model, if argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a four-way array \code{x}) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a four-way array and \code{cmode = 2}, original modes/dimensions 1, 2, 3, and 4 will correspond to output order 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e., second mode specified by \code{cmode} has been moved to the last/D mode). For \code{model = "parafac2"}, classification mode is assumed to be the last mode (i.e., mode C for three-way array and mode D for four-way array).
 
 In addition, note that there are cases where the following combination of arguments will give an error: \code{nfac = 1, family = "multinomial", method = "PLR"}.
 }
@@ -158,26 +167,35 @@ Breiman, L. (2001). Random forests. Machine Learning, 45(1), 5-32.
 
 Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine Learning, 20(3), 273-297.
 
-Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. Journal of Statistical Software, 33(1), 1-22.
+Friedman, J. H. (1989). Regularized discriminant analysis. Journal of the American Statistical Association, 84(405), 165-175.
 
-Harshman, R. A. (1970). Foundations of the PARAFAC procedure: Models and conditions for an "explanatory" multimodal factor analysis. UCLA Working Papers in Phonetics, 16, 1-84.
+Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization paths for generalized linear Models via coordinate descent. Journal of Statistical Software, 33(1), 1-22.
 
-Harshman, R. A. and Lundy, M. E. (1994). PARAFAC: Parallel factor analysis. Computational Statistics and Data Analysis, 18, 39-72.
+Guo, Y., Hastie, T., and Tibshirani, R. (2007). Regularized linear discriminant analysis and its application in microarrays. Biostatistics, 8(1), 86-100.
 
-Helwig, N. E. (2017). Estimating latent trends in multivariate longitudinal data via Parafac2 with functional and structural constraints. Biometrical Journal, 59(4), 783-803.
+Guo Y., Hastie T., and Tibshirani, R. (2023). rda: Shrunken centroids regularized discriminant analysis. R Package Version 1.2-1.
 
-Helwig, N. E. (2019). multiway: Component Models for Multi-Way Data. R package version 1.0-6.
+Harshman, R. (1970). Foundations of the PARAFAC procedure: Models and conditions for an "explanatory" multimodal factor analysis. UCLA Working Papers in Phonetics, 16, 1-84.
 
-Liaw, A. and Wiener, M. (2002). Classification and Regression by randomForest. R News 2(3), 18--22.
+Harshman, R. (1972). PARAFAC2: Mathematical and technical notes. UCLA Working Papers in Phonetics, 22, 30-44. 
 
-Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2021). e1071: Misc Functions of the Department of Statistics, Probability Theory Group (Formerly: E1071), TU Wien. R package version 1.7-6.
+Harshman, R. and Lundy, M. (1994). PARAFAC: Parallel factor analysis. Computational Statistics and Data Analysis, 18, 39-72.
+
+Helwig, N. (2017). Estimating latent trends in multivariate longitudinal data via Parafac2 with functional and structural constraints. Biometrical Journal, 59(4), 783-803.
+
+Helwig, N. (2019). multiway: Component models for multi-way data. R Package Version 1.0-6.
+
+Liaw, A. and Wiener, M. (2002). Classification and regression by randomForest. R News 2(3), 18--22.
+
+Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2023). e1071: Misc functions of the Department of Statistics, Probability Theory Group (Formerly: E1071), TU Wien. R Package Version 1.7-13.
 
 Ripley, B. (1994). Neural networks and related methods for classification. Journal of the Royal Statistical Society: Series B (Methodological), 56(3), 409-437.
 
-Venables, W. and Ripley, B. (2002) Modern Applied Statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0.
+Venables, W. and Ripley, B. (2002). Modern applied statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0.
 
 Zou, H. and Hastie, T. (2005). Regularization and variable selection via the elastic net. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 67(2), 301-320.
 }
+
 \examples{
 ########## Random binary example with 3-way array ##########
 
@@ -202,8 +220,10 @@ ntree <- c(100, 200)
 nodesize <- c(1, 2)
 size <- c(1, 2)
 decay <- c(0, 1)
+rda.alpha <- c(0.1, 0.6)
+delta <- c(0.1, 2)
 model <- "parafac"
-method <- c("PLR", "SVM", "RF", "NN")
+method <- c("PLR", "SVM", "RF", "NN", "RDA")
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
 foldid <- sample(rep(1:nfolds, length.out = length(y)))
@@ -213,6 +233,7 @@ tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          foldid = foldid, model = model, method = method, 
                          alpha = alpha, gamma = gamma, cost = cost, 
                          ntree = ntree, nodesize = nodesize, size = size, 
-                         decay = decay, parallel = FALSE, const = const)
+                         decay = decay, rda.alpha = rda.alpha,
+                         delta = delta, parallel = FALSE, const = const)
 print(tune.object)
 }

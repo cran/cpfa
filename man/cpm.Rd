@@ -135,8 +135,10 @@ ntree <- c(100, 200)
 nodesize <- c(1, 2)
 size <- c(1, 2)
 decay <- c(0, 1)
+rda.alpha <- c(0.1, 0.6)
+delta <- c(0.1, 2)
 model <- "parafac"
-method <- c("PLR", "SVM", "RF", "NN")
+method <- c("PLR", "SVM", "RF", "NN", "RDA")
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
 foldid <- sample(rep(1:nfolds, length.out = length(y)))
@@ -146,8 +148,9 @@ tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          foldid = foldid, model = model, method = method, 
                          alpha = alpha, gamma = gamma, cost = cost, 
                          ntree = ntree, nodesize = nodesize, size = size, 
-                         decay = decay, parallel = FALSE, const = const)
-                         
+                         decay = decay, rda.alpha = rda.alpha,
+                         delta = delta, parallel = FALSE, const = const)
+
 # create random data array with Parafac structure and same A and B weights
 mydim.new <- c(60, 16, 20)
 Cmat <- matrix(runif(mydim.new[3]*nf), nrow = mydim.new[3], ncol = nf)

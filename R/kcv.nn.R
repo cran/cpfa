@@ -1,5 +1,5 @@
 kcv.nn <-
-  function(x, y, foldid = NULL, nn.grid, nfolds = 10, weights = NULL,
+  function(x, y, foldid = NULL, nn.grid, nfolds = NULL, weights = NULL,
            linout = FALSE, censored = FALSE, skip = FALSE, 
            rang = 0.5, parallel = FALSE) 
 {

@@ -1,5 +1,5 @@
 kcv.rf <-
-  function(x, y, foldid = NULL, rf.grid, nfolds = 10, 
+  function(x, y, foldid = NULL, rf.grid, nfolds = NULL, 
            xtest = NULL, ytest = NULL, classwt = NULL, 
            maxnodes = NULL, importance = FALSE, localImp = FALSE, nPerm = 1, 
            norm.votes = TRUE, do.trace = FALSE, corr.bias = FALSE,

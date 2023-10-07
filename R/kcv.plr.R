@@ -1,5 +1,5 @@
 kcv.plr <-
-  function(x, y, foldid = NULL, alpha, nfolds = 10,
+  function(x, y, foldid = NULL, alpha, nfolds = NULL,
            family = c("binomial", "multinomial"), 
            offset = NULL, lambda = NULL, weights = NULL, standardize = FALSE,
            grouped = TRUE, keep = FALSE, parallel = FALSE, maxit = 1e+06) 
@@ -9,6 +9,14 @@ kcv.plr <-
     } 
     if (is.null(nfolds)) {
       nfolds <- 10
+    } else {
+      if ((nfolds %% 1) != 0) {
+        stop("Input 'nfolds' must be an integer.")
+      }
+      if ((nfolds < 2) | (nfolds > length(y))) {
+        stop("Input 'nfolds must be an integer between 2 and the \n
+             number of observations, inclusive.")
+      }
     }
     if (is.null(foldid)) {
       foldid <- sample(rep(1:nfolds, length.out = length(y)))
@@ -71,8 +79,7 @@ kcv.plr <-
       minid <- which.min(stor.cvm)
       minlam <- stor.minlam[minid]
       mincv <- stor.cvm
-    }
-    if (nfolds >= 3) {
+    } else {
       for (h in 1:lalpha) {
          cvlist[[h]] <- cv.glmnet(x, y, family = family, offset = offset,
                              weights = weights, type.measure = "class", 
@@ -87,8 +94,7 @@ kcv.plr <-
     if (nfolds == 2) {
       return(list(alpha.id = minid, plr.fit = fit0,
                   error = mincv[minid], lambda.min = minlam))
-    }
-    if (nfolds >= 3) {
+    } else {
       return(list(alpha.id = minid, plr.fit = cvlist[[minid]],
              error = mincv[minid]))
     }

@@ -1,5 +1,5 @@
 kcv.svm <-
-  function(x, y, foldid, svm.grid, nfolds = 10, scale = TRUE,
+  function(x, y, foldid, svm.grid, nfolds = NULL, scale = TRUE,
            kernel = "radial", degree = 3, coef0 = 0, nu = 0.5,
            class.weights = NULL, cachesize = 40, tolerance = 0.001,
            shrinking = TRUE, cross = 0, probability = TRUE, fitted = TRUE,

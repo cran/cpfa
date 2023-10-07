@@ -22,8 +22,7 @@ cpm <-
       if (llev == 1) {
         stop ("Input 'level' must contain two or more values when supplied.")
       }
-    }
-    if (is.null(level)) {
+    } else {
       luni <- length(unique(c(x, y)))
       if (luni == 1L) {
         stop("Inputs 'x' and 'y' contain only one unique value. Unclear if
@@ -79,8 +78,7 @@ cpm <-
       fdr <- 1 - ppv
       npv <- cm[1,1] / (cm[1,1] + cm[2,1])
       fom <- 1 - npv
-    }
-    if (llev > 2) {
+    } else {
       tpr.sum <- ppv.sum <- fpr.sum <- npv.sum <- rep(0, llev)
       fom.sum <- fdr.sum <- fnr.sum <- tnr.sum <- tpr.sum
       for (h in 1:llev) {

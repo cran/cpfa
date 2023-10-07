@@ -30,31 +30,37 @@ Returns a summary of 'cpfa' model object.
  Matthew Snodgress <snodg031@umn.edu>
 }
 \references{
+Breiman, L. (2001). Random forests. Machine Learning, 45(1), 5-32.
 
-Breiman, L. (2001). Random forests. Machine learning, 45(1), 5-32.
+Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine Learning, 20(3), 273-297.
 
-Cortes, C., and Vapnik, V. (1995). Support-vector networks. Machine learning, 20(3), 273-297.
+Friedman, J. H. (1989). Regularized discriminant analysis. Journal of the American Statistical Association, 84(405), 165-175.
 
-Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent. Journal of Statistical Software, 33(1), 1-22.
+Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization paths for generalized linear Models via coordinate descent. Journal of Statistical Software, 33(1), 1-22.
 
-Harshman, R. A. (1970). Foundations of the PARAFAC procedure: Models and conditions for an "explanatory" multimodal factor analysis. UCLA Working Papers in Phonetics, 16, 1-84.
+Guo, Y., Hastie, T., and Tibshirani, R. (2007). Regularized linear discriminant analysis and its application in microarrays. Biostatistics, 8(1), 86-100.
 
-Harshman, R. A. and Lundy, M. E. (1994). PARAFAC: Parallel factor analysis. Computational Statistics and Data Analysis, 18, 39-72.
+Guo Y., Hastie T., and Tibshirani, R. (2023). rda: Shrunken centroids regularized discriminant analysis. R Package Version 1.2-1.
 
-Helwig, N. E. (2017). Estimating latent trends in multivariate longitudinal data via Parafac2 with functional and structural constraints. Biometrical Journal, 59(4), 783-803.
+Harshman, R. (1970). Foundations of the PARAFAC procedure: Models and conditions for an "explanatory" multimodal factor analysis. UCLA Working Papers in Phonetics, 16, 1-84.
 
-Helwig, N. E. (2019). multiway: Component Models for Multi-Way Data. R Package version 1.0-6.
+Harshman, R. (1972). PARAFAC2: Mathematical and technical notes. UCLA Working Papers in Phonetics, 22, 30-44. 
 
-Liaw, A., and Wiener, M. (2002). Classification and Regression by randomForest. R News 2(3), 18-22.
+Harshman, R. and Lundy, M. (1994). PARAFAC: Parallel factor analysis. Computational Statistics and Data Analysis, 18, 39-72.
 
-Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2021). e1071: Misc Functions of the Department of Statistics, Probability Theory Group (Formerly: E1071), TU Wien. R package version 1.7-6.
+Helwig, N. (2017). Estimating latent trends in multivariate longitudinal data via Parafac2 with functional and structural constraints. Biometrical Journal, 59(4), 783-803.
+
+Helwig, N. (2019). multiway: Component models for multi-way data. R Package Version 1.0-6.
+
+Liaw, A. and Wiener, M. (2002). Classification and regression by randomForest. R News 2(3), 18--22.
+
+Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2023). e1071: Misc functions of the Department of Statistics, Probability Theory Group (Formerly: E1071), TU Wien. R Package Version 1.7-13.
 
 Ripley, B. (1994). Neural networks and related methods for classification. Journal of the Royal Statistical Society: Series B (Methodological), 56(3), 409-437.
 
-Venables, W. and Ripley, B. (2002) Modern Applied Statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0.
+Venables, W. and Ripley, B. (2002). Modern applied statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0.
 
-Zou, H. and Hastie, T. (2005). Regularization and variable selection via the elastic net. Journal of the Royal Statistical Society: Series B (Statistical Methodology). 67(2), 301-320.
-
+Zou, H. and Hastie, T. (2005). Regularization and variable selection via the elastic net. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 67(2), 301-320.
 }
 \examples{
 ########## Random binary example with 3-way array ##########
@@ -80,8 +86,10 @@ ntree <- c(100, 200)
 nodesize <- c(1, 2)
 size <- c(1, 2)
 decay <- c(0, 1)
+rda.alpha <- c(0.1, 0.6)
+delta <- c(0.1, 2)
 model <- "parafac"
-method <- c("PLR", "SVM", "RF", "NN")
+method <- c("PLR", "SVM", "RF", "NN", "RDA")
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
 foldid <- sample(rep(1:nfolds, length.out = length(y)))
@@ -91,7 +99,8 @@ tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          foldid = foldid, model = model, method = method, 
                          alpha = alpha, gamma = gamma, cost = cost, 
                          ntree = ntree, nodesize = nodesize, size = size, 
-                         decay = decay, parallel = FALSE, const = const)
+                         decay = decay, rda.alpha = rda.alpha,
+                         delta = delta, parallel = FALSE, const = const)
                          
 print(tune.object)
 }

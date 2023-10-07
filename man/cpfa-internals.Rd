@@ -1,13 +1,13 @@
 \name{cpfa-internals}
-\alias{cpfa-internals}
 
 \title{Internal Functions for "cpfa"}
 
-%% List of Internal Functions Called
+% List of Internal Functions
 \alias{kcv.plr}
 \alias{kcv.svm}
 \alias{kcv.rf}
 \alias{kcv.nn}
+\alias{kcv.rda}
 
 \description{
   Internal functions for "cpfa" package.
