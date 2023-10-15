@@ -4,7 +4,7 @@
 Tuning for Classification with Parallel Factor Analysis
 }
 \description{
-Fits Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or Parallel Factor Analysis-2 (Parafac2) model to a three-way or four-way data tensor/array. Allows for multiple constraint options. Uses component weights from a single mode of the model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Supports binary and multiclass classification.
+Fits Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or Parallel Factor Analysis-2 (Parafac2) model to a three-way or four-way data tensor/array. Allows for multiple constraint options on tensor modes. Uses component weights from a single mode of the model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Supports binary and multiclass classification.
 }
 \usage{
 tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
@@ -21,7 +21,7 @@ tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
   Three-way or four-way data array. When \code{model = "parafac2"}, can also be a list containing either matrices or three-way arrays. See note below.
 } 
 \item{y}{
-  A factor with two or more levels containing class labels. For binary case, ensure the order of factor levels (left to right) is such that negative class is first and positive class is second.
+  A factor with two or more levels containing class labels. For binary case, ensure the order of factor levels (from left to right) is such that the negative class is first and the positive class is second.
 }
 \item{nfac}{
   Number of components for each Parafac or Parafac2 model to estimate. Default is \code{nfac = 1}.
@@ -30,10 +30,10 @@ tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
   Numeric setting number of folds for k-fold cross-validation. Must be 2 or greater. Default is \code{nfolds = 10}.
 }
 \item{foldid}{
-  Integer vector containing fold IDs for k-fold cross-validation. If not provided, fold IDs are generated randomly for number of folds \code{nfolds}.
+  Integer vector containing fold IDs for k-fold cross-validation. If not provided, fold IDs are generated randomly for the number of folds \code{nfolds}.
 }
 \item{prior}{
-  Prior probabilities of class membership. If unspecified, the class proportions for input \code{y} are used. If present, the probabilities should be specified in the order of the factor levels of input \code{y}.
+  Prior probabilities of class membership. If unspecified, the class proportions for input \code{y} are used. If specified, the probabilities should be in the order of the factor levels of input \code{y}.
 }
 \item{model}{
   Character designating the Parafac model to use, either \code{model = "parafac"} to fit the Parafac model or \code{model = "parafac2"} to fit the Parafac2 model.
@@ -48,14 +48,13 @@ tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
    Values for penalized logistic regression alpha parameter; default is \code{alpha = seq(0, 1, length = 6)}. Must be numeric and contain only real numbers between 0 and 1, inclusive.
 }
 \item{lambda}{
-   Optional user-supplied lambda sequence for \code{cv.glmnet}. Default is NULL.
+   Optional user-supplied lambda sequence for \code{cv.glmnet} for penalized logistic regression. Default is NULL.
 }
 \item{cost}{
   Values for support vector machine cost parameter; default is \code{cost = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only real numbers greater than or equal to zero.
 }
 \item{gamma}{
-  Values for support vector machine gamma parameter; default is
-\code{gamma = c(0, 0.01, 0.1, 1, 10, 100, 1000)}. Must be numeric and greater than or equal to 0.
+  Values for support vector machine gamma parameter; default is \code{gamma = c(0, 0.01, 0.1, 1, 10, 100, 1000)}. Must be numeric and greater than or equal to 0.
 }
 \item{ntree}{
   Values for random forest number of trees parameter; default is \code{ntree = c(100, 200, 400, 600, 800, 1600, 3200)}. Must be numeric and contain only integers greater than or equal to 1.
@@ -76,7 +75,7 @@ tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
   Values for regularized discriminant analysis delta parameter; default is \code{delta = c(0, 0.1, 1, 2, 3, 4)}. Must be numeric and contain only real numbers greater than or equal to 0.
 }
 \item{parallel}{
-  Logical indicating if package \bold{parallel} should be used for parallel computing. For support vector machine and random forest, \bold{doParallel} package is used as a wrapper. Defaults to FALSE, which implements sequential computing.
+  Logical indicating if parallel computing should be implemented. If TRUE, the package \bold{parallel} is used for parallel computing. For all classification methods except penalized logistic regression, the \bold{doParallel} package is used as a wrapper. Defaults to FALSE, which implements sequential computing.
 }
 \item{cl}{
   Cluster for parallel computing, which is used when \code{parallel = TRUE}. Note that if \code{parallel = TRUE} and \code{cl = NULL}, then the cluster is defined as \code{makeCluster(detectCores())}.
@@ -85,16 +84,16 @@ tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
   If TRUE, progress is printed.
 }
 \item{cmode}{
-  Integer value of 1, 2, or 3 (or 4 if 'x' is a four-way array) specifying mode whose component weights will be predictors for classification. Defaults to last mode of inputted array (i.e., 3 for three-way array, and 4 for four-way array). If \code{model = "parafac2"}, last mode will be used.
+  Integer value of 1, 2, or 3 (or 4 if 'x' is a four-way array) specifying mode whose component weights will be predictors for classification. Defaults to last mode of inputted array (i.e., defaults to 3 for three-way array and to 4 for four-way array). If \code{model = "parafac2"}, last mode will be used.
 }
 \item{...}{
   Additional arguments to be passed to function \code{parafac} for fitting a Parafac model or function \code{parafac2} for fitting a Parafac2 model.
 }
 }
 \details{
-After fitting a Parafac or Parafac2 model with package \bold{multiway} (see \code{parafac} or \code{parafac2} in \bold{multiway} for details), estimated classification mode weight matrix is passed to one or several of four classification methods--including penalized logistic regression (PLR); support vector machine (SVM); random forest (RF); feed-forward neural network (NN); and regularized discriminant analysis (RDA).
+After fitting a Parafac or Parafac2 model with package \bold{multiway} (see \code{parafac} or \code{parafac2} in \bold{multiway} for details), the estimated classification mode weight matrix is passed to one or several of five classification methods--including penalized logistic regression (PLR); support vector machine (SVM); random forest (RF); feed-forward neural network (NN); and regularized discriminant analysis (RDA).
 
-Package \bold{glmnet} fits models for PLR. PLR tunes penalty parameter lambda; elastic net parameter alpha is set by user (see \code{cv.glmnet} in package \bold{glmnet}). For SVM, package \bold{e1071} is used with a radial basis kernel. Penalty parameter cost and radial basis parameter gamma are used (see \code{svm} in package \bold{e1071}). For RF, package \bold{randomForest} is used and implements Breiman's random forest algorithm. Number of predictors sampled at each node split is set at default of sqrt(R), where R is the number of Parafac or Parafac2 components. Two tuning parameters allowed are ntree, the number of trees to be grown, and nodesize, the minimum size of terminal nodes (see \code{randomForest} in package \bold{randomForest}). For NN, package \bold{nnet} fits a single-hidden-layer, feed-forward neural network model. Penalty parameters size (i.e., number of hidden layer units) and decay (i.e., weight decay) are used (see \bold{nnet}). For RDA, package \bold{rda} fits a shrunken centroids regularized discriminant analysis model. Tuning parameters include alpha, shrinkage penalty for the within-class covariance matrix, and delta, the shrinkage penalty of class centroids towards the total dataset centroid.
+Package \bold{glmnet} fits models for PLR. PLR tunes penalty parameter lambda while the elastic net parameter alpha is set by the user (see the help file for function \code{cv.glmnet} in package \bold{glmnet}). For SVM, package \bold{e1071} is used with a radial basis kernel. Penalty parameter cost and radial basis parameter gamma are used (see \code{svm} in package \bold{e1071}). For RF, package \bold{randomForest} is used and implements Breiman's random forest algorithm. The number of predictors sampled at each node split is set at the default of sqrt(R), where R is the number of Parafac or Parafac2 components. Two tuning parameters allowed are ntree, the number of trees to be grown, and nodesize, the minimum size of terminal nodes (see \code{randomForest} in package \bold{randomForest}). For NN, package \bold{nnet} fits a single-hidden-layer, feed-forward neural network model. Penalty parameters size (i.e., number of hidden layer units) and decay (i.e., weight decay) are used (see \bold{nnet}). For RDA, package \bold{rda} fits a shrunken centroids regularized discriminant analysis model. Tuning parameters include rda.alpha, the shrinkage penalty for the within-class covariance matrix, and delta, the shrinkage penalty of class centroids towards the overall dataset centroid.
 
 For all five methods, k-fold cross-validation is implemented to tune classification parameters where the number of folds is set by argument \code{nfolds}.
 }
@@ -117,7 +116,7 @@ For all five methods, k-fold cross-validation is implemented to tune classificat
   Numeric indicating classification methods used. Value of '1' indicates 'PLR'; value of '2' indicates 'SVM'; value of '3' indicates 'RF'; value of '4' indicates 'NN'; and value of '5' indicates 'RDA'.
 }
   \item{x}{
-  Three-way or four-way array used. If a list was used with \code{model = "parafac2"}, list of matrices or three-way arrays used.
+  Three-way or four-way array used. If a list was used with \code{model = "parafac2"}, returns list of matrices or three-way arrays used.
 }
   \item{y}{
   Factor containing class labels used. Note that output \code{y} is recoded such that the input labels of \code{y} are converted to numeric integers from 0 through the number of levels, which are then applied as labels for output \code{y}. 
@@ -129,10 +128,10 @@ For all five methods, k-fold cross-validation is implemented to tune classificat
   List containing estimated B weights for each Parafac or Parafac2 model that was fit.
 }
   \item{Cweights}{
-  List containing estimated C weights for each Parafac or Parafac2 model that was fit. Null if inputted argument \code{x} was a 3-way array.
+  List containing estimated C weights for each Parafac or Parafac2 model that was fit. Null if inputted argument \code{x} was a three-way array.
 }
   \item{Phi}{
-  If \code{model = "parafac2"}, a list containing estimated \code{Phi} from the Parafac2 model. \code{Phi} is the common crossproduct matrix shared by all levels of the last mode (see help file for function \code{parafac2} in package \bold{multiway} for additional details). NULL if \code{model = "parafac"}.
+  If \code{model = "parafac2"}, a list containing estimated \code{Phi} from the Parafac2 model. \code{Phi} is the common cross product matrix shared by all levels of the last mode (see help file for function \code{parafac2} in package \bold{multiway} for additional details). NULL if \code{model = "parafac"}.
 }
   \item{const}{
   Constraints used in fitting Parafac or Parafac2 models. If argument \code{const} was not inputted, no constraints will be used.
@@ -155,9 +154,9 @@ For all five methods, k-fold cross-validation is implemented to tune classificat
 
 }
 \note{
-For fitting the Parafac model, if argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a four-way array \code{x}) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a four-way array and \code{cmode = 2}, original modes/dimensions 1, 2, 3, and 4 will correspond to output order 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e., second mode specified by \code{cmode} has been moved to the last/D mode). For \code{model = "parafac2"}, classification mode is assumed to be the last mode (i.e., mode C for three-way array and mode D for four-way array).
+For fitting the Parafac model, if argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a four-way array) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a four-way array and \code{cmode = 2}, the original input modes 1, 2, 3, and 4 will correspond to output modes 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e., the second mode specified by \code{cmode} has been moved to the D mode/last mode). For \code{model = "parafac2"}, classification mode is assumed to be the last mode (i.e., mode C for three-way array and mode D for four-way array).
 
-In addition, note that there are cases where the following combination of arguments will give an error: \code{nfac = 1, family = "multinomial", method = "PLR"}.
+In addition, note that there are cases where the following combination of arguments will give an error: \code{nfac = 1, family = "multinomial", method = "PLR"}. This issue will be resolved in a future update.
 }
 \author{
 Matthew A. Snodgress <snodg031@umn.edu>
@@ -169,7 +168,7 @@ Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine Learning, 20(
 
 Friedman, J. H. (1989). Regularized discriminant analysis. Journal of the American Statistical Association, 84(405), 165-175.
 
-Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization paths for generalized linear Models via coordinate descent. Journal of Statistical Software, 33(1), 1-22.
+Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization paths for generalized linear models via coordinate descent. Journal of Statistical Software, 33(1), 1-22.
 
 Guo, Y., Hastie, T., and Tibshirani, R. (2007). Regularized linear discriminant analysis and its application in microarrays. Biostatistics, 8(1), 86-100.
 
@@ -228,7 +227,7 @@ nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
 foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
-# estimate Parafac models and use third mode to tune classification methods
+# fit Parafac models and use third mode to tune classification methods
 tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          foldid = foldid, model = model, method = method, 
                          alpha = alpha, gamma = gamma, cost = cost, 

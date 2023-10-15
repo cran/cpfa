@@ -1,0 +1,85 @@
+Changes:  version 1.0-8  (2023-10-15)
+
+1.) Bug fix in internal function “kcv.rda” for KCV error calculation
+	- Previously provided accuracy as classification error output
+	- Now correctly uses classification error instead of accuracy
+
+2.) Improvements to help files for most package functions
+	- Previously help files contained language noting four methods
+	- Now help files correctly reference five methods, including RDA
+
+3.) Added plotting to main package function cpfa
+	- Previously function cpfa contained no plotting capabilities
+	- Now box plots of performance measures can be produced as output
+
+----------------
+
+Changes:  version 1.0-7  (2023-10-07)
+
+1.) Added regularized discriminant analysis (RDA) as a classifier
+	- Previously used four classification methods
+	- Now adds RDA as a new classification method
+
+2.) Added new references to help files for RDA
+
+----------------
+
+Changes:  version 1.0-6  (2023-09-07)
+
+1.) Added Parallel Factor Analysis-2 (Parafac2) as a component model
+	- Previously used only Parallel Factor Analysis-1 (Parafac)
+	- Now includes functionality for Parafac2 and for irregular tensors
+
+2.) Added new references for Parafac2 (e.g., Harshman, 1972)
+
+----------------
+
+Changes:  version 1.0-5  (2023-08-07)
+
+1.) Added new function ‘cpfa’ as a wrapper function to implement method
+	- Previously package functions were not united 
+	- Now all package functions are united under new wrapper function
+
+2.) Improvements to help files
+	- Previously help files contained language errors and typos
+	- Now help files correctly use proper language
+
+----------------
+
+Changes:  version 1.0-4  (2022-06-20)
+
+1.) Removed package vignette due to vignette still containing key errors
+	- Previously provided a vignette describing package use
+	- Now removes vignette due to major errors; will add when fixed
+
+----------------
+
+Changes:  version 1.0-3  (2022-06-16)
+
+1.) Added an updated package vignette 
+	- Previously vignette contained errors in describing method
+	- Now fixes errors and improves presentation in vignette
+
+----------------
+
+Changes:  version 1.0-2  (2022-05-16)
+
+1.) Added a package vignette describing method implemented in package 
+	- Previously contained no vignette or description of method
+	- Now adds vignette describing package capabilities
+
+----------------
+
+Changes:  version 1.0-1  (2022-04-09)
+
+1.) Added feed-forward neural network (NN) as a classifier
+	- Previously used three classification methods
+	- Now adds NN as a fourth classification method
+
+2.) Added new references to help files for NN
+
+----------------
+
+Changes:  version 1.0-0  (2022-03-09)
+
+1.) Submitted to CRAN a new package called ‘cpfa’

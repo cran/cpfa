@@ -16,13 +16,13 @@ Obtains predictions for class labels from a 'cpfa' model object obtained using f
     A fit object of class 'cpfa' from function \code{tune.cpfa}.
 }
   \item{newdata}{
-    An optional three-way or four-way data tensor/array used to predict Parafac component weights using estimated Parafac model component weights from inputted object. Dimensions must match dimensions of original data for all modes except classification mode. If omitted, the original data are used.
+    An optional three-way or four-way data tensor/array used to predict Parafac or Parafac2 component weights using estimated Parafac or Parafac2 model component weights from inputted object. Dimensions must match dimensions of original data for all modes except the classification mode. If omitted, the original data are used.
 }
   \item{nfac}{
     Number of components in models for prediction. Defaults to number of components for each Parafac model from input 'object'.
 }
   \item{method}{
-  Character vector indicating classification methods to use. Possible methods include penalized logistic regression (PLR), support vector machine (SVM), random forest (RF), feed-forward neural networks (NN), and regularized discriminant analysis (RDA). If none selected, default is to use all methods.
+  Character vector indicating classification methods to use. Possible methods include penalized logistic regression (PLR); support vector machine (SVM); random forest (RF); feed-forward neural network (NN); and regularized discriminant analysis (RDA). If none selected, default is to use all methods.
 }
   \item{type}{
   Character vector indicating type of prediction to return. Possible values include: (1) \code{"response"}, returning predicted class labels; (2) \code{"prob"}, returning predicted class probabilities; or (3) \code{"classify.weights"}, returning predicted component weights used in classification from Parafac models specified. Defaults to \code{"response"}.
@@ -38,19 +38,17 @@ Obtains predictions for class labels from a 'cpfa' model object obtained using f
 \details{
 Predicts class labels for a binary or a multiclass outcome. Specifically, predicts component weights for one mode of a Parallel Factor Analysis-1 (Parafac) model or a Parallel Factor Analysis-2 (Parafac2) model using new data and previously estimated mode weights from original data. Passes predicted component weights to one or several classification methods as new data for predicting class labels.
 
-Tuning parameters optimized by k-fold cross-validation are used for each classification method (see help for \code{tune.cpfa}). If not supplied in argument \code{threshold}, prediction threshold for all classification methods is calculated using proportions of class labels for original data in the binary case (and positive proportion is set as threshold). For multiclass case, class with highest probability is chosen. Calculates and returns only predicted probabilities without class assignment by specifying \code{type = "prob"}. Returns only predicted component weights if \code{type = "classify.weights"}.
+Tuning parameters optimized by k-fold cross-validation are used for each classification method (see help for \code{tune.cpfa}). If not supplied in argument \code{threshold}, prediction threshold for all classification methods is calculated using proportions of class labels for original data in the binary case (and the positive class proportion is set as the threshold). For multiclass case, class with highest probability is chosen. Calculates and returns only predicted probabilities without class assignment by specifying \code{type = "prob"}. Returns only predicted component weights if \code{type = "classify.weights"}.
 }
 \value{
-
 Returns one of the following: (1) a data frame \code{storfac}; (2) a list \code{storprob},
 or (3) a list \code{classify.weights}:
 
   \item{storfac}{A data frame containing predicted class labels or probabilities (binary case) for each Parafac model and classification method selected (see argument \code{type}). Number of columns is equal to number of methods times number of Parafac models. Number of rows is equal to number of predicted observations.
 }
-
-  \item{storprob}{A list containing predicted probabilities for each Parafac model and classification method selected (see argument \code{type}). Only returned if original response was multiclass (three or more class labels). Number of elements is equal to number of methods times number of Parafac models.
+  \item{storprob}{A list containing predicted probabilities for each Parafac model and classification method selected (see argument \code{type}). Only returned if original response was multiclass (i.e., contained three or more class labels). The number of list elements is equal to number of methods times the number of Parafac models.
 }
-  \item{cweights}{List containing predicted component weights for each Parafac model. Length is equal to number of Parafac models estimated.
+  \item{cweights}{List containing predicted component weights for each Parafac or Parafac2 model. Length is equal to number of Parafac models that were fit.
 }
 
 }
@@ -64,7 +62,7 @@ Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine Learning, 20(
 
 Friedman, J. H. (1989). Regularized discriminant analysis. Journal of the American Statistical Association, 84(405), 165-175.
 
-Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization paths for generalized linear Models via coordinate descent. Journal of Statistical Software, 33(1), 1-22.
+Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization paths for generalized linear models via coordinate descent. Journal of Statistical Software, 33(1), 1-22.
 
 Guo, Y., Hastie, T., and Tibshirani, R. (2007). Regularized linear discriminant analysis and its application in microarrays. Biostatistics, 8(1), 86-100.
 
@@ -131,7 +129,8 @@ tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          decay = decay, rda.alpha = rda.alpha,
                          delta = delta, parallel = FALSE, const = const)
                          
-# create random data array with Parafac structure and same A and B weights
+# create random data array with Parafac structure and with the A 
+# and B weights used above
 mydim.new <- c(60, 16, 20)
 Cmat <- matrix(runif(mydim.new[3]*nf), nrow = mydim.new[3], ncol = nf)
 Xmat <- tcrossprod(Amat, krprod(Cmat, Bmat))
@@ -142,5 +141,7 @@ Xnew <- Xmat + Emat
 # predict class labels
 predict.labels <- predict(object = tune.object, newdata = Xnew,
                           type = "response")
+                          
+# view predicted labels               
 head(predict.labels)
 }

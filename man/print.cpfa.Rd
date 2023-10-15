@@ -22,9 +22,7 @@ Prints summary of results from a 'cpfa' model object obtained using function \co
 Prints names of the models and methods used to create the input 'cpfa' model object. Prints misclassification error rates and estimation times in seconds.
 }
 \value{
-
-Returns a summary of 'cpfa' model object.
-
+Returns a summary of the 'cpfa' model object.
 }
 \author{
  Matthew Snodgress <snodg031@umn.edu>
@@ -36,7 +34,7 @@ Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine Learning, 20(
 
 Friedman, J. H. (1989). Regularized discriminant analysis. Journal of the American Statistical Association, 84(405), 165-175.
 
-Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization paths for generalized linear Models via coordinate descent. Journal of Statistical Software, 33(1), 1-22.
+Friedman, J. Hastie, T., and Tibshirani, R. (2010). Regularization paths for generalized linear models via coordinate descent. Journal of Statistical Software, 33(1), 1-22.
 
 Guo, Y., Hastie, T., and Tibshirani, R. (2007). Regularized linear discriminant analysis and its application in microarrays. Biostatistics, 8(1), 86-100.
 

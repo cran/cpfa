@@ -1,8 +1,8 @@
 kcv.plr <-
   function(x, y, foldid = NULL, alpha, nfolds = NULL,
-           family = c("binomial", "multinomial"), 
-           offset = NULL, lambda = NULL, weights = NULL, standardize = FALSE,
-           grouped = TRUE, keep = FALSE, parallel = FALSE, maxit = 1e+06) 
+           family = c("binomial", "multinomial"), offset = NULL, lambda = NULL, 
+           weights = NULL, standardize = FALSE, grouped = TRUE, keep = FALSE, 
+           parallel = FALSE, maxit = 1e+06) 
 {
     if (!is.factor(y)) {
       y <- factor(y)
@@ -52,24 +52,24 @@ kcv.plr <-
            lam <- lambda
            nlam <- length(lambda)
          }
-         fit1 <- glmnet(x1, y1, family = family, lambda = lam,
-                        alpha = v.alpha, weights = weight1)
-         fit2 <- glmnet(x2, y2, family = family, lambda = lam,
-                        alpha = v.alpha, weights = weight2)
+         fit1 <- glmnet(x1, y1, family = family, lambda = lam, alpha = v.alpha, 
+                        weights = weight1)
+         fit2 <- glmnet(x2, y2, family = family, lambda = lam, alpha = v.alpha, 
+                        weights = weight2)
          pred1 <- predict(fit2, newx = x1, type = "response")
          pred2 <- predict(fit1, newx = x2, type = "response")
          cvm <- rep(NA, nlam)
          for (i in 1:nlam) {
-           if (family == "binomial") {
-             class1 <- as.numeric(pred1[,i] > threshold)
-             class2 <- as.numeric(pred2[,i] > threshold)
-             cvm[i] <- ((1 - mean(class1 == y1)) + (1 - mean(class2 == y2))) / 2
-           }
-           if (family == "multinomial") {
-             class1 <- as.numeric((apply(pred1[,,i], 1, which.max))) - 1
-             class2 <- as.numeric((apply(pred2[,,i], 1, which.max))) - 1
-             cvm[i] <- ((1 - mean(class1 == y1)) + (1 - mean(class2 == y2))) / 2
-           }
+            if (family == "binomial") {
+              class1 <- as.numeric(pred1[,i] > threshold)
+              class2 <- as.numeric(pred2[,i] > threshold)
+              cvm[i] <- ((1 - mean(class1 == y1)) + (1 - mean(class2 == y2))) /2
+            }
+            if (family == "multinomial") {
+              class1 <- as.numeric((apply(pred1[,,i], 1, which.max))) - 1
+              class2 <- as.numeric((apply(pred2[,,i], 1, which.max))) - 1
+              cvm[i] <- ((1 - mean(class1 == y1)) + (1 - mean(class2 == y2))) /2
+            }
          }
          minid <- which.min(cvm)
          mincv <- cvm[minid]
@@ -82,11 +82,12 @@ kcv.plr <-
     } else {
       for (h in 1:lalpha) {
          cvlist[[h]] <- cv.glmnet(x, y, family = family, offset = offset,
-                             weights = weights, type.measure = "class", 
-                             nfolds = nfolds, foldid = foldid, alpha = alpha[h], 
-                             lambda = lambda, grouped = grouped, keep = keep, 
-                             parallel = parallel, maxit = maxit, 
-                             standardize = standardize)
+                                  weights = weights, type.measure = "class", 
+                                  nfolds = nfolds, foldid = foldid, 
+                                  alpha = alpha[h], lambda = lambda, 
+                                  grouped = grouped, keep = keep, 
+                                  parallel = parallel, maxit = maxit, 
+                                  standardize = standardize)
       }
       mincv <- sapply(cvlist, function(x) min(x$cvm))
       minid <- which.min(mincv)

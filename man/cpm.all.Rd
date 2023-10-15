@@ -4,14 +4,14 @@
 Wrapper for Calculating Classification Performance Measures
 }
 \description{
-Applies function \code{cpm} to multiple sets of class labels. Each set of class labels is evaluated against the same set of predicted labels. Works with output from function \code{predict.tune.cpfa} and calculates classification performance measures for multiple classifiers or numbers of components.
+Applies function \code{cpm} to multiple sets of class labels. Each set of class labels is evaluated against the same set of predicted labels. Works with output from function \code{predict.cpfa} and calculates classification performance measures for multiple classifiers or numbers of components.
 }
 \usage{
 cpm.all(x, y,  ...)
 }
 \arguments{
   \item{x}{
-  A data frame where each column contains a set of known class labels of class numeric, factor, or integer. If a set is of class factor, that set is converted to class integer in order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.). 
+  A data frame where each column contains a set of known class labels of class numeric, factor, or integer. If a set is of class factor, that set is converted to class integer in the order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, levels become 0, 1, 2, etc.). 
 }
   \item{y}{
   Predicted class labels of class numeric, factor, or integer. If factor, converted to class integer in order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.).
@@ -21,19 +21,19 @@ cpm.all(x, y,  ...)
 }
 }
 \details{
-Wrapper function that applies function \code{cpm} to multiple sets of class labels and one set of predicted labels. See help for \code{cpm} for additional details.
+Wrapper function that applies function \code{cpm} to multiple sets of class labels and one set of predicted labels. See help file for function \code{cpm} for additional details.
 }
 \value{
 Returns a list with the following two elements: 
   \item{cm.list}{
-  A list of confusion matrices \code{cm} where each confusion matrix is associated with one comparison.
+  A list of confusion matrices, denoted \code{cm}, where each confusion matrix is associated with one comparison.
 }
   \item{cpms}{
   A data frame containing classification performance measures where each row contains measures for one comparison.
 }
 }
 \references{
-Sokolova, M., and Lapalme, G. (2009). A systematic analysis of performance measures for classification tasks. Information Processing and Management, 45(4), 427-437.
+Sokolova, M. and Lapalme, G. (2009). A systematic analysis of performance measures for classification tasks. Information Processing and Management, 45(4), 427-437.
 }
 \author{
 Matthew Snodgress <snodg031@umn.edu>
@@ -78,7 +78,8 @@ tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          decay = decay, rda.alpha = rda.alpha,
                          delta = delta, parallel = FALSE, const = const)
                          
-# create random data array with Parafac structure and same A and B weights
+# create random data array with Parafac structure and with the A 
+# and B weights used above
 mydim.new <- c(60, 16, 20)
 Cmat <- matrix(runif(mydim.new[3]*nf), nrow = mydim.new[3], ncol = nf)
 Xmat <- tcrossprod(Amat, krprod(Cmat, Bmat))
@@ -93,7 +94,7 @@ predict.labels <- predict(object = tune.object, newdata = Xnew,
 # create new random class labels for two levels
 newlabel <- as.numeric(factor(rbinom(mydim.new[3], 1, 0.4))) - 1 
  
-# calculate evaluation measure for PLR predicted
+# calculate performance measures for predicted class labels
 evalmeasure <- cpm.all(x = predict.labels, y = newlabel)
 evalmeasure
 }

@@ -10,7 +10,7 @@
 \alias{kcv.rda}
 
 \description{
-  Internal functions for "cpfa" package.
+  Internal functions for the "cpfa" package.
 }
 \details{
   These functions are not intended to be called by the user.

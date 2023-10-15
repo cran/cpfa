@@ -16,7 +16,7 @@ cpm <-
     if (!(is.null(level))) {
       llev <- length(level)
       if (!(class(level) %in% c("numeric", "integer", "character"))) {
-        stop ("Input 'level' must be of class 'numeric', 'integer' 
+        stop ("Input 'level' must be of class 'numeric', 'integer' \n 
               or 'character'.")
       }
       if (llev == 1) {
@@ -25,9 +25,9 @@ cpm <-
     } else {
       luni <- length(unique(c(x, y)))
       if (luni == 1L) {
-        stop("Inputs 'x' and 'y' contain only one unique value. Unclear if
-              binary or multiclass classification is occurring. Must
-              input argument 'level' to specify.")
+        stop("Inputs 'x' and 'y' contain only one unique value. Unclear if \n
+              binary or multiclass classification is occurring. Must input \n
+              argument 'level' to specify.")
       }
       level <- sort(unique(c(x, y)))
     }
@@ -47,19 +47,19 @@ cpm <-
     }
     if (!(is.null(fbeta))) {
       if ((length(fbeta) != 1) || (!(is.numeric(fbeta))))
-        stop("Input 'fbeta' must be a single real number when inputted and of
+        stop("Input 'fbeta' must be a single real number when inputted and of \n
              class numeric.")
     }
     if (!(is.null(prior))) {
       if (!is.numeric(prior))
         stop("Input 'prior' must be of class 'numeric' when provided.")
       if (length(prior) != llev) {
-        stop("When inputted, 'prior' must contain as many values as the 
+        stop("When inputted, 'prior' must contain as many values as the \n
               number of classes.")
       }
       if ((any(prior < 0)) || (any(prior > 1)))
-        stop("When inputted, 'prior' must only contain values between 0 and 1,
-             inclusive.")
+        stop("When inputted, 'prior' must only contain values between 0 \n
+             and 1, inclusive.")
       if (sum(prior) != 1) {
         stop("When inputted, 'prior' must contain values that sum to 1.")
       }
@@ -104,8 +104,8 @@ cpm <-
     }
     fs <- (1 + (fbeta^2))*((ppv*tpr)/(((fbeta^2)*ppv) +  tpr))
     class.eval <- data.frame(err = err, acc = acc, tpr = tpr, fpr = fpr, 
-                           tnr = tnr, fnr = fnr, ppv = ppv, npv = npv,
-                           fdr = fdr, fom = fom, fs = fs)
+                             tnr = tnr, fnr = fnr, ppv = ppv, npv = npv,
+                             fdr = fdr, fom = fom, fs = fs)
     output <- list(cm = cm, class.eval = class.eval)
     return(output)
 }

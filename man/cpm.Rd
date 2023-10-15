@@ -11,15 +11,14 @@ cpm(x, y, level = NULL, fbeta = NULL, prior = NULL)
 }
 \arguments{
   \item{x}{
-  Known class labels of class numeric, factor, or integer. If factor, converted to class integer in order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.). 
+  Known class labels of class numeric, factor, or integer. If factor, converted to class integer in the order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, levels become 0, 1, 2, etc.). 
 }
   \item{y}{
-  Predicted class labels of class numeric, factor, or integer. If factor, converted to class integer in order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.).
+  Predicted class labels of class numeric, factor, or integer. If factor, converted to class integer in the order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.).
 }
   \item{level}{
-  Optional argument specifying possible class labels. For cases when \code{x} or \code{y} do not contain all possible classes. Can be of class numeric, integer, or character. Must contain two elements for binary classification, and contain three or more elements for multiclass classification. If integer, integers should be ordered (e.g. \code{c(0, 1)}; or \code{c(0, 1, 2)}). Note: if both \code{x} and \code{y} jointly contain only a single value (e.g., 1), must specify argument \code{level} in order to identify classification as binary or multiclass. 
+  Optional argument specifying possible class labels. For cases when \code{x} or \code{y} do not contain all possible classes. Can be of class numeric, integer, or character. Must contain two elements for binary classification, and contain three or more elements for multiclass classification. If integer, integers should be ordered (e.g., binary with \code{c(0, 1)}; or three-class with \code{c(0, 1, 2)}). Note: if both \code{x} and \code{y} jointly contain only a single value (e.g., 1), must specify argument \code{level} in order to identify classification as binary or multiclass. 
 }
-
   \item{fbeta}{
   Optional numeric argument specifying beta value for F-score. Defaults to \code{fbeta = 1}, providing an F1-score (i.e., the balanced harmonic mean between precision and recall).
 }
@@ -28,13 +27,13 @@ cpm(x, y, level = NULL, fbeta = NULL, prior = NULL)
   }
 }
 \details{
-Selecting one class as a negative class and one class as positive, binary classification generates four possible outcomes: (1) negative cases classified as positives, called false positives (FP); (2) negative cases classified as negatives, called true negatives (TN); (3) positive cases classified as negatives, called false negatives (FN); and (4) positive cases classified as positives, called true positives (TP). 
+Selecting one class as a negative class and one class as a positive class, binary classification generates four possible outcomes: (1) negative cases classified as positives, called false positives (FP); (2) negative cases classified as negatives, called true negatives (TN); (3) positive cases classified as negatives, called false negatives (FN); and (4) positive cases classified as positives, called true positives (TP). 
 
 Multiple evaluation measures are calculated using these four outcomes. Measures include: overall error (ERR), also called fraction incorrect;  overall accuracy (ACC), also called fraction correct; true positive rate (TPR), also called recall, hit rate, or sensitivity; false negative rate (FNR), also called miss rate; false positive rate (FPR), also called fall-out; true negative rate (TNR), also called specificity or selectivity; positive predictive value (PPV), also called precision; false discovery rate (FDR); negative predictive value (NPV); false omission rate (FOR); and F-score (FS).
 
-In multiclass classification, the four outcomes are possible for each individual class in macro-averaging, and evaluation measures are averaged over classes. Macro-averaging gives equal importance to all classes. For multiclass classification, calculated measures are currently only macro-averaged.
+In multiclass classification, the four outcomes are possible for each individual class in macro-averaging, and performance measures are averaged over classes. Macro-averaging gives equal importance to all classes. For multiclass classification, calculated measures are currently only macro-averaged. See the listed reference in this help file for additional details on micro-averaging.
 
-Note that binary classification assumes a positive class and negative class (i.e., contains a reference group) and is ordered. Multiclass classification is currently unordered. 
+Note that, for binary classification, this function assumes a negative class and a positive class (i.e., it contains a reference group) and is ordered. Multiclass classification is currently assumed to be unordered. 
 
 Computational details:
 
@@ -60,11 +59,11 @@ FOR = FN / (FN + TN), and FOR = 1 - NPV.
 
 FS = (1 + beta^2) * ((PPV * TPR) / (((beta^2)*PPV) + TPR)).
 
-All evaluation measures calculated are between 0 and 1, inclusive. For multiclass classification, macro-averaged values are provided for each performance measure. Note that 'beta' in FS represents the relative weight such that recall (TPR) is beta times more important than precision (PPV). See reference in help document for more details.
+All performance measures calculated are between 0 and 1, inclusive. For multiclass classification, macro-averaged values are provided for each performance measure. Note that 'beta' in FS represents the relative weight such that recall (TPR) is beta times more important than precision (PPV). See reference for more details.
 }
 \value{
 
-Returns list where first element is a full confusion matrix \code{cm} and second element is a data frame containing performance measures. Note that for multiclass classification, macro-averaged values are provided (i.e., each measure is calculated for each class, then averaged over all classes; average is weighted by argument \code{prior} if provided). Excluding \code{cm}, second list element contains following performance measures:
+Returns list where first element is a full confusion matrix \code{cm} and where the second element is a data frame containing performance measures. Note that for multiclass classification, macro-averaged values are provided (i.e., each measure is calculated for each class, then averaged over all classes; the average is weighted by argument \code{prior} if provided). The second list element contains the following performance measures:
 
   \item{cm}{
   A confusion matrix with counts for each of the possible outcomes.
@@ -106,7 +105,7 @@ given to recall over precision (see Details section and argument \code{fbeta}).
 
 }
 \references{
-Sokolova, M., and Lapalme, G. (2009). A systematic analysis of performance measures for classification tasks. Information Processing and Management, 45(4), 427-437.
+Sokolova, M. and Lapalme, G. (2009). A systematic analysis of performance measures for classification tasks. Information Processing and Management, 45(4), 427-437.
 }
 \author{
 Matthew Snodgress <snodg031@umn.edu>
@@ -151,7 +150,8 @@ tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
                          decay = decay, rda.alpha = rda.alpha,
                          delta = delta, parallel = FALSE, const = const)
 
-# create random data array with Parafac structure and same A and B weights
+# create random data array with Parafac structure and with the A 
+# and B weights used above
 mydim.new <- c(60, 16, 20)
 Cmat <- matrix(runif(mydim.new[3]*nf), nrow = mydim.new[3], ncol = nf)
 Xmat <- tcrossprod(Amat, krprod(Cmat, Bmat))
@@ -166,7 +166,7 @@ predict.labels <- predict(object = tune.object, newdata = Xnew,
 # create new random class labels for two levels
 newlabel <- as.numeric(factor(rbinom(mydim.new[3], 1, 0.4))) - 1 
  
-# calculate evaluation measure for PLR predicted
+# calculate performance measures for predicted class labels
 y.pred <- predict.labels[, 1]
 evalmeasure <- cpm(x = newlabel, y = y.pred)
 evalmeasure

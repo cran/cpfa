@@ -1,12 +1,13 @@
 cpfa <- 
-  function(x, y, nrep = 5, ratio = 0.8, seeds = NULL,
+  function(x, y, nrep = 5, ratio = 0.8, seeds = NULL, 
            type.out = c("measures", "descriptives"), nfac = 1, nfolds = 10, 
-           foldid = NULL, prior = NULL, model = c("parafac", "parafac2"),
+           foldid = NULL, prior = NULL, model = c("parafac", "parafac2"), 
            method = c("PLR", "SVM", "RF", "NN", "RDA"), 
            family = c("binomial", "multinomial"), alpha = NULL, lambda = NULL, 
            cost = NULL, gamma = NULL, ntree = NULL, nodesize = NULL, 
            size = NULL, decay = NULL, rda.alpha = NULL, delta = NULL, 
-           parallel = FALSE, cl = NULL, verbose = TRUE, cmode = NULL, ...) 
+           parallel = FALSE, cl = NULL, verbose = TRUE, cmode = NULL, 
+           plot.out = FALSE, plot.measures = NULL, ...) 
 {   
     models <- c("parafac", "parafac2")
     model0 <- pmatch(tolower(model), models)
@@ -163,6 +164,24 @@ cpfa <-
              mode.")
       }
     }
+    if (!(is.logical(plot.out))) {
+      stop("Input 'plot.out' must be a logical value.")
+    }
+    if (plot.out) {
+      if (is.null(plot.measures)) {
+        plottype <- 5
+      } else {
+        cmeasures <- c("err", "acc", "tpr", "fpr", "tnr", "fnr", "ppv", "npv", 
+                       "fdr", "fom", "fs")
+        plottype.num <- sum(cmeasures %in% plot.measures)
+        if (plottype.num == 0) {
+          stop("Input 'plot.out' is true, but input 'plot.measures' does not \n
+               contain any accepted values. See help file and \n
+               argument 'plot.measures' for a list of accepted values.")
+        }
+        plottype <- which(cmeasures %in% plot.measures == TRUE) + 3
+      } 
+    }
     stor <- array(0, dim = c(length(nfac)*length(method), 11, nrep))
     predstor <- vector(mode = "list", length = nrep)
     Aw <- vector(mode = "list", length = nrep)
@@ -209,6 +228,9 @@ cpfa <-
        stor[,,i] <- as.matrix(out$cpms)
        predstor[[i]] <- predict(object = cpfalist, newdata = X.test, 
                                 type = "classify.weights")
+       if ((plot.out) & (i = 1)) {
+         plot.mind <- cpfalist$method
+       }
     }
     rnam <- rownames(out$cpms)
     cnam <- colnames(out$cpms)
@@ -216,6 +238,35 @@ cpfa <-
     dimnames(stor)[[2]] <- cnam
     train.weights <- list(Atrain.weights = Aw, Btrain.weights = Bw, 
                           Ctrain.weights = Cw, Phitrain = Pw)
+    if (plot.out) {
+      ncomps <- length(nfac)
+      nmethods <- length(method)
+      plotstor <- data.frame(matrix(0, nrow = (ncomps*nmethods*nrep), 
+                                    ncol = 14))
+      plotcname <- c("method", "nfac", "rep", colnames(stor))
+      colnames(plotstor) <- plotcname
+      matnum <- ncomps*nmethods
+      methnames0 <- sapply(strsplit(rownames(stor), split='.', fixed=TRUE), 
+                           function(x) (x[2]))
+      methnames <- gsub('[[:digit:]]+', '', methnames0)
+      nfacnames <- as.numeric(gsub(".*?([0-9]+).*", "\\1", rownames(stor)))
+      for (i in 1:nrep) {
+         indl <- matnum*(i - 1) + 1
+         indu <- matnum*i
+         plotstor[indl:indu, 1] <- methnames
+         plotstor[indl:indu, 2] <- nfacnames
+         plotstor[indl:indu, 3] <- i
+         plotstor[indl:indu, 4:14] <- stor[,,i]
+      }
+      toplot <- colnames(plotstor)[plottype]
+      for (j in 1:length(plottype)) {
+         pformula <- formula(paste0(toplot[j], " ~ ", "method*nfac"))
+         boxplot(pformula, data = plotstor, ylim = c(0, 1), 
+                 xlab = "Method and Number of Components", 
+                 ylab = toupper(toplot[j]), main = "Performance Measure",
+                 na.rm = FALSE)
+      }
+    }
     if (typelow == "measures") {
       return(list(measure = stor, predweights = predstor,
                   train.weights = train.weights))                                                              
@@ -223,10 +274,10 @@ cpfa <-
       dfun <- c("mean", "median", "sd")
       output <- vector(mode = "list", length = length(dfun))
       for (j in seq_along(dfun)) {
-         output[[j]] <- apply(stor, 1:2, 
-                      FUN = function(x){return(get(dfun[j])(x, na.rm = TRUE))})
-         rownames(output[[j]]) <- rnam
-         colnames(output[[j]]) <- cnam
+        output[[j]] <- apply(stor, 1:2, FUN = function(x){return(get(dfun[j])(x, 
+                                                                na.rm = TRUE))})
+        rownames(output[[j]]) <- rnam
+        colnames(output[[j]]) <- cnam
       }
       names(output) <- dfun                                                     
       return(list(descriptive = output, 
