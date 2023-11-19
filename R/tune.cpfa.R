@@ -1,17 +1,64 @@
 tune.cpfa <- 
-  function(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,            
-           model = c("parafac", "parafac2"),
+  function(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
            method = c("PLR", "SVM", "RF", "NN", "RDA"), 
-           family = c("binomial", "multinomial"),
-           alpha = NULL, lambda = NULL, cost = NULL, gamma = NULL, 
-           ntree = NULL, nodesize = NULL, size = NULL, decay = NULL,
-           rda.alpha = NULL, delta = NULL, parallel = FALSE, cl = NULL, 
-           verbose = TRUE, cmode = NULL, ...)
-{
+           family = c("binomial", "multinomial"), parameters = list(), 
+           foldid = NULL, prior = NULL, cmode = NULL, parallel = FALSE, 
+           cl = NULL, verbose = TRUE, ...)
+{   
+    if (!(is.list(parameters))) {
+      stop("Input 'parameters' must be of class 'list'.")
+    } 
+    if (length(parameters) == 0) {
+      alpha = NULL 
+      lambda = NULL 
+      cost = NULL 
+      gamma = NULL 
+      ntree = NULL
+      nodesize = NULL 
+      size = NULL
+      decay = NULL
+      rda.alpha = NULL
+      delta = NULL
+    } else {
+      names(parameters) <- tolower(names(parameters))
+      paranames <- c("alpha", "lambda", "cost", "gamma", "ntree", 
+                     "nodesize", "size", "decay", "rda.alpha", "delta")
+      paralogical <- paranames %in% names(parameters)
+      if (sum(paralogical) == 0) {
+        stop("Input 'parameters' was provided but does not contain any \n
+             acceptable values. Input 'parameters' must contain only \n 
+             acceptable values. See help file for function 'cpfa' under \n
+             argument 'parameters' for a list of acceptable values.")
+      }
+      if (length(unique(names(parameters))) != length(names(parameters))) {
+        stop("Input 'parameters' was provided but contains duplicate \n
+             parameter names. Input 'parameters' cannot contain duplicates.")
+      }
+      logicalpara <- names(parameters) %in% paranames
+      if ((sum(logicalpara) < length(parameters)) & (sum(logicalpara) > 0)) {
+        stop("Input 'parameters' was provided and contains some acceptable \n
+             values. However, 'parameters' also contains one or more values \n
+             that are not acceptable. Input 'parameters' must contain only \n 
+             acceptable values. See help file for function 'cpfa' under \n
+             argument 'parameters' for a list of acceptable values.")
+      }
+      parainput <- paranames[which(paralogical)]
+      paranull <- paranames[-which(paralogical)]
+      for (j in 1:length(parainput)) {
+         inputparam <- paste0(parainput[j], " = ", "parameters$", parainput[j])
+         eval(parse(text = inputparam))
+      }
+      iparam <- paranull
+      if (length(iparam) != 0) {
+        for (j in 1:length(iparam)) {
+           inputparam <- paste0(iparam[j], " = ", "NULL")
+           eval(parse(text = inputparam))
+        }
+      } 
+    }
     models <- c("parafac", "parafac2")
-    model0 <- pmatch(tolower(model), models)
-    lmodel <- length(model0)
-    if ((lmodel == 0) || (lmodel > 1)) {
+    model0 <- sum(tolower(model) %in% models)
+    if ((model0 == 0L) || (model0 > 1L)) {
       stop("Input 'model' not specified correctly. Input must be one of \n
             either 'parafac' or 'parafac2'.")
     }
@@ -115,32 +162,67 @@ tune.cpfa <-
     if (!(length(y) == xdim[cmode]))
       stop("Length of 'y' must match number of levels in 
            classification mode/dimension of 'x'.")
+    if (length(unique(y)) == 0L || length(unique(y)) == 1L)
+      stop("Input 'y' contains less than two unique labels. Need to provide \n
+           at least two unique labels.")
+    ylev <- length(levels(y))
+    if (!(sum(sort(as.numeric(levels(y))) == 0:(ylev - 1)) == ylev))
+      stop("Input 'y' must contain labels of 0 and 1 for binary problems, or \n
+           0, 1, 2, ..., for multiclass problems.")
     nfac <- sort(nfac)
     lnfac <- length(nfac)
     if (!is.numeric(nfac))
       stop("Input 'nfac' must contain integer(s).")
-    if (length(nfolds) != 1 || nfolds < 2 || nfolds != floor(nfolds))
-      stop("Input 'nfolds' must be a single whole 
-           number equal to or greater than 2.")
+    if (!((is.integer(nfolds)) || (is.numeric(nfolds)))) {
+      stop("Input 'nfolds' must be of class integer or numeric.")
+    }
+    if (length(nfolds) != 1L || nfolds < 2L || nfolds != floor(nfolds))
+      stop("Input 'nfolds' must be a single integer equal to or greater \n
+           than 2.")
     if (nfolds > length(y))
       stop("Input 'nfolds' must be a single whole
            number equal to or less than the number of labels in 'y'.")
     if (is.null(foldid)) {
       foldid <- sample(rep(1:nfolds, length.out = length(y)))
+    } else {
+      if (length(foldid) != xdim[cmode]) {
+        stop("Input 'foldid' must match number of levels in classification \n
+             mode.")
+      }
+      if (!is.integer(foldid)) {
+        stop("Input 'foldid' must be of class integer.")
+      }
+      if (length(unique(foldid)) < 2L) {
+        stop("Input 'foldid' must contain IDs for two or more folds.")
+      }
+      if (!all(foldid == floor(foldid))) {
+        stop("Input 'foldid' must contain integers.")
+      }
+      if (length(unique(foldid)) != as.integer(nfolds)) {
+        stop("Input 'foldid' must contain the number of unique values equal \n
+             to nfolds.")
+      }
     }
-    if (length(foldid) != xdim[cmode]) {
-      stop("Input 'foldid' must match number of levels in classification mode")
-    }
-    if (!is.integer(foldid))
-      stop("Input 'foldid' must be of class integer.")
-    if (length(unique(foldid)) < 2L)
-      stop("Input 'foldid' must contain IDs for two or more folds.")
-    if (!all(foldid == floor(foldid)))
-      stop("Input 'foldid' must contain integers.")
     methods <- c("PLR", "SVM", "RF", "NN", "RDA")
-    method <- pmatch(toupper(method), methods)
+    checkmethod <- sum(toupper(method) %in% methods)
+    if (checkmethod != length(method)) {
+      stop("Input 'method' contains at least one value that is not valid.")
+    }
+    method <- which(methods %in% toupper(method) == TRUE)
     if (length(method) == 0) {
-      method <- c(1)
+      method <- 1:5
+    }
+    if (!(is.logical(verbose))) {
+      stop("Input 'verbose' must be of class logical.")
+    }
+    if (length(verbose) != 1L) {
+      stop("Input 'verbose' must be a single value.")
+    }
+    if ((nfac == 1 | nfac == 1L) && (family == "multinomial") 
+        && ('1' %in% method)) {
+      warning("If nfac = 1, method = 'PLR', and family = 'multinomial', there \n
+              are cases where an error could be returned. This issue will be \n
+              resolved in a future update.")
     }
     if ('1' %in% method) {
       if (is.null(alpha)) {
@@ -221,7 +303,7 @@ tune.cpfa <-
       }
       if (any(rda.alpha < 0L) | any(rda.alpha >= 1L)) 
         stop("Input 'rda.alpha' must contain real numbers equal \n
-                  to or greater than zero, and less than one.")
+             to or greater than zero, and less than one.")
       if (!is.numeric(rda.alpha))
         stop("Input 'rda.alpha' must be numeric.")
       rda.alpha <- sort(rda.alpha)
@@ -230,7 +312,7 @@ tune.cpfa <-
       }
       if (any(delta < 0L))
         stop("Input 'delta' must be a real number greater than or equal \n 
-                to zero.")
+             to zero.")
       if (!is.numeric(delta))
         stop("Input 'delta' must be numeric.")
       delta <- sort(delta)
@@ -239,23 +321,25 @@ tune.cpfa <-
     families <- c("binomial", "multinomial")
     family <- pmatch(tolower(family), families)
     lfam <- length(family)
-    if (lfam == 0L) {
-      stop("Input 'family' must not be NULL.")
-    }
     if (any(is.na(family))) {
       stop("Input 'family' must be a character value, either 'binomial'
            or 'multinomial'.")
     }
-    if (lfam == 2L && (length(levels(y)) == 2L)) {
+    if (lfam == 0L) {
+      stop("Input 'family' must not be NULL.")
+    } else if(lfam > 2L) {
+      stop("Input 'family' must be 'binomial' or 'multinomial'.")
+    } else if (lfam == 2L && (length(levels(y)) == 2L)) {
       family <- "binomial"
-    } 
-    if (lfam == 2L && (length(levels(y)) > 2L)) {
+      warning("Input 'family' was not specified. Two classes detected: \n
+              defaulting to family = 'binomial'.")
+    } else if (lfam == 2L && (length(levels(y)) > 2L)) {
       family <- "multinomial"
-    }
-    if (lfam == 1L && family == 1L) {
+      warning("Input 'family' was not specified. Three or more classes \n 
+              detected: defaulting to family = 'multinomial'.")
+    } else if (lfam == 1L && family == 1L) {
       family <- "binomial"
-    }
-    if (lfam == 1L && family == 2L) {
+    } else if (lfam == 1L && family == 2L) {
       family <- "multinomial"
     }
     if (!is.null(prior)) {
@@ -271,7 +355,7 @@ tune.cpfa <-
       if (family == "multinomial") {
         if (!(length(prior) >= 3L))
           stop("Input 'prior' must contain three or more values for 
-             family of 'multinomial'.")
+               family of 'multinomial'.")
       }
       prior <- prior
       frac <- as.table(prior)                                                  
@@ -296,6 +380,13 @@ tune.cpfa <-
         weight <- as.numeric(frac[y])
       }
     }
+    if ('1' %in% method) {
+      plr.weights <- as.numeric((table(y)[y] / length(y)))
+    }
+    numcheck <- function(a){return(is.numeric(a) || is.integer(a))}
+    if (!(all(apply(x, 1:length(dim(x)), FUN = numcheck)))) {
+      stop("Input 'x' must contain only real numbers.")
+    }
     opt.model <- vector("list", lnfac)
     Aweights <- vector("list", lnfac)                                           
     Bweights <- vector("list", lnfac)
@@ -306,6 +397,12 @@ tune.cpfa <-
     est.time <- NULL
     kcv.error <- NULL
     clstop <- FALSE
+    if (!(is.logical(parallel))) {
+      stop("Input 'parallel' must be of class logical.")
+    }
+    if (length(parallel) != 1L) {
+      stop("Input 'parallel' must be a single value.")
+    }
     if (parallel == TRUE) {
       if (is.null(cl)) {
         cl <- makeCluster(detectCores())
@@ -313,8 +410,6 @@ tune.cpfa <-
         ce <- clusterEvalQ(cl, library(multiway))
         registerDoParallel(cl)
     }
-    if (('1' %in% method) && (nfolds == 2))
-      warning("For 'nfolds = 2', method 'PLR' might give warnings.")
     for (w in 1:lnfac) {
        optmodel.new <- vector("list", 5)
        if (model == "parafac") {
@@ -342,7 +437,9 @@ tune.cpfa <-
          pfac <- parafac2(X = x, nfac = nfac[w], parallel = parallel, cl = cl,  
                          verbose = verbose, ...)
          toc <- proc.time()
-         if (w == 1) {const <- pfac$control$const}
+         if (w == 1) {
+           const <- pfac$control$const
+         }
          time.pfac <- toc[3] - tic[3]
          Aweights[[w]] <- pfac$A
          Bweights[[w]] <- pfac$B                                                  
@@ -358,10 +455,15 @@ tune.cpfa <-
            cat("nfac =", nfac[w], "method = plr", fill = TRUE)
          }
          tic <- proc.time()
-         plr.results <- kcv.plr(x = train,  y = y, nfolds = nfolds,  
+         if (nfac == 1 || nfac == 1L) {
+           train.plr <- cbind(train, 0)
+         } else {
+           train.plr <- train
+         }
+         plr.results <- kcv.plr(x = train.plr,  y = y, nfolds = nfolds,  
                                 foldid = foldid, alpha = alpha,
-                                family = family, lambda = lambda, 
-                                weights = weight, parallel = parallel)
+                                family = family, lambda = lambda,
+                                weights = plr.weights, parallel = parallel)
          toc <- proc.time()
          time.plr <- toc[3] - tic[3]
          error.plr <- plr.results$error

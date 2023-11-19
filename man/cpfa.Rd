@@ -7,22 +7,27 @@ Classification with Parallel Factor Analysis
 Fits Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or Parallel Factor Analysis-2 (Parafac2) model to a three-way or four-way data tensor/array. Allows for multiple constraint options on different tensor modes. Uses Parafac component weights from a single mode of this model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Predicts class labels and calculates multiple performance measures for binary or multiclass classification over some number of replications with different train-test splits. Provides descriptive statistics to pool output across replications.
 }
 \usage{
-cpfa(x, y, nrep = 5, ratio = 0.8, seeds = NULL,
-           type.out = c("measures", "descriptives"), nfac = 1, nfolds = 10, 
-           foldid = NULL, prior = NULL, model = c("parafac", "parafac2"),
+cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, 
+           nrep = 5, ratio = 0.8, nfolds = 10, 
            method = c("PLR", "SVM", "RF", "NN", "RDA"), 
-           family = c("binomial", "multinomial"), alpha = NULL, lambda = NULL, 
-           cost = NULL, gamma = NULL, ntree = NULL, nodesize = NULL, 
-           size = NULL, decay = NULL, rda.alpha = NULL, delta = NULL, 
-           parallel = FALSE, cl = NULL, verbose = TRUE, cmode = NULL,
-           plot.out = FALSE, plot.measures = NULL, ...)
+           family = c("binomial", "multinomial"), parameters = list(), 
+           type.out = c("measures", "descriptives"), foldid = NULL, 
+           prior = NULL, cmode = NULL, seeds = NULL, plot.out = FALSE, 
+           plot.measures = NULL, parallel = FALSE, cl = NULL, 
+           verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{
-  Three-way or four-way data array. See note below.
+  Three-way or four-way data array. Must contain real numbers. See note below.
 } 
 \item{y}{
-  A factor with two or more levels containing class labels. For binary case, ensure the order of factor levels (left to right) is such that negative class is first and positive class is second.
+  A vector containing at least two unique class labels. Should be a factor that contains two or more levels . For binary case, ensure the order of factor levels (left to right) is such that negative class is first and positive class is second.
+}
+\item{model}{
+  Character designating the Parafac model to use, either \code{model = "parafac"} to fit the Parafac model or \code{model = "parafac2"} to fit the Parafac2 model.
+}
+\item{nfac}{
+  Number of components for each Parafac or Parafac2 model to fit. Default is \code{nfac = 1}.
 }
 \item{nrep}{
   Number of replications to repeat the procedure. Default is \code{nrep = 5}.
@@ -30,17 +35,52 @@ cpfa(x, y, nrep = 5, ratio = 0.8, seeds = NULL,
 \item{ratio}{
   Split ratio for dividing data into train and test sets. Default is \code{ratio = 0.8}.
 }
-\item{seeds}{
-  Random seeds to be associated with each replication. Default is \code{seeds = 1:nrep}.
-}
-\item{type.out}{
-  Type of output desired: \code{type.out = "measures"} gives array containing classification performance measures for all replications while \code{type.out = "descriptives"} gives list of descriptive statistics calculated across all replications for each performance measure. Both options also provide the estimated training weights and classification weights.
-}
-\item{nfac}{
-  Number of components for each Parafac or Parafac2 model to fit. Default is \code{nfac = 1}.
-}
 \item{nfolds}{
   Numeric setting number of folds for k-fold cross-validation. Must be 2 or greater. Default is \code{nfolds = 10}.
+}
+\item{method}{
+  Character vector indicating classification methods to use. Possible methods include penalized logistic regression (PLR); support vector machine (SVM); random forest (RF); feed-forward neural network (NN); and regularized discriminant analysis (RDA). If none selected, default is to use all methods with \code{method = c("PLR", "SVM", "RF", "NN", "RDA")}.
+}
+\item{family}{
+  Character value specifying binary classification (\code{family = "binomial"}) or multiclass classification (\code{family = "multinomial"}). If not provided, number of levels of input \code{y} is used, where two levels is binary, and where three or more levels is multiclass.
+}
+\item{parameters}{
+  List containing arguments related to classification methods. When specified, must contain one or more of the following:
+  \describe{
+  \item{alpha}{
+  Values for penalized logistic regression alpha parameter; default is \code{alpha = seq(0, 1, length = 6)}. Must be numeric and contain only real numbers between 0 and 1, inclusive.
+}
+  \item{lambda}{
+  Optional user-supplied lambda sequence for \code{cv.glmnet} for penalized logistic regression. Default is NULL.
+}
+  \item{cost}{
+  Values for support vector machine cost parameter; default is \code{cost = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only real numbers greater than or equal to zero.
+}
+  \item{gamma}{
+  Values for support vector machine gamma parameter; default is \code{gamma = c(0, 0.01, 0.1, 1, 10, 100, 1000)}. Must be numeric and greater than or equal to 0.
+}
+  \item{ntree}{
+  Values for random forest number of trees parameter; default is \code{ntree = c(100, 200, 400, 600, 800, 1600, 3200)}. Must be numeric and contain only integers greater than or equal to 1.
+}
+  \item{nodesize}{
+  Values for random forest node size parameter; default is \code{nodesize = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only integers greater than or equal to 1.
+}
+  \item{size}{
+  Values for neural network size parameter; default is \code{size = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only integers greater than or equal to 0.
+}
+  \item{decay}{
+  Values for neural network decay parameter; default is \code{decay = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16)}. Must be numeric and contain only real numbers.
+}
+  \item{rda.alpha}{
+  Values for regularized discriminant analysis alpha parameter; default is \code{rda.alpha = seq(0, 0.999, length = 6)}. Must be numeric and contain only real numbers between 0 (inclusive) and 1 (exclusive).
+}
+  \item{delta}{
+  Values for regularized discriminant analysis delta parameter; default is \code{delta = c(0, 0.1, 1, 2, 3, 4)}. Must be numeric and contain only real numbers greater than or equal to 0.
+}
+}
+}
+\item{type.out}{
+  Type of output desired: \code{type.out = "measures"} gives array containing classification performance measures for all replications while \code{type.out = "descriptives"} gives list of descriptive statistics calculated across all replications for each performance measure. Both options also provide the estimated training weights and classification weights. Defaults to \code{type.out = "descriptives"}.
 }
 \item{foldid}{
   Integer vector containing fold IDs for k-fold cross-validation. If not provided, fold IDs are generated randomly for number of folds \code{nfolds}.
@@ -48,44 +88,17 @@ cpfa(x, y, nrep = 5, ratio = 0.8, seeds = NULL,
 \item{prior}{
   Prior probabilities of class membership. If unspecified, the class proportions for input \code{y} are used. If specified, the probabilities should be in the order of the factor levels of input \code{y}.
 }
-\item{model}{
-  Character designating the Parafac model to use, either \code{model = "parafac"} to fit the Parafac model or \code{model = "parafac2"} to fit the Parafac2 model.
+\item{cmode}{
+  Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying the mode whose component weights will be predictors for classification. Defaults to the last mode of the inputted array (i.e., defaults to 3 for three-way array, and to 4 for four-way array). If \code{model = "parafac2"}, last mode will be used.
 }
-\item{method}{
-  Character vector indicating classification methods to use. Possible methods include penalized logistic regression (PLR), support vector machine (SVM), random forest (RF), feed-forward neural network (NN), and regularized discriminant analysis (RDA). If none selected, default is to use all methods.
+\item{seeds}{
+  Random seeds to be associated with each replication. Default is \code{seeds = 1:nrep}.
 }
-\item{family}{
-  Character value specifying binary classification (\code{family = "binomial"}) or multiclass classification (\code{family = "multinomial"}). If not provided, number of levels of input \code{y} is used, where two levels is binary, and where three or more levels is multiclass.
+\item{plot.out}{
+  Logical indicating whether to output one or more box plots of classification performance measures that are plotted across classification methods and number of components.
 }
-\item{alpha}{
-   Values for penalized logistic regression alpha parameter; default is \code{alpha = seq(0, 1, length = 6)}. Must be numeric and contain only real numbers between 0 and 1, inclusive.
-}
-\item{lambda}{
-   Optional user-supplied lambda sequence for \code{cv.glmnet} for penalized logistic regression. Default is NULL.
-}
-\item{cost}{
-  Values for support vector machine cost parameter; default is \code{cost = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only real numbers greater than or equal to zero.
-}
-\item{gamma}{
-  Values for support vector machine gamma parameter; default is \code{gamma = c(0, 0.01, 0.1, 1, 10, 100, 1000)}. Must be numeric and greater than or equal to 0.
-}
-\item{ntree}{
-  Values for random forest number of trees parameter; default is \code{ntree = c(100, 200, 400, 600, 800, 1600, 3200)}. Must be numeric and contain only integers greater than or equal to 1.
-}
-\item{nodesize}{
-  Values for random forest node size parameter; default is \code{nodesize = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only integers greater than or equal to 1.
-}
-\item{size}{
-  Values for neural network size parameter; default is \code{size = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only integers greater than or equal to 0.
-}
-\item{decay}{
-  Values for neural network decay parameter; default is \code{decay = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16)}. Must be numeric and contain only real numbers.
-}
-\item{rda.alpha}{
-  Values for regularized discriminant analysis alpha parameter; default is \code{rda.alpha = seq(0, 0.999, length = 6)}. Must be numeric and contain only real numbers between 0 (inclusive) and 1 (exclusive).
-}
-\item{delta}{
-  Values for regularized discriminant analysis delta parameter; default is \code{delta = c(0, 0.1, 1, 2, 3, 4}. Must be numeric and contain only real numbers greater than or equal to 0.
+\item{plot.measures}{
+  Character vector containing values that specify for plotting one or more of 11 possible classification performance measures. Only relevant when \code{plot.out = TRUE}. Should contain one or more of the following labels: \code{c("err", "acc", "tpr", "fpr", "tnr", "fnr", "ppv", "npv", "fdr", "fom", "fs")}. A box plot will be created for each measure that is specified, summarizing output across replications. Note that additional information about each label is available in the Details section of the help file for function \code{cpm}. Note also that there are a few cases where the x-axis tick labels for a plot might not appear. This issue will be resolved in a future update.
 }
 \item{parallel}{
   Logical indicating if parallel computing should be implemented. If TRUE, the package \bold{parallel} is used for parallel computing. For all classification methods except penalized logistic regression, the \bold{doParallel} package is used as a wrapper. Defaults to FALSE, which implements sequential computing.
@@ -95,15 +108,6 @@ cpfa(x, y, nrep = 5, ratio = 0.8, seeds = NULL,
 }
 \item{verbose}{
   If TRUE, progress is printed.
-}
-\item{cmode}{
-  Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying the mode whose component weights will be predictors for classification. Defaults to the last mode of the inputted array (i.e., defaults to 3 for three-way array, and to 4 for four-way array). If \code{model = "parafac2"}, last mode will be used.
-}
-\item{plot.out}{
-  Logical indicating whether to output one or more box plots of classification performance measures that are plotted across classification methods and number of components.
-}
-\item{plot.measures}{
-  Character vector containing values that specify for plotting one or more of 11 possible classification performance measures. Only relevant when \code{plot.out = TRUE}. Should contain one or more of the following labels: \code{c("err", "acc", "tpr", "fpr", "tnr", "fnr", "ppv", "npv", "fdr", "fom", "fs")}. A box plot will be created for each measure that is specified, summarizing output across replications. Note that additional information about each label is available in the Details section of the help file for function \code{cpm}. Note also that there are a few cases where the x-axis tick labels for a plot might not appear. This issue will be resolved in a future update.
 }
 \item{...}{
   Additional arguments to be passed to function \code{parafac} for fitting a Parafac model or function \code{parafac2} for fitting a Parafac2 model. Example: can impose different constraints on different modes of the input tensor/array using the argument \code{const}. See help file for function \code{parafac} or for function \code{parafac2} for additional details.
@@ -123,6 +127,12 @@ For all five methods, k-fold cross-validation is implemented to tune classificat
   }
   \item{train.weights}{
     List of lists of training weights for each Parafac or Parafac2 model and for each replication.
+  }
+  \item{opt.tune}{
+    List of optimal tuning parameters for classification methods for each Parafac or Parafac2 model and for each replication.
+  }
+  \item{mean.opt.tune}{
+    Mean across all replications of optimal tuning parameters for classification methods for each Parafac or Parafac2 model. 
   }
 }
 \note{
@@ -171,7 +181,7 @@ Zou, H. and Hastie, T. (2005). Regularization and variable selection via the ela
 
 # create random data array with Parafac structure
 set.seed(3)
-mydim <- c(60, 16, 80)
+mydim <- c(60, 16, 100)
 nf <- 3
 Amat <- matrix(rnorm(mydim[1]*nf), nrow = mydim[1], ncol = nf)
 Bmat <- matrix(runif(mydim[2]*nf), nrow = mydim[2], ncol = nf)
@@ -192,21 +202,22 @@ size <- c(1, 2)
 decay <- c(0, 1)
 rda.alpha <- c(0.1, 0.6)
 delta <- c(0.1, 2)
-model <- "parafac"
 method <- c("PLR", "SVM", "RF", "NN", "RDA")
+family <- "binomial"
+parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
+                   nodesize = nodesize, size = size, decay = decay, 
+                   rda.alpha = rda.alpha, delta = delta)
+model <- "parafac"
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
-foldid <- sample(rep(1:nfolds, length.out = 64))
 
 # fit Parafac models and use third mode weights to tune classification
 # methods, to predict class labels, and to return classificaiton 
 # performance measures
-output <- cpfa(x = X, y = y, nrep = 2, ratio = 0.8, seeds = NULL,
-               type.out = "descriptives", nfac = 3, nfolds = nfolds,
-               foldid = foldid, model = model, method = method, alpha = alpha, 
-               gamma = gamma, cost = cost, ntree = ntree, nodesize = nodesize, 
-               size = size, decay = decay, rda.alpha = rda.alpha, 
-               delta = delta, parallel = FALSE, const = const)
+output <- cpfa(x = X, y = y, model = model, nfac = 3, nrep = 2, ratio = 0.8, 
+               nfolds = nfolds, method = method, family = family, 
+               parameters = parameters, type.out = "descriptives", 
+               seeds = NULL, plot.out = TRUE, parallel = FALSE, const = const)
 
 # print mean of classification performance measures across replications
 output$descriptive$mean

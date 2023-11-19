@@ -1,5 +1,5 @@
 predict.cpfa <-
-  function(object, newdata = NULL, nfac = NULL, method = NULL,
+  function(object, newdata = NULL, method = NULL,
            type = c("response", "prob", "classify.weights"), 
            threshold = NULL, ...)                                               
 {   
@@ -111,19 +111,26 @@ predict.cpfa <-
              match number of levels for C mode used in 'object'.")
       }
     }
-    if (is.null(nfac)) {
-      nfac <- object$opt.param$nfac
-    }
+    nfac <- object$opt.param$nfac
     opt.param <- object$opt.param
     lnfac <- length(nfac)
     nfac.names <- paste("fac.", nfac, sep ="")
-    methods <- c("PLR", "SVM", "RF", "NN", "RDA")
-    method <- pmatch(toupper(method), methods)
-    b.lmethod <- length(method)
-    if (is.null(method) || b.lmethod == 0) {
+    if (is.null(method)) {
       method <- object$method
+      lmethod <- length(method)
+    } else {
+      methods <- c("PLR", "SVM", "RF", "NN", "RDA")
+      checkmethod <- sum(toupper(method) %in% methods)
+      if (checkmethod != length(method)) {
+        stop("Input 'method' contains at least one value that is not valid.")
+      }
+      method <- which(methods %in% toupper(method) == TRUE)
+      lmethod <- length(method)
+      if (sum(method %in% object$method) != lmethod) {
+        stop("Input 'method' contains at least one method that was not tuned \n
+             in input 'object'.")
+      }
     }
-    lmethod <- length(method)
     meth.names <- NULL
     if (1 %in% method) {meth.names <- c(meth.names, "PLR")}
     if (2 %in% method) {meth.names <- c(meth.names, "SVM")}
@@ -447,10 +454,10 @@ predict.cpfa <-
       classify.weight.names <- paste(nfac, "-factor(s)", sep ="")
       names(classify.weights) <- classify.weight.names
       return(classify.weights)
-    }
+    } 
     if (type == "response") {
       return(storfac)
-    }
+    } 
     if (type == "prob") {
       return(storprob)
     }

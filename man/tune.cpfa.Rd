@@ -7,72 +7,77 @@ Tuning for Classification with Parallel Factor Analysis
 Fits Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or Parallel Factor Analysis-2 (Parafac2) model to a three-way or four-way data tensor/array. Allows for multiple constraint options on tensor modes. Uses component weights from a single mode of the model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Supports binary and multiclass classification.
 }
 \usage{
-tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
-           model = c("parafac", "parafac2"),
+tune.cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10, 
            method = c("PLR", "SVM", "RF", "NN", "RDA"), 
-           family = c("binomial", "multinomial"),
-           alpha = NULL, lambda = NULL, cost = NULL, gamma = NULL, 
-           ntree = NULL, nodesize = NULL, size = NULL, decay = NULL, 
-           rda.alpha = NULL, delta = NULL, parallel = FALSE, cl = NULL, 
-           verbose = TRUE, cmode = NULL, ...)
+           family = c("binomial", "multinomial"), parameters = list(), 
+           foldid = NULL, prior = NULL, cmode = NULL, parallel = FALSE, 
+           cl = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{
-  Three-way or four-way data array. When \code{model = "parafac2"}, can also be a list containing either matrices or three-way arrays. See note below.
+  Three-way or four-way data array. Must contain real numbers. See note below.
 } 
 \item{y}{
-  A factor with two or more levels containing class labels. For binary case, ensure the order of factor levels (from left to right) is such that the negative class is first and the positive class is second.
-}
-\item{nfac}{
-  Number of components for each Parafac or Parafac2 model to estimate. Default is \code{nfac = 1}.
-}
-\item{nfolds}{
-  Numeric setting number of folds for k-fold cross-validation. Must be 2 or greater. Default is \code{nfolds = 10}.
-}
-\item{foldid}{
-  Integer vector containing fold IDs for k-fold cross-validation. If not provided, fold IDs are generated randomly for the number of folds \code{nfolds}.
-}
-\item{prior}{
-  Prior probabilities of class membership. If unspecified, the class proportions for input \code{y} are used. If specified, the probabilities should be in the order of the factor levels of input \code{y}.
+  A vector containing at least two unique class labels. Should be a factor that contains two or more levels . For binary case, ensure the order of factor levels (left to right) is such that negative class is first and positive class is second.
 }
 \item{model}{
   Character designating the Parafac model to use, either \code{model = "parafac"} to fit the Parafac model or \code{model = "parafac2"} to fit the Parafac2 model.
 }
+\item{nfac}{
+  Number of components for each Parafac or Parafac2 model to fit. Default is \code{nfac = 1}.
+}
+\item{nfolds}{
+  Numeric setting number of folds for k-fold cross-validation. Must be 2 or greater. Default is \code{nfolds = 10}.
+}
 \item{method}{
-  Character vector indicating classification methods to use. Possible methods include penalized logistic regression (PLR), support vector machine (SVM), random forest (RF), feed-forward neural networks (NN), and regularized discriminant analysis (RDA). If none selected, default is to use all methods.
+  Character vector indicating classification methods to use. Possible methods include penalized logistic regression (PLR); support vector machine (SVM); random forest (RF); feed-forward neural network (NN); and regularized discriminant analysis (RDA). If none selected, default is to use all methods.
 }
 \item{family}{
   Character value specifying binary classification (\code{family = "binomial"}) or multiclass classification (\code{family = "multinomial"}). If not provided, number of levels of input \code{y} is used, where two levels is binary, and where three or more levels is multiclass.
 }
-\item{alpha}{
-   Values for penalized logistic regression alpha parameter; default is \code{alpha = seq(0, 1, length = 6)}. Must be numeric and contain only real numbers between 0 and 1, inclusive.
+\item{parameters}{
+  List containing arguments related to classification methods. When specified, must contain one or more of the following:
+  \describe{
+  \item{alpha}{
+  Values for penalized logistic regression alpha parameter; default is \code{alpha = seq(0, 1, length = 6)}. Must be numeric and contain only real numbers between 0 and 1, inclusive.
 }
-\item{lambda}{
-   Optional user-supplied lambda sequence for \code{cv.glmnet} for penalized logistic regression. Default is NULL.
+  \item{lambda}{
+  Optional user-supplied lambda sequence for \code{cv.glmnet} for penalized logistic regression. Default is NULL.
 }
-\item{cost}{
+  \item{cost}{
   Values for support vector machine cost parameter; default is \code{cost = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only real numbers greater than or equal to zero.
 }
-\item{gamma}{
+  \item{gamma}{
   Values for support vector machine gamma parameter; default is \code{gamma = c(0, 0.01, 0.1, 1, 10, 100, 1000)}. Must be numeric and greater than or equal to 0.
 }
-\item{ntree}{
+  \item{ntree}{
   Values for random forest number of trees parameter; default is \code{ntree = c(100, 200, 400, 600, 800, 1600, 3200)}. Must be numeric and contain only integers greater than or equal to 1.
 }
-\item{nodesize}{
+  \item{nodesize}{
   Values for random forest node size parameter; default is \code{nodesize = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only integers greater than or equal to 1.
 }
-\item{size}{
-  Values for feed-forward neural network size parameter; default is \code{size = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only integers greater than or equal to 0.
+  \item{size}{
+  Values for neural network size parameter; default is \code{size = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only integers greater than or equal to 0.
 }
-\item{decay}{
-  Values for feed-forward neural network decay parameter; default is \code{decay = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16)}. Must be numeric and contain only real numbers.
+  \item{decay}{
+  Values for neural network decay parameter; default is \code{decay = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16)}. Must be numeric and contain only real numbers.
 }
-\item{rda.alpha}{
+  \item{rda.alpha}{
   Values for regularized discriminant analysis alpha parameter; default is \code{rda.alpha = seq(0, 0.999, length = 6)}. Must be numeric and contain only real numbers between 0 (inclusive) and 1 (exclusive).
 }
-\item{delta}{
+  \item{delta}{
   Values for regularized discriminant analysis delta parameter; default is \code{delta = c(0, 0.1, 1, 2, 3, 4)}. Must be numeric and contain only real numbers greater than or equal to 0.
+}
+}
+}
+\item{foldid}{
+  Vector containing fold IDs for k-fold cross-validation. Can be of class integer, numeric, or data frame. Should contain integers from 1 through the number of folds. If not provided, fold IDs are generated randomly for observations using 1 through the number of folds \code{nfolds}.
+}
+\item{prior}{
+  Prior probabilities of class membership. If unspecified, the class proportions for input \code{y} are used. If specified, the probabilities should be in the order of the factor levels of input \code{y}.
+}
+\item{cmode}{
+  Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying the mode whose component weights will be predictors for classification. Defaults to the last mode of the inputted array (i.e., defaults to 3 for three-way array, and to 4 for four-way array). If \code{model = "parafac2"}, last mode will be used.
 }
 \item{parallel}{
   Logical indicating if parallel computing should be implemented. If TRUE, the package \bold{parallel} is used for parallel computing. For all classification methods except penalized logistic regression, the \bold{doParallel} package is used as a wrapper. Defaults to FALSE, which implements sequential computing.
@@ -83,11 +88,8 @@ tune.cpfa(x, y, nfac = 1, nfolds = 10, foldid = NULL, prior = NULL,
 \item{verbose}{
   If TRUE, progress is printed.
 }
-\item{cmode}{
-  Integer value of 1, 2, or 3 (or 4 if 'x' is a four-way array) specifying mode whose component weights will be predictors for classification. Defaults to last mode of inputted array (i.e., defaults to 3 for three-way array and to 4 for four-way array). If \code{model = "parafac2"}, last mode will be used.
-}
 \item{...}{
-  Additional arguments to be passed to function \code{parafac} for fitting a Parafac model or function \code{parafac2} for fitting a Parafac2 model.
+  Additional arguments to be passed to function \code{parafac} for fitting a Parafac model or function \code{parafac2} for fitting a Parafac2 model. Example: can impose different constraints on different modes of the input tensor/array using the argument \code{const}. See help file for function \code{parafac} or for function \code{parafac2} for additional details.
 }
 }
 \details{
@@ -221,18 +223,18 @@ size <- c(1, 2)
 decay <- c(0, 1)
 rda.alpha <- c(0.1, 0.6)
 delta <- c(0.1, 2)
-model <- "parafac"
 method <- c("PLR", "SVM", "RF", "NN", "RDA")
+family <- "binomial"
+parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
+                   nodesize = nodesize, size = size, decay = decay, 
+                   rda.alpha = rda.alpha, delta = delta)
+model <- "parafac"
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
-foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
 # fit Parafac models and use third mode to tune classification methods
-tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
-                         foldid = foldid, model = model, method = method, 
-                         alpha = alpha, gamma = gamma, cost = cost, 
-                         ntree = ntree, nodesize = nodesize, size = size, 
-                         decay = decay, rda.alpha = rda.alpha,
-                         delta = delta, parallel = FALSE, const = const)
-print(tune.object)
+tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = 3, nfolds = nfolds, 
+                         method = method, family = family, 
+                         parameters = parameters, parallel = FALSE, 
+                         const = const)
 }

@@ -86,19 +86,21 @@ size <- c(1, 2)
 decay <- c(0, 1)
 rda.alpha <- c(0.1, 0.6)
 delta <- c(0.1, 2)
-model <- "parafac"
 method <- c("PLR", "SVM", "RF", "NN", "RDA")
+family <- "binomial"
+parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
+                   nodesize = nodesize, size = size, decay = decay, 
+                   rda.alpha = rda.alpha, delta = delta)
+model <- "parafac"
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
-foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
-# estimate Parafac models and use third mode to tune classification methods
-tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
-                         foldid = foldid, model = model, method = method, 
-                         alpha = alpha, gamma = gamma, cost = cost, 
-                         ntree = ntree, nodesize = nodesize, size = size, 
-                         decay = decay, rda.alpha = rda.alpha,
-                         delta = delta, parallel = FALSE, const = const)
-                         
+# fit Parafac models and use third mode to tune classification methods
+tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = 3, nfolds = nfolds, 
+                         method = method, family = family, 
+                         parameters = parameters, parallel = FALSE, 
+                         const = const)
+
+# print summary of output
 print(tune.object)
 }

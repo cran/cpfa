@@ -1,3 +1,15 @@
+Changes:  version 1.0-9  (2023-11-19)
+
+1.) Placed tuning arguments into a list for functions tune.cpfa and cpfa
+	- Previously classifier tuning arguments were separate inputs
+	- Now tuning arguments are combined in a list to improve readability
+
+2.) Added new output to function cpfa
+	- Previously optimal tuning parameters were not provided by cpfa
+	- Now optimal tuning parameters are provided for each replication
+
+----------------
+
 Changes:  version 1.0-8  (2023-10-15)
 
 1.) Bug fix in internal function “kcv.rda” for KCV error calculation

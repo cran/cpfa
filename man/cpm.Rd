@@ -20,10 +20,10 @@ cpm(x, y, level = NULL, fbeta = NULL, prior = NULL)
   Optional argument specifying possible class labels. For cases when \code{x} or \code{y} do not contain all possible classes. Can be of class numeric, integer, or character. Must contain two elements for binary classification, and contain three or more elements for multiclass classification. If integer, integers should be ordered (e.g., binary with \code{c(0, 1)}; or three-class with \code{c(0, 1, 2)}). Note: if both \code{x} and \code{y} jointly contain only a single value (e.g., 1), must specify argument \code{level} in order to identify classification as binary or multiclass. 
 }
   \item{fbeta}{
-  Optional numeric argument specifying beta value for F-score. Defaults to \code{fbeta = 1}, providing an F1-score (i.e., the balanced harmonic mean between precision and recall).
+  Optional numeric argument specifying beta value for F-score. Defaults to \code{fbeta = 1}, providing an F1-score (i.e., the balanced harmonic mean between precision and recall). Can be any real number.
 }
   \item{prior}{
-  Optional numeric argument specifying weights for classes. Defaults to \code{prior = c(rep(1/llev, llev))}, where \code{llev} is the number of classes, providing equal importance across classes.
+  Optional numeric argument specifying weights for classes. Currently only implemented with multiclass problems. Defaults to \code{prior = c(rep(1/llev, llev))}, where \code{llev} is the number of classes, providing equal importance across classes.
   }
 }
 \details{
@@ -136,20 +136,21 @@ size <- c(1, 2)
 decay <- c(0, 1)
 rda.alpha <- c(0.1, 0.6)
 delta <- c(0.1, 2)
-model <- "parafac"
 method <- c("PLR", "SVM", "RF", "NN", "RDA")
+family <- "binomial"
+parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
+                   nodesize = nodesize, size = size, decay = decay, 
+                   rda.alpha = rda.alpha, delta = delta)
+model <- "parafac"
 nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
-foldid <- sample(rep(1:nfolds, length.out = length(y)))
 
-# estimate Parafac models and use third mode to tune classification methods
-tune.object <- tune.cpfa(x = X, y = y, nfac = 3, nfolds = nfolds,
-                         foldid = foldid, model = model, method = method, 
-                         alpha = alpha, gamma = gamma, cost = cost, 
-                         ntree = ntree, nodesize = nodesize, size = size, 
-                         decay = decay, rda.alpha = rda.alpha,
-                         delta = delta, parallel = FALSE, const = const)
-
+# fit Parafac models and use third mode to tune classification methods
+tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = 3, nfolds = nfolds, 
+                         method = method, family = family, 
+                         parameters = parameters, parallel = FALSE, 
+                         const = const)
+                         
 # create random data array with Parafac structure and with the A 
 # and B weights used above
 mydim.new <- c(60, 16, 20)
@@ -160,7 +161,7 @@ Emat <- array(rnorm(prod(mydim.new)), dim = mydim.new)
 Xnew <- Xmat + Emat
 
 # predict class labels
-predict.labels <- predict(object = tune.object, newdata = Xnew,
+predict.labels <- predict(object = tune.object, newdata = Xnew, 
                           type = "response")
 
 # create new random class labels for two levels

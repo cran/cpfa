@@ -1,22 +1,20 @@
 cpfa <- 
-  function(x, y, nrep = 5, ratio = 0.8, seeds = NULL, 
-           type.out = c("measures", "descriptives"), nfac = 1, nfolds = 10, 
-           foldid = NULL, prior = NULL, model = c("parafac", "parafac2"), 
+  function(x, y, model = c("parafac", "parafac2"), nfac = 1, 
+           nrep = 5, ratio = 0.8, nfolds = 10,
            method = c("PLR", "SVM", "RF", "NN", "RDA"), 
-           family = c("binomial", "multinomial"), alpha = NULL, lambda = NULL, 
-           cost = NULL, gamma = NULL, ntree = NULL, nodesize = NULL, 
-           size = NULL, decay = NULL, rda.alpha = NULL, delta = NULL, 
-           parallel = FALSE, cl = NULL, verbose = TRUE, cmode = NULL, 
-           plot.out = FALSE, plot.measures = NULL, ...) 
+           family = c("binomial", "multinomial"), parameters = list(), 
+           type.out = c("measures", "descriptives"), foldid = NULL, 
+           prior = NULL, cmode = NULL, seeds = NULL, plot.out = FALSE, 
+           plot.measures = NULL, parallel = FALSE, cl = NULL, 
+           verbose = TRUE, ...) 
 {   
     models <- c("parafac", "parafac2")
-    model0 <- pmatch(tolower(model), models)
-    lmodel <- length(model0)
-    if ((lmodel == 0) || (lmodel > 1)) {
-      stop("Input 'model' not specified correctly. Input must be one of \n
+    model0 <- sum(tolower(model) %in% models)
+    if ((model0 == 0) || (model0 > 1L)) {
+      stop("Input 'model' not specified correctly. Input must be only one of \n
             either 'parafac' or 'parafac2'.")
     }
-    modellow <- tolower(model)
+    model <- tolower(model)
     if (is.array(x) && (model == "parafac")) {
       xdim <- dim(x)                                                            
       lxdim <- length(xdim)
@@ -115,25 +113,20 @@ cpfa <-
     if (!(length(y) == xdim[cmode])) 
       stop("Length of 'y' must match number of levels in \n 
            classification mode/dimension of 'x'.")
-    if (!(ceiling(nrep) == nrep) || (nrep < 1)) {
-      stop("Input 'nrep' must be an integer greater than 0.")
+    if ((!(ceiling(nrep) == nrep)) || (nrep < 1) || (length(ratio) != 1L)) {
+      stop("Input 'nrep' must be a single integer greater than 0.")
     }
     if (!(is.numeric(ratio))) {
       stop("Input 'ratio' must be of class numeric.")
     }
-    if ((ratio > 1) || (ratio < 0)) {
-      stop("Input 'ratio' must be a number between 0 and 1.")
+    if ((ratio > 1) || (ratio < 0) || (length(ratio) != 1L)) {
+      stop("Input 'ratio' must be a number between 0 and 1, inclusive.")
     }
     if (is.null(seeds)) {
       seeds <- 1:nrep
     } else {
-      if (!(is.numeric(seeds))) {
-        stop("Input 'seeds' must be of class 'numeric'.")
-      }
-      if ((sum(seeds-floor(seeds) == 0)) != 0) {
-        seeds <- round(seeds)
-        warning("At least one seed was not an integer. Non-integer seeds were \n
-                rounded using 'round()'.")
+      if (!((is.numeric(seeds)) || (is.integer(seeds)))) {
+        stop("Input 'seeds' must be of class 'numeric' or 'integer'.")
       }
       if (length(seeds) != nrep) {
         stop("Input 'seeds' must have length equal to input 'nrep'.")
@@ -143,14 +136,20 @@ cpfa <-
       } 
     }
     types <- c("measures", "descriptives")
-    type <- pmatch(tolower(type.out), types)
-    ltype <- length(type)
-    if ((ltype == 0) || (ltype > 1)) {
-      warning("Input 'type.out' not specified correctly. Input must be either \n
-              'measures' or 'descriptives'. Defaulting to 'descriptives'.")
+    numtype <- sum(tolower(type.out) %in% types)
+    if (numtype == 0) {
+      stop("Input 'type.out' does not contain a valid value. Must specify \n
+           either 'measures' or 'descriptives' for 'type.out'.")
+    } else if (numtype > 2L) {
+      stop("Input 'type.out' contains three or more values. Must specify \n
+           either 'measures' or 'descriptives' for 'type.out'.")
+    } else if (numtype == 2L) {
       type.out <- "descriptives"
+      warning("Input 'type.out' not specified. Input must be either \n
+              'measures' or 'descriptives'. Defaulting to 'descriptives'.")
+    } else {
+      type.out <- tolower(type.out)
     }
-    typelow <- tolower(type.out)
     if (model == "parafac") {
       nobs <- dim(x)[lxdim]
     } else {
@@ -188,6 +187,7 @@ cpfa <-
     Bw <- vector(mode = "list", length = nrep)
     Cw <- vector(mode = "list", length = nrep)
     Pw <- vector(mode = "list", length = nrep)
+    opara <- vector(mode = "list", length = nrep)
     if (cmode <- lxdim) {
       cmode <- NULL
     }
@@ -212,23 +212,21 @@ cpfa <-
          X.test <- x[-train.id]
        }
        cpfalist <- tune.cpfa(x = X.train, y = y.train, nfac = nfac,            
-                             nfolds = nfolds, foldid = foldid, prior = prior, 
-                             model = model, method = method, family = family, 
-                             alpha = alpha, lambda = lambda, cost = cost, 
-                             gamma = gamma, ntree = ntree, nodesize = nodesize, 
-                             size = size, decay = decay, rda.alpha = rda.alpha,
-                             delta = delta, parallel = parallel, cl = cl, 
-                             verbose = verbose, cmode = cmode, ...)
+                             nfolds = nfolds, method = method, foldid = foldid, 
+                             prior = prior, model = model, family = family,
+                             parameters = parameters, parallel = parallel, 
+                             cl = cl, verbose = verbose, cmode = cmode, ...)
        Aw[[i]] <- cpfalist$Aweights
        Bw[[i]] <- cpfalist$Bweights
        Cw[[i]] <- cpfalist$Cweights
        Pw[[i]] <- cpfalist$Phi
+       opara[[i]] <- cpfalist$opt.param
        yhat <- predict(object = cpfalist, newdata = X.test, type = "response")                        
        out <- cpm.all(x = yhat, y = y.test, level = levels(y))
        stor[,,i] <- as.matrix(out$cpms)
        predstor[[i]] <- predict(object = cpfalist, newdata = X.test, 
                                 type = "classify.weights")
-       if ((plot.out) & (i = 1)) {
+       if ((plot.out) && (i = 1)) {
          plot.mind <- cpfalist$method
        }
     }
@@ -238,6 +236,7 @@ cpfa <-
     dimnames(stor)[[2]] <- cnam
     train.weights <- list(Atrain.weights = Aw, Btrain.weights = Bw, 
                           Ctrain.weights = Cw, Phitrain = Pw)
+    mean.tune.param <- Reduce("+", opara) / length(opara)
     if (plot.out) {
       ncomps <- length(nfac)
       nmethods <- length(method)
@@ -267,9 +266,10 @@ cpfa <-
                  na.rm = FALSE)
       }
     }
-    if (typelow == "measures") {
+    if (type.out == "measures") {
       return(list(measure = stor, predweights = predstor,
-                  train.weights = train.weights))                                                              
+                  train.weights = train.weights, opt.tune = opara,
+                  mean.opt.tune = mean.tune.param))                                                              
     } else {
       dfun <- c("mean", "median", "sd")
       output <- vector(mode = "list", length = length(dfun))
@@ -280,8 +280,8 @@ cpfa <-
         colnames(output[[j]]) <- cnam
       }
       names(output) <- dfun                                                     
-      return(list(descriptive = output, 
-                  predweights = predstor,
-                  train.weights = train.weights))
+      return(list(descriptive = output, predweights = predstor,
+                  train.weights = train.weights, opt.tune = opara,
+                  mean.opt.tune = mean.tune.param))
     }
 }
