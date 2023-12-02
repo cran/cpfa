@@ -7,9 +7,10 @@ kcv.plr <-
     if (!is.factor(y)) {
       y <- factor(y)
     } 
-    if (length(unique(y)) == 1L)
+    if (length(unique(y)) == 1L) {
       stop("Input 'y' must contain some variation (i.e., cannot contain \n
            only a single type of label).")
+    }
     if (is.null(nfolds)) {
       nfolds <- 10
     } else {
@@ -53,6 +54,10 @@ kcv.plr <-
     if (nfolds == 2) {
       if (is.null(weights)) {
         weights <- as.numeric((table(y)[y] / length(y)))
+        if (family == "binomial") {
+          threshold <- (table(y) / length(y))[1]
+        }
+      } else {
         if (family == "binomial") {
           threshold <- (table(y) / length(y))[1]
         }

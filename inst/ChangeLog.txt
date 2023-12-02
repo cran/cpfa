@@ -1,3 +1,15 @@
+Changes:  version 1.1-0  (2023-12-02)
+
+1.) Bug fix in main package function tune.cpfa
+	- Previously a bug prevented Parafac2 models from being fit
+	- Now Parafac2 models can be fit correctly
+
+2.) Bug fix in internal package function kcv.plr
+	- Previously a bug prevented 'threshold' from working with 'nfolds = 2'
+	- Now argument 'threshold' works correctly with 'nfolds = 2'
+
+----------------
+
 Changes:  version 1.0-9  (2023-11-19)
 
 1.) Placed tuning arguments into a list for functions tune.cpfa and cpfa

@@ -16,12 +16,15 @@ predict.cpfa <-
     if (is.array(newdata) && (model == "parafac")) {
       xdim <- dim(newdata)                                                            
       lxdim <- length(xdim)
-      if (!((lxdim == 3L) || (lxdim == 4L))) 
+      if (!((lxdim == 3L) || (lxdim == 4L))) {
         stop("Input 'newdata' must be a 3-way or 4-way array.")
-      if (any(is.nan(newdata)) || any(is.infinite(newdata))) 
+      }
+      if (any(is.nan(newdata)) || any(is.infinite(newdata))) {
         stop("Input 'newdata' cannot contain NaN or Inf values.")
-      if (any(is.na(newdata))) 
+      }
+      if (any(is.na(newdata))) {
         stop("Input 'newdata' cannot contain missing values.")
+      }
       if (cmode != length(xold.dim)) {
         modeval <- 1:lxdim
         mode.re <- c(modeval[-cmode], cmode)
@@ -31,12 +34,15 @@ predict.cpfa <-
     } else if (is.array(newdata) && (model == "parafac2")) {
       xdim <- dim(newdata)                                                            
       lxdim <- length(xdim)
-      if (!((lxdim == 3L) || (lxdim == 4L))) 
+      if (!((lxdim == 3L) || (lxdim == 4L))) {
         stop("Input 'newdata' must be a 3-way or 4-way array.")
-      if (any(is.nan(newdata)) || any(is.infinite(newdata))) 
+      }
+      if (any(is.nan(newdata)) || any(is.infinite(newdata))) {
         stop("Input 'newdata' cannot contain NaN or Inf values.")
-      if (any(is.na(newdata))) 
+      }
+      if (any(is.na(newdata))) {
         stop("Input 'newdata' cannot contain missing values.")
+      }
       if (lxdim == 3L) {
         storlist <- vector("list", xdim[3])
         for (k in 1:xdim[3]) {
@@ -53,15 +59,20 @@ predict.cpfa <-
     } else if (is.list(newdata) && (model == "parafac2")) {
       xdim1 <- dim(newdata[[1]])
       lxdim <- length(xdim1) + 1L
-      if (!((lxdim == 3L) || (lxdim == 4L))) 
+      if (!((lxdim == 3L) || (lxdim == 4L))) {
         stop("Input 'newdata' must be a list of matrices or 3-way arrays.")
-      if (any(as.logical(lapply(newdata, function(a){return(any(is.nan(a)))}))))
+      }
+      if (any(as.logical(lapply(newdata, 
+                                function(a){return(any(is.nan(a)))})))) {
         stop("Input 'newdata' cannot contain NaN values")
+      }
       if (any(as.logical(lapply(newdata,
-                                function(a){return(any(is.infinite(a)))}))))
+                                function(a){return(any(is.infinite(a)))})))) {
         stop("Input 'newdata' cannot contain Inf values")
-      if (any(as.logical(lapply(newdata,function(a){return(any(is.na(a)))}))))
+      }
+      if (any(as.logical(lapply(newdata,function(a){return(any(is.na(a)))})))) {
         stop("Input 'newdata' cannot contain missing values")
+      }
       if (lxdim == 3L) {
         xdim <- rep(NA, 3)
         xdim[2] <- xdim1[2]
@@ -77,12 +88,14 @@ predict.cpfa <-
         xdim[4] <- length(newdata)
         index2 <- seq(2, (3*length(newdata) - 1), by = 3)
         index3 <- seq(3, (3*length(newdata)), by = 3)
-        if (any(unlist(lapply(newdata, dim))[index2] != xdim[2]))
+        if (any(unlist(lapply(newdata, dim))[index2] != xdim[2])) {
           stop("Input 'newdata' must be list of arrays with same \n
                number of columns.")
-        if (any(unlist(lapply(newdata, dim))[index3] != xdim[3]))
+        }
+        if (any(unlist(lapply(newdata, dim))[index3] != xdim[3])) {
           stop("Input 'newdata' must be list of arrays with same \n
                number of slabs.")
+        }
       }
     } else if (is.list(newdata) && (model == "parafac")) {
       stop("Input 'newdata' must be of class 'array' if 'model = parafac'.")
@@ -90,25 +103,30 @@ predict.cpfa <-
       stop("Input 'newdata' must be of class 'array' or 'list'.")
     }
     if (model == "parafac") {
-      if (xdim[1] != xold.dim[1])
+      if (xdim[1] != xold.dim[1]) {
         stop("Number of levels for A mode of input 'newdata' must 
             match number of levels for A mode used in 'object'.")
-      if (xdim[2] != xold.dim[2])
+      }
+      if (xdim[2] != xold.dim[2]) {
         stop("Number of levels for B mode of input 'newdata' must 
            match number of levels for B mode used in 'object'.")
+      }
       if (lxdim == 4L) {
-        if (xdim[3] != xold.dim[3])
+        if (xdim[3] != xold.dim[3]) {
           stop("Number of levels for C mode of input 'newdata' must 
              match number of levels for C mode used in 'object'.")
+        }
       }
     } else {
-      if (xdim[2] != xold.dim[2])
+      if (xdim[2] != xold.dim[2]) {
         stop("Number of levels for B mode of input 'newdata' must 
            match number of levels for B mode used in 'object'.")
+      }
       if (lxdim == 4L) {
-        if (xdim[3] != xold.dim[3])
+        if (xdim[3] != xold.dim[3]) {
           stop("Number of levels for C mode of input 'newdata' must 
              match number of levels for C mode used in 'object'.")
+        }
       }
     }
     nfac <- object$opt.param$nfac
@@ -151,18 +169,21 @@ predict.cpfa <-
     names(storfac) <- nfac.names
     classify.weights <- vector("list", lnfac)
     names(classify.weights) <- nfac.names
-    if (length(type) != 1)
+    if (length(type) != 1) {
       stop("Input 'type' must be a character of length equal to 1.")
+    }
     types <- c("response", "prob", "classify.weights")
-    if (!(tolower(type) %in% types))
+    if (!(tolower(type) %in% types)) {
       stop("Input 'type' must be 'response', 'prob', or 'classify.weights'.")
+    }
     type <- tolower(type)
     family <- object$family
     if (family == "binomial") {
       if (!(is.null(threshold))) {
-        if ((threshold < 0) || (threshold > 1) || (length(threshold) > 1))
+        if ((threshold < 0) || (threshold > 1) || (length(threshold) > 1)) {
           stop("Input 'threshold' must be a single real number from 0 to 1, 
               inclusive, for binary classification.")
+        }
       }
       if ((is.null(threshold)) && (type == "response")) {
         yt <- object$y
@@ -175,11 +196,13 @@ predict.cpfa <-
     }
     if (family == "multinomial") {
       if (!(is.null(threshold))) {
-        if (any(threshold < 0) || any(threshold > 1))
+        if (any(threshold < 0) || any(threshold > 1)) {
           stop("Input 'threshold' must contain real numbers from 0 to 1 for
              multiclass classification.")
-        if (sum(threshold) != 1)
+        }
+        if (sum(threshold) != 1) {
           stop("Input 'threshold' must sum to 1 for multiclass classification.")
+        }
         warning("Argument 'threshold' is not currently implemented for 
                 multiclass classification.")
       }

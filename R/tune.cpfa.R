@@ -66,16 +66,20 @@ tune.cpfa <-
     if (is.array(x) && (model == "parafac")) {
       xdim <- dim(x)                                                            
       lxdim <- length(xdim)
-      if (!((lxdim == 3L) || (lxdim == 4L))) 
+      if (!((lxdim == 3L) || (lxdim == 4L))) {
         stop("Input 'x' must be a 3-way or 4-way array.")
-      if (any(is.nan(x)) || any(is.infinite(x))) 
+      }
+      if (any(is.nan(x)) || any(is.infinite(x))) {
         stop("Input 'x' cannot contain NaN or Inf values.")
-      if (any(is.na(x))) 
+      }
+      if (any(is.na(x))) {
         stop("Input 'x' cannot contain missing values.")
+      }
       if (!(is.null(cmode))) {
-        if (!(cmode %in% (1:lxdim))) 
+        if (!(cmode %in% (1:lxdim))) {
           stop("Input 'cmode' must be 1, 2, or 3 \n 
                (or 4 if 'x' is a 4-way array).")
+        }
         modeval <- 1:lxdim
         mode.re <- c(modeval[-cmode], cmode)
         x <- aperm(x, mode.re)
@@ -86,12 +90,15 @@ tune.cpfa <-
     } else if (is.array(x) && (model == "parafac2")) {
       xdim <- dim(x)                                                            
       lxdim <- length(xdim)
-      if (!((lxdim == 3L) || (lxdim == 4L))) 
+      if (!((lxdim == 3L) || (lxdim == 4L))) {
         stop("Input 'x' must be a 3-way or 4-way array.")
-      if (any(is.nan(x)) || any(is.infinite(x))) 
+      }
+      if (any(is.nan(x)) || any(is.infinite(x))) {
         stop("Input 'x' cannot contain NaN or Inf values.")
-      if (any(is.na(x))) 
+      }
+      if (any(is.na(x))) {
         stop("Input 'x' cannot contain missing values.")
+      }
       if (!is.null(cmode)) {
         cmode <- lxdim
         warning("Input 'cmode' is ignored when 'model = parafac2'. Last mode \n
@@ -115,8 +122,9 @@ tune.cpfa <-
     } else if (is.list(x) && (model == "parafac2")) {
       xdim1 <- dim(x[[1]])
       lxdim <- length(xdim1) + 1L
-      if (!((lxdim == 3L) || (lxdim == 4L))) 
+      if (!((lxdim == 3L) || (lxdim == 4L))) {
         stop("Input 'x' must be a list of matrices or 3-way arrays.")
+      }
       if (!(is.null(cmode))) {
         cmode <- lxdim
         warning("Input 'cmode' is ignored if 'model = parafac2'. Last mode \n
@@ -126,12 +134,15 @@ tune.cpfa <-
       } else {
         cmode <- lxdim
       }
-      if (any(as.logical(lapply(x, function(a){return(any(is.nan(a)))}))))
+      if (any(as.logical(lapply(x, function(a){return(any(is.nan(a)))})))) {
         stop("Input 'x' cannot contain NaN values")
-      if (any(as.logical(lapply(x,function(a){return(any(is.infinite(a)))}))))
+      }
+      if (any(as.logical(lapply(x,function(a){return(any(is.infinite(a)))})))) {
         stop("Input 'x' cannot contain Inf values")
-      if (any(as.logical(lapply(x,function(a){return(any(is.na(a)))}))))
+      }
+      if (any(as.logical(lapply(x,function(a){return(any(is.na(a)))})))) {
         stop("Input 'x' cannot contain missing values")
+      }
       if (lxdim == 3L) {
         xdim <- rep(NA, 3)
         xdim[2] <- xdim1[2]
@@ -147,41 +158,51 @@ tune.cpfa <-
         xdim[4] <- length(x)
         index2 <- seq(2, (3*length(x) - 1), by = 3)
         index3 <- seq(3, (3*length(x)), by = 3)
-        if (any(unlist(lapply(x, dim))[index2] != xdim[2]))
-          stop("Input 'x' must be list of arrays with same number of columns.")
-        if (any(unlist(lapply(x, dim))[index3] != xdim[3]))
+        if (any(unlist(lapply(x, dim))[index2] != xdim[2])) {
+          stop("Input 'x' must be list of arrays with same number \n 
+               of columns.")
+        }
+        if (any(unlist(lapply(x, dim))[index3] != xdim[3])) {
           stop("Input 'x' must be list of arrays with same number of slabs.")
+        }
       }
     } else if (is.list(x) && (model == "parafac")) {
       stop("Input 'x' must be of class 'array' if 'model = parafac'.")
     } else {
       stop("Input 'x' must be of class 'array' or 'list'.")
     }
-    if (!is.factor(y))
+    if (!is.factor(y)) {
       stop("Input 'y' must be of class 'factor'.")
-    if (!(length(y) == xdim[cmode]))
+    }
+    if (!(length(y) == xdim[cmode])) {
       stop("Length of 'y' must match number of levels in 
            classification mode/dimension of 'x'.")
-    if (length(unique(y)) == 0L || length(unique(y)) == 1L)
+    }
+    if (length(unique(y)) == 0L || length(unique(y)) == 1L) {
       stop("Input 'y' contains less than two unique labels. Need to provide \n
            at least two unique labels.")
+    }
     ylev <- length(levels(y))
-    if (!(sum(sort(as.numeric(levels(y))) == 0:(ylev - 1)) == ylev))
+    if (!(sum(sort(as.numeric(levels(y))) == 0:(ylev - 1)) == ylev)) {
       stop("Input 'y' must contain labels of 0 and 1 for binary problems, or \n
            0, 1, 2, ..., for multiclass problems.")
+    }
     nfac <- sort(nfac)
     lnfac <- length(nfac)
-    if (!is.numeric(nfac))
+    if (!is.numeric(nfac)) {
       stop("Input 'nfac' must contain integer(s).")
+    }
     if (!((is.integer(nfolds)) || (is.numeric(nfolds)))) {
       stop("Input 'nfolds' must be of class integer or numeric.")
     }
-    if (length(nfolds) != 1L || nfolds < 2L || nfolds != floor(nfolds))
+    if (length(nfolds) != 1L || nfolds < 2L || nfolds != floor(nfolds)) {
       stop("Input 'nfolds' must be a single integer equal to or greater \n
            than 2.")
-    if (nfolds > length(y))
+    }
+    if (nfolds > length(y)) {
       stop("Input 'nfolds' must be a single whole
            number equal to or less than the number of labels in 'y'.")
+    }
     if (is.null(foldid)) {
       foldid <- sample(rep(1:nfolds, length.out = length(y)))
     } else {
@@ -218,40 +239,40 @@ tune.cpfa <-
     if (length(verbose) != 1L) {
       stop("Input 'verbose' must be a single value.")
     }
-    if ((nfac == 1 | nfac == 1L) && (family == "multinomial") 
-        && ('1' %in% method)) {
-      warning("If nfac = 1, method = 'PLR', and family = 'multinomial', there \n
-              are cases where an error could be returned. This issue will be \n
-              resolved in a future update.")
-    }
     if ('1' %in% method) {
       if (is.null(alpha)) {
         alpha <- seq(0, 1, length = 6)
       }
-      if (any(alpha < 0L) || any(alpha > 1L))
+      if (any(alpha < 0L) || any(alpha > 1L)) {
         stop("Input 'alpha' must contain real numbers 
                   between zero and one (inclusive).")
-      if (!is.numeric(alpha))
+      }
+      if (!is.numeric(alpha)) {
         stop("Input 'alpha' must be numeric.")
+      }
       alpha <- sort(alpha)
     }
     if ('2' %in% method) {
       if (is.null(gamma)) {
         gamma <- c(0, 0.01, 0.1, 1, 10, 100, 1000)
       }
-      if (any(gamma < 0L)) 
+      if (any(gamma < 0L)) {
         stop("Input 'gamma' must contain real numbers equal 
                   to or greater than zero.")
-      if (!is.numeric(gamma))
+      }
+      if (!is.numeric(gamma)) {
         stop("Input 'gamma' must be numeric.")
+      }
       gamma <- sort(gamma)
       if (is.null(cost)) {
         cost <- c(1, 2, 4, 8, 16, 32, 64)
       }
-      if (any(cost <= 0L))
+      if (any(cost <= 0L)) {
         stop("Input 'cost' must be a real number greater than zero.")
-      if (!is.numeric(cost))
+      }
+      if (!is.numeric(cost)) {
         stop("Input 'cost' must be numeric.")
+      }
       cost <- sort(cost)
       svm.grid <- expand.grid(gamma, cost)
     }
@@ -259,22 +280,28 @@ tune.cpfa <-
       if (is.null(ntree)) {
         ntree <- c(100, 200, 400, 600, 800, 1600, 3200)
       } 
-      if (any(ntree < 1L))
+      if (any(ntree < 1L)) {
         stop("Input 'ntree' must be greater than or equal to one.")
-      if (!all(ntree == floor(ntree)))
+      }
+      if (!all(ntree == floor(ntree))) {
         stop("Input 'ntree' must contain only integers.")
-      if (!is.numeric(ntree))
+      }
+      if (!is.numeric(ntree)) {
         stop("Input 'ntree' must be numeric.")
+      }
       ntree <- sort(ntree)
       if (is.null(nodesize)) {
         nodesize <- c(1, 2, 4, 8, 16, 32, 64)
       }
-      if (any(nodesize < 1L))
+      if (any(nodesize < 1L)) {
         stop("Input 'nodesize' must be greater than or equal to one.") 
-      if (!all(nodesize == floor(nodesize)))
+      }
+      if (!all(nodesize == floor(nodesize))) {
         stop("Input 'nodesize' must be integer.")
-      if (!is.numeric(nodesize))
+      }
+      if (!is.numeric(nodesize)) {
         stop("Input 'nodesize' must be numeric.")
+      }
       nodesize <- sort(nodesize)
       rf.grid <- expand.grid(ntree, nodesize)
     }
@@ -282,18 +309,22 @@ tune.cpfa <-
       if (is.null(size)) {
         size = c(1, 2, 4, 8, 16, 32, 64)
       } 
-      if (any(size < 0L))
+      if (any(size < 0L)) {
         stop("Input 'size' must be greater than or equal to zero.")
-      if (!all(size == floor(size)))
+      }
+      if (!all(size == floor(size))) {
         stop("Input 'size' must contain only integers.")
-      if (!is.numeric(size))
+      }
+      if (!is.numeric(size)) {
         stop("Input 'size' must be numeric.")
+      }
       size <- sort(size)
       if (is.null(decay)) {
         decay = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16)
       }
-      if (!is.numeric(decay))
+      if (!is.numeric(decay)) {
         stop("Input 'decay' must be numeric.")
+      }
       decay <- sort(decay)
       nn.grid <- expand.grid(size, decay)
     }
@@ -301,20 +332,24 @@ tune.cpfa <-
       if (is.null(rda.alpha)) {
         rda.alpha = seq(0, 0.999, length = 6)
       }
-      if (any(rda.alpha < 0L) | any(rda.alpha >= 1L)) 
+      if (any(rda.alpha < 0L) | any(rda.alpha >= 1L)) {
         stop("Input 'rda.alpha' must contain real numbers equal \n
              to or greater than zero, and less than one.")
-      if (!is.numeric(rda.alpha))
+      }
+      if (!is.numeric(rda.alpha)) {
         stop("Input 'rda.alpha' must be numeric.")
+      }
       rda.alpha <- sort(rda.alpha)
       if (is.null(delta)) {
         delta = c(0, 0.1, 1, 2, 3, 4)
       }
-      if (any(delta < 0L))
+      if (any(delta < 0L)) {
         stop("Input 'delta' must be a real number greater than or equal \n 
              to zero.")
-      if (!is.numeric(delta))
+      }
+      if (!is.numeric(delta)) {
         stop("Input 'delta' must be numeric.")
+      }
       delta <- sort(delta)
       rda.grid <- expand.grid(rda.alpha, delta)
     }
@@ -343,10 +378,12 @@ tune.cpfa <-
       family <- "multinomial"
     }
     if (!is.null(prior)) {
-      if (sum(prior) != 1)
+      if (sum(prior) != 1) {
         stop("Values within input 'prior' must sum to one.")
-      if (!is.numeric(prior)) 
+      }
+      if (!is.numeric(prior)) {
         stop("Input 'prior' must be numeric.")
+      }
       if (family == "binomial") {
         if (!(length(prior) == 2L))
           stop("Input 'prior' must contain two values for 
@@ -382,10 +419,6 @@ tune.cpfa <-
     }
     if ('1' %in% method) {
       plr.weights <- as.numeric((table(y)[y] / length(y)))
-    }
-    numcheck <- function(a){return(is.numeric(a) || is.integer(a))}
-    if (!(all(apply(x, 1:length(dim(x)), FUN = numcheck)))) {
-      stop("Input 'x' must contain only real numbers.")
     }
     opt.model <- vector("list", lnfac)
     Aweights <- vector("list", lnfac)                                           

@@ -18,16 +18,20 @@ cpfa <-
     if (is.array(x) && (model == "parafac")) {
       xdim <- dim(x)                                                            
       lxdim <- length(xdim)
-      if (!((lxdim == 3L) || (lxdim == 4L))) 
+      if (!((lxdim == 3L) || (lxdim == 4L))) {
         stop("Input 'x' must be a 3-way or 4-way array.")
-      if (any(is.nan(x)) || any(is.infinite(x))) 
+      }
+      if (any(is.nan(x)) || any(is.infinite(x))) {
         stop("Input 'x' cannot contain NaN or Inf values.")
-      if (any(is.na(x))) 
+      }
+      if (any(is.na(x))) {
         stop("Input 'x' cannot contain missing values.")
+      }
       if (!(is.null(cmode))) {
-        if (!(cmode %in% (1:lxdim))) 
+        if (!(cmode %in% (1:lxdim))) {
           stop("Input 'cmode' must be 1, 2, or 3 \n 
                (or 4 if 'x' is a 4-way array).")
+        }
         modeval <- 1:lxdim
         mode.re <- c(modeval[-cmode], cmode)
         x <- aperm(x, mode.re)
@@ -37,12 +41,15 @@ cpfa <-
     } else if (is.array(x) && (model == "parafac2")) {
       xdim <- dim(x)                                                            
       lxdim <- length(xdim)
-      if (!((lxdim == 3L) || (lxdim == 4L))) 
+      if (!((lxdim == 3L) || (lxdim == 4L))) {
         stop("Input 'x' must be a 3-way or 4-way array.")
-      if (any(is.nan(x)) || any(is.infinite(x))) 
+      }
+      if (any(is.nan(x)) || any(is.infinite(x))) {
         stop("Input 'x' cannot contain NaN or Inf values.")
-      if (any(is.na(x))) 
+      }
+      if (any(is.na(x))) {
         stop("Input 'x' cannot contain missing values.")
+      }
       if (!is.null(cmode)) {
         cmode <- lxdim
         warning("Input 'cmode' is ignored when 'model = parafac2'. Last mode \n
@@ -66,8 +73,9 @@ cpfa <-
     } else if (is.list(x) && (model == "parafac2")) {
       xdim1 <- dim(x[[1]])
       lxdim <- length(xdim1) + 1L
-      if (!((lxdim == 3L) || (lxdim == 4L))) 
+      if (!((lxdim == 3L) || (lxdim == 4L))) {
         stop("Input 'x' must be a list of matrices or 3-way arrays.")
+      }
       if (!(is.null(cmode))) {
         cmode <- lxdim
         warning("Input 'cmode' is ignored if 'model = parafac2'. Last mode \n
@@ -77,12 +85,15 @@ cpfa <-
       } else {
         cmode <- lxdim
       }
-      if (any(as.logical(lapply(x, function(a){return(any(is.nan(a)))}))))
+      if (any(as.logical(lapply(x, function(a){return(any(is.nan(a)))})))) {
         stop("Input 'x' cannot contain NaN values")
-      if (any(as.logical(lapply(x,function(a){return(any(is.infinite(a)))}))))
+      }
+      if (any(as.logical(lapply(x,function(a){return(any(is.infinite(a)))})))) {
         stop("Input 'x' cannot contain Inf values")
-      if (any(as.logical(lapply(x,function(a){return(any(is.na(a)))}))))
+      }
+      if (any(as.logical(lapply(x,function(a){return(any(is.na(a)))})))) {
         stop("Input 'x' cannot contain missing values")
+      }
       if (lxdim == 3L) {
         xdim <- rep(NA, 3)
         xdim[2] <- xdim1[2]
@@ -98,21 +109,26 @@ cpfa <-
         xdim[4] <- length(x)
         index2 <- seq(2, (3*length(x) - 1), by = 3)
         index3 <- seq(3, (3*length(x)), by = 3)
-        if (any(unlist(lapply(x, dim))[index2] != xdim[2]))
-          stop("Input 'x' must be list of arrays with same number of columns.")
-        if (any(unlist(lapply(x, dim))[index3] != xdim[3]))
+        if (any(unlist(lapply(x, dim))[index2] != xdim[2])) {
+          stop("Input 'x' must be list of arrays with same number 
+               \n of columns.")
+        }
+        if (any(unlist(lapply(x, dim))[index3] != xdim[3])) {
           stop("Input 'x' must be list of arrays with same number of slabs.")
+        }
       }
     } else if (is.list(x) && (model == "parafac")) {
       stop("Input 'x' must be of class 'array' if 'model = parafac'.")
     } else {
       stop("Input 'x' must be of class 'array' or 'list'.")
     }
-    if (!is.factor(y)) 
+    if (!is.factor(y)) {
       stop("Input 'y' must be of class 'factor'.")
-    if (!(length(y) == xdim[cmode])) 
+    }
+    if (!(length(y) == xdim[cmode])) {
       stop("Length of 'y' must match number of levels in \n 
            classification mode/dimension of 'x'.")
+    }
     if ((!(ceiling(nrep) == nrep)) || (nrep < 1) || (length(ratio) != 1L)) {
       stop("Input 'nrep' must be a single integer greater than 0.")
     }
@@ -145,8 +161,6 @@ cpfa <-
            either 'measures' or 'descriptives' for 'type.out'.")
     } else if (numtype == 2L) {
       type.out <- "descriptives"
-      warning("Input 'type.out' not specified. Input must be either \n
-              'measures' or 'descriptives'. Defaulting to 'descriptives'.")
     } else {
       type.out <- tolower(type.out)
     }

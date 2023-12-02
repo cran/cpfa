@@ -1,18 +1,24 @@
 cpm <- 
   function(x, y, level = NULL, fbeta = NULL, prior = NULL) 
 {   
-    if (class(x) != class(y))
+    if (class(x) != class(y)) {
       stop("Class of input 'x' must match class of input 'y'.")
-    if (!(class(x) %in% c("numeric", "factor", "integer")))
+    }
+    if (!(class(x) %in% c("numeric", "factor", "integer"))) {
       stop("Input 'x' must be of class 'numeric', 'factor', or 'integer'.")
-    if (!(class(y) %in% c("numeric", "factor", "integer")))
+    }
+    if (!(class(y) %in% c("numeric", "factor", "integer"))) {
       stop("Input 'y' must be of class 'numeric', 'factor', or 'integer'.")
-    if (any(is.na(x)))
+    }
+    if (any(is.na(x))) {
       stop("Input 'x' cannot contain missing values.")
-    if (any(is.na(y)))
+    }
+    if (any(is.na(y))) {
       stop("Input 'y' cannot contain missing values.") 
-    if (length(x) != length(y))
+    }
+    if (length(x) != length(y)) {
       stop("Input 'x' must be same length as input 'y'.") 
+    }
     if (!(is.null(level))) {
       llev <- length(level)
       if (!(class(level) %in% c("numeric", "integer", "character"))) {
@@ -46,20 +52,23 @@ cpm <-
       fbeta <- 1
     }
     if (!(is.null(fbeta))) {
-      if ((length(fbeta) != 1) || (!(is.numeric(fbeta))))
+      if ((length(fbeta) != 1) || (!(is.numeric(fbeta)))) {
         stop("Input 'fbeta' must be a single real number when inputted and of \n
              class numeric.")
+      }
     }
     if (!(is.null(prior))) {
-      if (!is.numeric(prior))
+      if (!is.numeric(prior)) {
         stop("Input 'prior' must be of class 'numeric' when provided.")
+      }
       if (length(prior) != llev) {
         stop("When inputted, 'prior' must contain as many values as the \n
               number of classes.")
       }
-      if ((any(prior < 0)) || (any(prior > 1)))
+      if ((any(prior < 0)) || (any(prior > 1))) {
         stop("When inputted, 'prior' must only contain values between 0 \n
              and 1, inclusive.")
+      }
       if (sum(prior) != 1) {
         stop("When inputted, 'prior' must contain values that sum to 1.")
       }
