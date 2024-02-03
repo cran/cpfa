@@ -156,8 +156,8 @@ tune.cpfa <-
         xdim[2] <- xdim1[2]
         xdim[3] <- xdim1[3]
         xdim[4] <- length(x)
-        index2 <- seq(2, (3*length(x) - 1), by = 3)
-        index3 <- seq(3, (3*length(x)), by = 3)
+        index2 <- seq(2, (3 * length(x) - 1), by = 3)
+        index3 <- seq(3, (3 * length(x)), by = 3)
         if (any(unlist(lapply(x, dim))[index2] != xdim[2])) {
           stop("Input 'x' must be list of arrays with same number \n 
                of columns.")
@@ -406,7 +406,7 @@ tune.cpfa <-
       }
     }
     if (is.null(prior)) {
-      frac <- table(y)/length(y)
+      frac <- table(y) / length(y)
       prior <- as.numeric(frac)
       if (family == "binomial") {
         names(frac) <- c(0, 1)

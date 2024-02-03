@@ -74,9 +74,9 @@ cpm <-
       }
     }
     if (is.null(prior)) {
-      prior <- rep(1/llev, llev)
+      prior <- rep((1 / llev), llev)
     }
-    acc <- (sum(diag(cm)))/sum(cm)
+    acc <- (sum(diag(cm))) / sum(cm)
     err <- 1 - acc
     if (llev == 2) {
       tpr <- cm[2,2] / (cm[2,2] + cm[2,1])
@@ -94,24 +94,24 @@ cpm <-
          tpr.sum[h] <- (cm[h,h] / sum(cm[h, ]))
          ppv.sum[h] <- (cm[h,h] / sum(cm[, h]))
          fpr.sum[h] <- ((sum(cm[,h]) - cm[h,h]) / 
-                        (sum(cm[,h]) + sum(diag(cm)) - 2*(cm[h,h])))
+                        (sum(cm[,h]) + sum(diag(cm)) - 2 * (cm[h,h])))
          npv.sum[h] <- ((sum(diag(cm)) - cm[h,h]) / 
-                        (sum(diag(cm)) + sum(cm[h,]) - 2*(cm[h,h])))
+                        (sum(diag(cm)) + sum(cm[h,]) - 2 * (cm[h,h])))
          tnr.sum[h] <- 1 - fpr.sum[h]
          fnr.sum[h] <- 1 - tpr.sum[h]
          fdr.sum[h] <- 1 - ppv.sum[h]
          fom.sum[h] <- 1 - npv.sum[h]
       }
-      tpr <- sum(prior*tpr.sum)
-      ppv <- sum(prior*ppv.sum)
-      fpr <- sum(prior*fpr.sum)
-      npv <- sum(prior*npv.sum)
-      tnr <- sum(prior*tnr.sum)
-      fnr <- sum(prior*fnr.sum)
-      fdr <- sum(prior*fdr.sum)
-      fom <- sum(prior*fom.sum)
+      tpr <- sum(prior * tpr.sum)
+      ppv <- sum(prior * ppv.sum)
+      fpr <- sum(prior * fpr.sum)
+      npv <- sum(prior * npv.sum)
+      tnr <- sum(prior * tnr.sum)
+      fnr <- sum(prior * fnr.sum)
+      fdr <- sum(prior * fdr.sum)
+      fom <- sum(prior * fom.sum)
     }
-    fs <- (1 + (fbeta^2))*((ppv*tpr)/(((fbeta^2)*ppv) +  tpr))
+    fs <- (1 + (fbeta^2)) * ((ppv * tpr) / (((fbeta^2) * ppv) +  tpr))
     class.eval <- data.frame(err = err, acc = acc, tpr = tpr, fpr = fpr, 
                              tnr = tnr, fnr = fnr, ppv = ppv, npv = npv,
                              fdr = fdr, fom = fom, fs = fs)

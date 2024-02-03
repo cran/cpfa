@@ -198,20 +198,41 @@ Zou, H. and Hastie, T. (2005). Regularization and variable selection via the ela
 }
 
 \examples{
-########## Random binary example with 3-way array ##########
+########## Parafac example with 3-way array and binary response ##########
 
-# create random data array with Parafac structure
+# set seed and specify dimensions of a three-way tensor
 set.seed(3)
 mydim <- c(60, 16, 80)
 nf <- 3
+
+# create correlation matrix between response and third mode's weights 
+rho.cc <- .35 
+rho.cy <- .75 
+cormat.values <- c(1, rho.cc, rho.cc, rho.cy, rho.cc, 1, rho.cc, rho.cy, 
+                   rho.cc, rho.cc, 1, rho.cy, rho.cy, rho.cy, rho.cy, 1)
+cormat <- matrix(cormat.values, nrow = (nf + 1), ncol = (nf + 1))
+ 
+# sample from a multivariate normal with specified correlation structure
+ymean <- Cmean <- 2
+mu <- as.matrix(c(Cmean, Cmean, Cmean, ymean)) 
+eidecomp <- eigen(cormat, symmetric = TRUE)
+L.sqrt <- diag(eidecomp$values^0.5)
+cormat.sqrt <- eidecomp$vectors \%*\% L.sqrt \%*\% t(eidecomp$vectors)
+Z <- matrix(rnorm(mydim[3]*(nf + 1)), nrow = mydim[3], ncol = (nf + 1))
+Xw <- rep(1, mydim[3]) \%*\% t(mu) + Z \%*\% cormat.sqrt
+Cmat <- Xw[, 1:nf]
+
+# create a random three-way data tensor with C weights related to a response
 Amat <- matrix(rnorm(mydim[1]*nf), nrow = mydim[1], ncol = nf)
 Bmat <- matrix(runif(mydim[2]*nf), nrow = mydim[2], ncol = nf)
-Cmat <- matrix(runif(mydim[3]*nf), nrow = mydim[3], ncol = nf)
 Xmat <- tcrossprod(Amat, krprod(Cmat, Bmat))
 Xmat <- array(Xmat, dim = mydim)
 Emat <- array(rnorm(prod(mydim)), dim = mydim)
+Emat <- nscale(Emat, 0, ssnew = sumsq(Xmat))  
 X <- Xmat + Emat
-y <- factor(rbinom(mydim[3], 1, 0.4))
+
+# create a binary response by dichotomizing at the specified response mean
+y <- factor(as.numeric(Xw[ , (nf + 1)] > ymean))
 
 # initialize
 alpha <- seq(0, 1, length = 2)
@@ -233,8 +254,11 @@ nfolds <- 3
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
-tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = 3, nfolds = nfolds, 
-                         method = method, family = family, 
+tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = nf, 
+                         nfolds = nfolds, method = method, family = family, 
                          parameters = parameters, parallel = FALSE, 
                          const = const)
+
+# print tuning object
+tune.object
 }

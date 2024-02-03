@@ -107,8 +107,8 @@ cpfa <-
         xdim[2] <- xdim1[2]
         xdim[3] <- xdim1[3]
         xdim[4] <- length(x)
-        index2 <- seq(2, (3*length(x) - 1), by = 3)
-        index3 <- seq(3, (3*length(x)), by = 3)
+        index2 <- seq(2, (3 * length(x) - 1), by = 3)
+        index3 <- seq(3, (3 * length(x)), by = 3)
         if (any(unlist(lapply(x, dim))[index2] != xdim[2])) {
           stop("Input 'x' must be list of arrays with same number 
                \n of columns.")
@@ -169,10 +169,10 @@ cpfa <-
     } else {
       nobs <- length(x)
     }
-    ntrain <- ceiling(nobs*ratio)
+    ntrain <- ceiling(nobs * ratio)
     if (!(is.null(foldid))) {
       if (length(foldid) != ntrain) {
-        stop("Input 'foldid' must have length equal to ceiling(nobs*ratio) \n
+        stop("Input 'foldid' must have length equal to ceiling(nobs * ratio) \n
              where 'nobs' is the number of observations in the classification \n
              mode.")
       }
@@ -195,7 +195,7 @@ cpfa <-
         plottype <- which(cmeasures %in% plot.measures == TRUE) + 3
       } 
     }
-    stor <- array(0, dim = c(length(nfac)*length(method), 11, nrep))
+    stor <- array(0, dim = c(length(nfac) * length(method), 11, nrep))
     predstor <- vector(mode = "list", length = nrep)
     Aw <- vector(mode = "list", length = nrep)
     Bw <- vector(mode = "list", length = nrep)
@@ -254,18 +254,18 @@ cpfa <-
     if (plot.out) {
       ncomps <- length(nfac)
       nmethods <- length(method)
-      plotstor <- data.frame(matrix(0, nrow = (ncomps*nmethods*nrep), 
+      plotstor <- data.frame(matrix(0, nrow = (ncomps * nmethods * nrep), 
                                     ncol = 14))
       plotcname <- c("method", "nfac", "rep", colnames(stor))
       colnames(plotstor) <- plotcname
-      matnum <- ncomps*nmethods
-      methnames0 <- sapply(strsplit(rownames(stor), split='.', fixed=TRUE), 
+      matnum <- ncomps * nmethods
+      methnames0 <- sapply(strsplit(rownames(stor), split ='.', fixed = TRUE), 
                            function(x) (x[2]))
       methnames <- gsub('[[:digit:]]+', '', methnames0)
       nfacnames <- as.numeric(gsub(".*?([0-9]+).*", "\\1", rownames(stor)))
       for (i in 1:nrep) {
-         indl <- matnum*(i - 1) + 1
-         indu <- matnum*i
+         indl <- matnum * (i - 1) + 1
+         indu <- matnum * i
          plotstor[indl:indu, 1] <- methnames
          plotstor[indl:indu, 2] <- nfacnames
          plotstor[indl:indu, 3] <- i
@@ -273,7 +273,7 @@ cpfa <-
       }
       toplot <- colnames(plotstor)[plottype]
       for (j in 1:length(plottype)) {
-         pformula <- formula(paste0(toplot[j], " ~ ", "method*nfac"))
+         pformula <- formula(paste0(toplot[j], " ~ ", "method * nfac"))
          boxplot(pformula, data = plotstor, ylim = c(0, 1), 
                  xlab = "Method and Number of Components", 
                  ylab = toupper(toplot[j]), main = "Performance Measure",
@@ -288,10 +288,11 @@ cpfa <-
       dfun <- c("mean", "median", "sd")
       output <- vector(mode = "list", length = length(dfun))
       for (j in seq_along(dfun)) {
-        output[[j]] <- apply(stor, 1:2, FUN = function(x){return(get(dfun[j])(x, 
+         output[[j]] <- apply(stor, 1:2, 
+                             FUN = function(x){return(get(dfun[j])(x, 
                                                                 na.rm = TRUE))})
-        rownames(output[[j]]) <- rnam
-        colnames(output[[j]]) <- cnam
+         rownames(output[[j]]) <- rnam
+         colnames(output[[j]]) <- cnam
       }
       names(output) <- dfun                                                     
       return(list(descriptive = output, predweights = predstor,

@@ -46,7 +46,7 @@ kcv.rda <-
            input 'nfolds'.")
     }
     if (is.null(prior)) {
-      prior <- table(y)/length(y)
+      prior <- table(y) / length(y)
     }
     grid.row <- nrow(rda.grid)
     cv.rda <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)

@@ -94,12 +94,14 @@ kcv.plr <-
             if (family == "binomial") {
               class1 <- as.numeric(pred1[,i] > threshold)
               class2 <- as.numeric(pred2[,i] > threshold)
-              cvm[i] <- ((1 - mean(class1 == y1)) + (1 - mean(class2 == y2))) /2
+              precvm <- ((1 - mean(class1 == y1)) + (1 - mean(class2 == y2)))
+              cvm[i] <- precvm / 2
             }
             if (family == "multinomial") {
               class1 <- as.numeric((apply(pred1[,,i], 1, which.max))) - 1
               class2 <- as.numeric((apply(pred2[,,i], 1, which.max))) - 1
-              cvm[i] <- ((1 - mean(class1 == y1)) + (1 - mean(class2 == y2))) /2
+              precvm <- ((1 - mean(class1 == y1)) + (1 - mean(class2 == y2)))
+              cvm[i] <- precvm / 2
             }
          }
          minid <- which.min(cvm)

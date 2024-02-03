@@ -86,8 +86,8 @@ predict.cpfa <-
         xdim[2] <- xdim1[2]
         xdim[3] <- xdim1[3]
         xdim[4] <- length(newdata)
-        index2 <- seq(2, (3*length(newdata) - 1), by = 3)
-        index3 <- seq(3, (3*length(newdata)), by = 3)
+        index2 <- seq(2, (3 * length(newdata) - 1), by = 3)
+        index3 <- seq(3, (3 * length(newdata)), by = 3)
         if (any(unlist(lapply(newdata, dim))[index2] != xdim[2])) {
           stop("Input 'newdata' must be list of arrays with same \n
                number of columns.")
@@ -187,7 +187,7 @@ predict.cpfa <-
       }
       if ((is.null(threshold)) && (type == "response")) {
         yt <- object$y
-        fraction <- table(yt)/length(yt)
+        fraction <- table(yt) / length(yt)
         threshold <- fraction[which(names(fraction) == "0")]
       }
       if ((is.null(threshold)) && (type == "prob")) {
@@ -208,7 +208,7 @@ predict.cpfa <-
       }
       if ((is.null(threshold)) && (type == "response")) {
         yt <- object$y
-        fraction <- table(yt)/length(yt)
+        fraction <- table(yt) / length(yt)
         threshold <- as.numeric(fraction)
       }
       if ((is.null(threshold)) && (type == "prob")) {
@@ -220,13 +220,13 @@ predict.cpfa <-
        stor.name <- c(stor.name, paste0(nfac.names[i], meth.names)) 
     }
     if (model == "parafac") {
-      storfac <- matrix(NA, nrow = dim(newdata)[lxdim], ncol = lmethod*lnfac)
+      storfac <- matrix(NA, nrow = dim(newdata)[lxdim], ncol = lmethod * lnfac)
     } else {
-      storfac <- matrix(NA, nrow = length(newdata), ncol = lmethod*lnfac)
+      storfac <- matrix(NA, nrow = length(newdata), ncol = lmethod * lnfac)
     }
-    storprob <- vector("list", lmethod*lnfac)
+    storprob <- vector("list", lmethod * lnfac)
     for (w in 1:lnfac) {
-       colcount <- lmethod*(w - 1) + 1
+       colcount <- lmethod * (w - 1) + 1
        if (model == "parafac") {
          Afixed <- Aweights[[w]]
          Bfixed <- Bweights[[w]]
@@ -257,18 +257,18 @@ predict.cpfa <-
          Bfixed <- Bweights[[w]]
          if (lxdim == 3L) {
            ppfac <- parafac2(X = newdata, nfac = nfac[w], nstart = 1, 
-                            ctol = sqrt(.Machine$double.eps), 
-                            verbose = FALSE, const = const,
-                            Gfixed = Gfixed, Bfixed = Bfixed)                
+                             ctol = sqrt(.Machine$double.eps), 
+                             verbose = FALSE, const = const,
+                             Gfixed = Gfixed, Bfixed = Bfixed)                
            classify.weights[[w]] <- C.pred <- ppfac$C
          }
          if (lxdim == 4L) {
            Cfixed <- Cweights[[w]]
            ppfac <- parafac2(X = newdata, nfac = nfac[w], nstart = 1, 
-                            ctol = sqrt(.Machine$double.eps), 
-                            verbose = FALSE, const = const,
-                            Gfixed = Gfixed, Bfixed = Bfixed,
-                            Cfixed = Cfixed)                                
+                             ctol = sqrt(.Machine$double.eps), 
+                             verbose = FALSE, const = const,
+                             Gfixed = Gfixed, Bfixed = Bfixed,
+                             Cfixed = Cfixed)                                
            classify.weights[[w]] <- C.pred <- ppfac$D
          }
        }
@@ -302,10 +302,8 @@ predict.cpfa <-
                  colcount <- colcount + 1
                }
                if (family == "multinomial") {
-                 vals <- predict(plr.fit, newx = C.pred.plr, 
-                                            type = type.plr, 
-                                            s = lambda.min,
-                                            levels = plr.fit.class)
+                 vals <- predict(plr.fit, newx = C.pred.plr, type = type.plr, 
+                                 s = lambda.min, levels = plr.fit.class)
                  storfac[, colcount] <- as.numeric((apply(vals, 
                                                     1, which.max))) - 1
                  colcount <- colcount + 1
@@ -433,18 +431,18 @@ predict.cpfa <-
              if (type == "response") {
                if (family == "binomial") {
                  rda.prob <- predict(rda.fit, x = t(train.weights[[w]]), 
-                                        y = as.numeric(oyold) - 1, 
-                                        xnew = t(C.pred), 
-                                        type = "posterior")
+                                     y = as.numeric(oyold) - 1, 
+                                     xnew = t(C.pred), 
+                                     type = "posterior")
                  colnames(rda.prob) <- c(0, 1)
                  rda.prob <- rda.prob[, which(colnames(rda.prob) == "1")]
                  storfac[, colcount] <- as.numeric(rda.prob > threshold)
                }
                if (family == "multinomial") {
                  rda.prob <- predict(rda.fit, x = t(train.weights[[w]]), 
-                                        y = as.numeric(oyold) - 1, 
-                                        xnew = t(C.pred), 
-                                        type = "posterior")
+                                     y = as.numeric(oyold) - 1, 
+                                     xnew = t(C.pred), 
+                                     type = "posterior")
                  storfac[, colcount] <- as.numeric((apply(rda.prob, 
                                                           1, which.max))) - 1
                }
@@ -452,9 +450,9 @@ predict.cpfa <-
              if (type == "prob") {
                if (family == "binomial") {
                  rda.prob <- predict(rda.fit, x = t(train.weights[[w]]), 
-                                        y = as.numeric(oyold) - 1, 
-                                        xnew = t(C.pred), 
-                                        type = "posterior")
+                                     y = as.numeric(oyold) - 1, 
+                                     xnew = t(C.pred), 
+                                     type = "posterior")
                  colnames(rda.prob) <- c(0, 1)
                  rda.prob <- rda.prob[, which(colnames(rda.prob) == "1")]
                  storprob[[colcount]] <- as.numeric(rda.prob)
