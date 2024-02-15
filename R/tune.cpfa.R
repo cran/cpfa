@@ -64,7 +64,7 @@ tune.cpfa <-
     }
     model <- tolower(model)
     if (is.array(x) && (model == "parafac")) {
-      xdim <- dim(x)                                                            
+      xdim <- origdim <- dim(x)                                                            
       lxdim <- length(xdim)
       if (!((lxdim == 3L) || (lxdim == 4L))) {
         stop("Input 'x' must be a 3-way or 4-way array.")
@@ -174,9 +174,16 @@ tune.cpfa <-
     if (!is.factor(y)) {
       stop("Input 'y' must be of class 'factor'.")
     }
-    if (!(length(y) == xdim[cmode])) {
-      stop("Length of 'y' must match number of levels in 
-           classification mode/dimension of 'x'.")
+    if (model == "parafac") {
+      if (!(length(y) == origdim[cmode])) {
+        stop("Length of 'y' must match number of levels in 
+             classification mode of 'x'.")
+      }
+    } else {
+      if (!(length(y) == xdim[cmode])) {
+        stop("Length of 'y' must match number of levels in 
+             classification mode of 'x'.")
+      }
     }
     if (length(unique(y)) == 0L || length(unique(y)) == 1L) {
       stop("Input 'y' contains less than two unique labels. Need to provide \n
@@ -468,7 +475,7 @@ tune.cpfa <-
          }
          tic <- proc.time()
          pfac <- parafac2(X = x, nfac = nfac[w], parallel = parallel, cl = cl,  
-                         verbose = verbose, ...)
+                          verbose = verbose, ...)
          toc <- proc.time()
          if (w == 1) {
            const <- pfac$control$const
@@ -488,8 +495,14 @@ tune.cpfa <-
            cat("nfac =", nfac[w], "method = plr", fill = TRUE)
          }
          tic <- proc.time()
-         if (nfac == 1 || nfac == 1L) {
+         if (nfac[w] == 1 || nfac[w] == 1L) {
            train.plr <- cbind(train, 0)
+           if (family == "multinomial") {
+             stop("Input combination nfac = 1, family = 'multinomial', and \n
+                  method = 'PLR' gives an error due to an issue interfacing \n
+                  with glmnet::cv.glmnet. Until resolved, this combination of \n
+                  arguments is not permitted.")
+           }
          } else {
            train.plr <- train
          }

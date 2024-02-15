@@ -59,14 +59,12 @@ kcv.rda <-
                         y.test <- y[which(foldid == gg)]
                         stortune <- matrix(rep(0, grid.row), ncol = 1)
                         for (yy in 1:grid.row) {
-                           rda.fit <- rda(x = t(x.train), 
-                                          y = y.train, 
+                           rda.fit <- rda(x = t(x.train), y = y.train, 
                                           prior = prior, 
                                           alpha = rda.grid[yy, 1],
                                           delta = rda.grid[yy, 2],
                                           regularization = regularization,
-                                          genelist = genelist,
-                                          trace = trace)
+                                          genelist = genelist, trace = trace)
                            rda.pred <- predict(rda.fit, x = t(x.train), 
                                                y = y.train, xnew = t(x.test), 
                                                alpha = rda.grid[yy, 1], 

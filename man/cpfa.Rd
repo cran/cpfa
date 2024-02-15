@@ -4,7 +4,7 @@
 Classification with Parallel Factor Analysis
 }
 \description{
-Fits Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or Parallel Factor Analysis-2 (Parafac2) model to a three-way or four-way data tensor/array. Allows for multiple constraint options on different tensor modes. Uses Parafac component weights from a single mode of this model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Predicts class labels and calculates multiple performance measures for binary or multiclass classification over some number of replications with different train-test splits. Provides descriptive statistics to pool output across replications.
+Fits Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or Parallel Factor Analysis-2 (Parafac2) model to a three-way or four-way data array. Allows for multiple constraint options on different tensor modes. Uses Parafac component weights from a single mode of this model as predictors to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Predicts class labels and calculates multiple performance measures for binary or multiclass classification over some number of replications with different train-test splits. Provides descriptive statistics to pool output across replications.
 }
 \usage{
 cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, 
@@ -110,7 +110,7 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1,
   If TRUE, progress is printed.
 }
 \item{...}{
-  Additional arguments to be passed to function \code{parafac} for fitting a Parafac model or function \code{parafac2} for fitting a Parafac2 model. Example: can impose different constraints on different modes of the input tensor/array using the argument \code{const}. See help file for function \code{parafac} or for function \code{parafac2} for additional details.
+  Additional arguments to be passed to function \code{parafac} for fitting a Parafac model or function \code{parafac2} for fitting a Parafac2 model. Example: can impose different constraints on different modes of the input array using the argument \code{const}. See help file for function \code{parafac} or for function \code{parafac2} for additional details.
 }
 }
 \details{
@@ -138,7 +138,7 @@ For all five methods, k-fold cross-validation is implemented to tune classificat
 \note{
 If argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a four-way array) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a four-way array and \code{cmode = 2}, the original input modes 1, 2, 3, and 4 will correspond to output modes 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e., the second mode specified by \code{cmode} has been moved to the D mode/last mode). For \code{model = "parafac2"}, classification mode is assumed to be the last mode (i.e., mode C for three-way array and mode D for four-way array). 
 
-In addition, note that there are cases where the following combination of arguments will give an error: \code{nfac = 1, family = "multinomial", method = "PLR"}. This issue will be resolved in a future update.
+In addition, note that the following combination of arguments will give an error: \code{nfac = 1, family = "multinomial", method = "PLR"}. The issue arises from providing \code{glmnet::cv.glmnet} input \code{x} a matrix with a single column. The issue is resolved for \code{family = "binomial"} because a column of 0s is appended to the single column, but this solution does not appear to work for the multiclass case. As such, this combination of arguments is not currently allowed. This issue will be resolved in a future update.
 }
 \author{
 Matthew A. Snodgress <snodg031@umn.edu>
@@ -181,7 +181,7 @@ Zou, H. and Hastie, T. (2005). Regularization and variable selection via the ela
 
 # set seed and specify dimensions of a three-way tensor
 set.seed(3)
-mydim <- c(60, 16, 100)
+mydim <- c(10, 11, 100)
 nf <- 3
 
 # create correlation matrix between response and third mode's weights 
@@ -197,13 +197,13 @@ mu <- as.matrix(c(Cmean, Cmean, Cmean, ymean))
 eidecomp <- eigen(cormat, symmetric = TRUE)
 L.sqrt <- diag(eidecomp$values^0.5)
 cormat.sqrt <- eidecomp$vectors \%*\% L.sqrt \%*\% t(eidecomp$vectors)
-Z <- matrix(rnorm(mydim[3]*(nf + 1)), nrow = mydim[3], ncol = (nf + 1))
+Z <- matrix(rnorm(mydim[3] * (nf + 1)), nrow = mydim[3], ncol = (nf + 1))
 Xw <- rep(1, mydim[3]) \%*\% t(mu) + Z \%*\% cormat.sqrt
 Cmat <- Xw[, 1:nf]
 
 # create a random three-way data tensor with C weights related to a response
-Amat <- matrix(rnorm(mydim[1]*nf), nrow = mydim[1], ncol = nf)
-Bmat <- matrix(runif(mydim[2]*nf), nrow = mydim[2], ncol = nf)
+Amat <- matrix(rnorm(mydim[1] * nf), nrow = mydim[1], ncol = nf)
+Bmat <- matrix(runif(mydim[2] * nf), nrow = mydim[2], ncol = nf)
 Xmat <- tcrossprod(Amat, krprod(Cmat, Bmat))
 Xmat <- array(Xmat, dim = mydim)
 Emat <- array(rnorm(prod(mydim)), dim = mydim)
@@ -230,6 +230,8 @@ parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
                    rda.alpha = rda.alpha, delta = delta)
 model <- "parafac"
 nfolds <- 3
+
+# constrain first mode weights to be orthogonal
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode weights to tune classification
@@ -240,6 +242,86 @@ output <- cpfa(x = X, y = y, model = model, nfac = 3, nrep = 2, ratio = 0.8,
                parameters = parameters, type.out = "descriptives", 
                seeds = NULL, plot.out = TRUE, parallel = FALSE, const = const)
                
+# print performance measure means across train-test splits
+output$descriptive$mean
+
+########## Parafac2 example with 4-way array and multiclass response ##########
+
+# set seed and specify dimensions of a four-way tensor
+set.seed(5)
+mydim <- c(10, 11, 12, 100)
+nf <- 3
+
+# create correlation matrix between response and fourth mode's weights 
+rho.dd <- .35 
+rho.dy <- .75 
+cormat.values <- c(1, rho.dd, rho.dd, rho.dy, rho.dd, 1, rho.dd, rho.dy, 
+                   rho.dd, rho.dd, 1, rho.dy, rho.dy, rho.dy, rho.dy, 1)
+cormat <- matrix(cormat.values, nrow = (nf + 1), ncol = (nf + 1))
+
+# sample from a multivariate normal with specified correlation structure
+ymean <- Dmean <- 2
+mu <- as.matrix(c(Dmean, Dmean, Dmean, ymean))
+eidecomp <- eigen(cormat, symmetric = TRUE)
+L.sqrt <- diag(eidecomp$values^0.5)
+cormat.sqrt <- eidecomp$vectors \%*\% L.sqrt \%*\% t(eidecomp$vectors)
+Z <- matrix(rnorm(mydim[4] * (nf + 1)), nrow = mydim[4], ncol = (nf + 1))
+Xw <- rep(1, mydim[4]) \%*\% t(mu) + Z \%*\% cormat.sqrt
+Dmat <- Xw[, 1:nf]
+
+# create a random four-way data tensor with D weights related to a response
+Bmat <- matrix(runif(mydim[2] * nf), nrow = mydim[2], ncol = nf)
+Cmat <- matrix(runif(mydim[3] * nf), nrow = mydim[3], ncol = nf)
+nDd <- rep(c(10, 12, 14), length.out = mydim[4])
+Gmat <- matrix(rnorm(nf * nf), nrow = nf)
+Amat <- vector("list", mydim[4])
+X <- Xmat <- Emat <- Amat
+for (Dd in 1:mydim[4]) {
+   Amat[[Dd]] <- matrix(nf * rnorm(nDd[Dd]), nrow = nDd[Dd], ncol = nf)
+   Amat[[Dd]] <- svd(Amat[[Dd]], nv = 0)$u \%*\% Gmat
+   leftMat <- Amat[[Dd]] \%*\% diag(Dmat[Dd,])
+   Xmat[[Dd]] <- array(tcrossprod(leftMat, krprod(Cmat, Bmat)), 
+                       dim = c(nDd[Dd], mydim[2], mydim[3]))
+   Emat[[Dd]] <- array(rnorm(nDd[Dd] * mydim[2] * mydim[3]), 
+                       dim = c(nDd[Dd], mydim[2], mydim[3]))
+   X[[Dd]] <- Xmat[[Dd]] + Emat[[Dd]]
+}
+
+# create a multiclass response
+stor <- matrix(rep(1, nrow(Xw)), nrow = nrow(Xw))
+stor[which(Xw[, (nf + 1)] < (ymean - 0.4 * sd(Xw[, (nf + 1)])))] <- 2
+stor[which(Xw[, (nf + 1)] > (ymean + 0.4 * sd(Xw[, (nf + 1)])))] <- 0
+y <- factor(stor)
+
+# initialize
+alpha <- seq(0, 1, length = 2)
+gamma <- c(0, 1)
+cost <- c(0.1, 5)
+ntree <- c(200, 300)
+nodesize <- c(1, 2)
+size <- c(1, 2)
+decay <- c(0, 1)
+rda.alpha <- seq(0.1, 0.9, length = 2)
+delta <- c(0.1, 1)
+method <- c("PLR", "SVM", "RF", "NN", "RDA")
+family <- "multinomial"
+parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
+                   nodesize = nodesize, size = size, decay = decay, 
+                   rda.alpha = rda.alpha, delta = delta)
+model <- "parafac2"
+nfolds <- 3
+
+# constrain first mode weights to be orthogonal, fourth mode to be nonnegative
+const <- c("orthog", "uncons", "uncons", "nonneg")
+
+# fit Parafac2 model and use fourth mode weights to tune classification
+# methods, to predict class labels, and to return classificaiton 
+# performance measures pooled across multiple train-test splits
+output <- cpfa(x = X, y = y, model = model, nfac = nf, nrep = 2, ratio = 0.8, 
+               nfolds = nfolds, method = method, family = family, 
+               parameters = parameters, type.out = "descriptives", 
+               seeds = NULL, plot.out = TRUE, parallel = FALSE, const = const)
+
 # print performance measure means across train-test splits
 output$descriptive$mean
 }

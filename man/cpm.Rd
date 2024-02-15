@@ -115,7 +115,7 @@ Matthew Snodgress <snodg031@umn.edu>
 
 # set seed and specify dimensions of a three-way tensor
 set.seed(3)
-mydim <- c(60, 16, 80)
+mydim <- c(10, 11, 80)
 nf <- 3
 
 # create correlation matrix between response and third mode's weights 
@@ -164,6 +164,8 @@ parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
                    rda.alpha = rda.alpha, delta = delta)
 model <- "parafac"
 nfolds <- 3
+
+# constrain first mode weights to be orthogonal
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
@@ -173,7 +175,7 @@ tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = nf,
                          const = const)
                          
 # create new data with Parafac structure and C weights related to response
-mydim.new <- c(60, 16, 20)
+mydim.new <- c(10, 11, 20)
 Znew <- matrix(rnorm(mydim.new[3]*(nf + 1)), 
                nrow = mydim.new[3], ncol = (nf + 1))
 Xwnew <- rep(1, mydim.new[3]) \%*\% t(mu) + Znew \%*\% cormat.sqrt

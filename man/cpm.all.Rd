@@ -43,7 +43,7 @@ Matthew Snodgress <snodg031@umn.edu>
 
 # set seed and specify dimensions of a three-way tensor
 set.seed(3)
-mydim <- c(60, 16, 80)
+mydim <- c(10, 11, 80)
 nf <- 3
 
 # create correlation matrix between response and third mode's weights 
@@ -59,13 +59,13 @@ mu <- as.matrix(c(Cmean, Cmean, Cmean, ymean))
 eidecomp <- eigen(cormat, symmetric = TRUE)
 L.sqrt <- diag(eidecomp$values^0.5)
 cormat.sqrt <- eidecomp$vectors \%*\% L.sqrt \%*\% t(eidecomp$vectors)
-Z <- matrix(rnorm(mydim[3]*(nf + 1)), nrow = mydim[3], ncol = (nf + 1))
+Z <- matrix(rnorm(mydim[3] * (nf + 1)), nrow = mydim[3], ncol = (nf + 1))
 Xw <- rep(1, mydim[3]) \%*\% t(mu) + Z \%*\% cormat.sqrt
 Cmat <- Xw[, 1:nf]
 
 # create a random three-way data tensor with C weights related to a response
-Amat <- matrix(rnorm(mydim[1]*nf), nrow = mydim[1], ncol = nf)
-Bmat <- matrix(runif(mydim[2]*nf), nrow = mydim[2], ncol = nf)
+Amat <- matrix(rnorm(mydim[1] * nf), nrow = mydim[1], ncol = nf)
+Bmat <- matrix(runif(mydim[2] * nf), nrow = mydim[2], ncol = nf)
 Xmat <- tcrossprod(Amat, krprod(Cmat, Bmat))
 Xmat <- array(Xmat, dim = mydim)
 Emat <- array(rnorm(prod(mydim)), dim = mydim)
@@ -92,6 +92,8 @@ parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
                    rda.alpha = rda.alpha, delta = delta)
 model <- "parafac"
 nfolds <- 3
+
+# constrain first mode weights to be orthogonal
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
@@ -101,8 +103,8 @@ tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = nf,
                          const = const)
                          
 # create new data with Parafac structure and C weights related to response
-mydim.new <- c(60, 16, 20)
-Znew <- matrix(rnorm(mydim.new[3]*(nf + 1)), 
+mydim.new <- c(10, 11, 20)
+Znew <- matrix(rnorm(mydim.new[3] * (nf + 1)), 
                nrow = mydim.new[3], ncol = (nf + 1))
 Xwnew <- rep(1, mydim.new[3]) \%*\% t(mu) + Znew \%*\% cormat.sqrt
 Cmatnew <- Xwnew[, 1:nf]

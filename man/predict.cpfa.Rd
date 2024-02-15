@@ -16,7 +16,7 @@ Obtains predictions for class labels from a 'cpfa' model object obtained using f
     A fit object of class 'cpfa' from function \code{tune.cpfa}.
 }
   \item{newdata}{
-    An optional three-way or four-way data tensor/array used to predict Parafac or Parafac2 component weights using estimated Parafac or Parafac2 model component weights from inputted object. Dimensions must match dimensions of original data for all modes except the classification mode. If omitted, the original data are used.
+    An optional three-way or four-way data array used to predict Parafac or Parafac2 component weights using estimated Parafac or Parafac2 model component weights from inputted object. Dimensions must match dimensions of original data for all modes except the classification mode. If omitted, the original data are used.
 }
   \item{method}{
   Character vector indicating classification methods to use. Possible methods include penalized logistic regression (PLR); support vector machine (SVM); random forest (RF); feed-forward neural network (NN); and regularized discriminant analysis (RDA). If none selected, default is to use all methods.
@@ -89,7 +89,7 @@ Zou, H. and Hastie, T. (2005). Regularization and variable selection via the ela
 
 # set seed and specify dimensions of a three-way tensor
 set.seed(3)
-mydim <- c(60, 16, 80)
+mydim <- c(10, 11, 80)
 nf <- 3
 
 # create correlation matrix between response and third mode's weights 
@@ -138,6 +138,8 @@ parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
                    rda.alpha = rda.alpha, delta = delta)
 model <- "parafac"
 nfolds <- 3
+
+# constrain first mode weights to be orthogonal
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
@@ -147,7 +149,7 @@ tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = nf,
                          const = const)
                          
 # create new data with Parafac structure and C weights related to response
-mydim.new <- c(60, 16, 20)
+mydim.new <- c(10, 11, 20)
 Znew <- matrix(rnorm(mydim.new[3]*(nf + 1)), 
                nrow = mydim.new[3], ncol = (nf + 1))
 Xwnew <- rep(1, mydim.new[3]) \%*\% t(mu) + Znew \%*\% cormat.sqrt
@@ -157,6 +159,114 @@ Xnew0 <- array(Xnew0, dim = mydim.new)
 Ematnew <- array(rnorm(prod(mydim.new)), dim = mydim.new)
 Ematnew <- nscale(Ematnew, 0, ssnew = sumsq(Xnew0))  
 Xnew <- Xnew0 + Ematnew
+
+# predict class labels
+predict.labels <- predict(object = tune.object, newdata = Xnew, 
+                          type = "response")
+
+# print predicted labels
+predict.labels
+
+########## Parafac2 example with 4-way array and multiclass response ##########
+
+# set seed and specify dimensions of a four-way tensor
+set.seed(5)
+mydim <- c(10, 11, 12, 90)
+nf <- 3
+
+# create correlation matrix between response and fourth mode's weights 
+rho.dd <- .35 
+rho.dy <- .75 
+cormat.values <- c(1, rho.dd, rho.dd, rho.dy, rho.dd, 1, rho.dd, rho.dy, 
+                   rho.dd, rho.dd, 1, rho.dy, rho.dy, rho.dy, rho.dy, 1)
+cormat <- matrix(cormat.values, nrow = (nf + 1), ncol = (nf + 1))
+
+# sample from a multivariate normal with specified correlation structure
+ymean <- Dmean <- 2
+mu <- as.matrix(c(Dmean, Dmean, Dmean, ymean))
+eidecomp <- eigen(cormat, symmetric = TRUE)
+L.sqrt <- diag(eidecomp$values^0.5)
+cormat.sqrt <- eidecomp$vectors \%*\% L.sqrt \%*\% t(eidecomp$vectors)
+Z <- matrix(rnorm(mydim[4] * (nf + 1)), nrow = mydim[4], ncol = (nf + 1))
+Xw <- rep(1, mydim[4]) \%*\% t(mu) + Z \%*\% cormat.sqrt
+Dmat <- Xw[, 1:nf]
+
+# create a random four-way data tensor with D weights related to a response
+Bmat <- matrix(runif(mydim[2] * nf), nrow = mydim[2], ncol = nf)
+Cmat <- matrix(runif(mydim[3] * nf), nrow = mydim[3], ncol = nf)
+nDd <- rep(c(10, 12, 14), length.out = mydim[4])
+Gmat <- matrix(rnorm(nf * nf), nrow = nf)
+Amat <- vector("list", mydim[4])
+X <- Xmat <- Emat <- Amat
+for (Dd in 1:mydim[4]) {
+   Amat[[Dd]] <- matrix(nf * rnorm(nDd[Dd]), nrow = nDd[Dd], ncol = nf)
+   Amat[[Dd]] <- svd(Amat[[Dd]], nv = 0)$u \%*\% Gmat
+   leftMat <- Amat[[Dd]] \%*\% diag(Dmat[Dd,])
+   Xmat[[Dd]] <- array(tcrossprod(leftMat, krprod(Cmat, Bmat)), 
+                       dim = c(nDd[Dd], mydim[2], mydim[3]))
+   Emat[[Dd]] <- array(rnorm(nDd[Dd] * mydim[2] * mydim[3]), 
+                       dim = c(nDd[Dd], mydim[2], mydim[3]))
+   X[[Dd]] <- Xmat[[Dd]] + Emat[[Dd]]
+}
+
+# create a multiclass response
+stor <- matrix(rep(1, nrow(Xw)), nrow = nrow(Xw))
+stor[which(Xw[, (nf + 1)] < (ymean - 0.4 * sd(Xw[, (nf + 1)])))] <- 2
+stor[which(Xw[, (nf + 1)] > (ymean + 0.4 * sd(Xw[, (nf + 1)])))] <- 0
+y <- factor(stor)
+
+# initialize
+alpha <- seq(0, 1, length = 2)
+gamma <- c(0, 1)
+cost <- c(0.1, 5)
+ntree <- c(200, 300)
+nodesize <- c(1, 2)
+size <- c(1, 2)
+decay <- c(0, 1)
+rda.alpha <- seq(0.1, 0.9, length = 2)
+delta <- c(0.1, 1)
+method <- c("PLR", "SVM", "RF", "NN", "RDA")
+family <- "multinomial"
+parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
+                   nodesize = nodesize, size = size, decay = decay, 
+                   rda.alpha = rda.alpha, delta = delta)
+model <- "parafac2"
+nfolds <- 3
+nstart <- 5
+
+# constrain first mode weights to be orthogonal, fourth mode to be nonnegative
+const <- c("orthog", "uncons", "uncons", "nonneg")
+
+# fit Parafac2 model and use fourth mode to tune classification methods
+tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = nf, 
+                         nfolds = nfolds, method = method, family = family, 
+                         parameters = parameters, parallel = FALSE, 
+                         const = const, nstart = nstart)
+
+# create new data with Parafac2 structure and D weights related to response
+mydim.new <- c(10, 11, 12, 10)
+Znew <- matrix(rnorm(mydim.new[4] * (nf + 1)), nrow = mydim.new[4], 
+               ncol = (nf + 1))
+Xwnew <- rep(1, mydim.new[4]) \%*\% t(mu) + Znew \%*\% cormat.sqrt
+Dmatnew <- Xwnew[, 1:nf]
+Amat <- vector("list", mydim.new[4])
+Xnew <- Xmat <- Emat <- Amat
+for (Dd in 1:mydim.new[4]) {
+   Amat[[Dd]] <- matrix(nf * rnorm(nDd[Dd]), nrow = nDd[Dd], ncol = nf)
+   Amat[[Dd]] <- svd(Amat[[Dd]], nv = 0)$u \%*\% Gmat
+   leftMat <- Amat[[Dd]] \%*\% diag(Dmatnew[Dd, ])
+   Xmat[[Dd]] <- array(tcrossprod(leftMat, krprod(Cmat, Bmat)), 
+                       dim = c(nDd[Dd], mydim.new[2], mydim.new[3]))
+   Emat[[Dd]] <- array(rnorm(nDd[Dd] * mydim.new[2] * mydim.new[3]), 
+                       dim = c(nDd[Dd], mydim.new[2], mydim.new[3]))
+   Xnew[[Dd]] <- Xmat[[Dd]] + Emat[[Dd]]
+}
+
+# create new random class labels for two levels
+stor <- matrix(rep(1, nrow(Xwnew)), nrow = nrow(Xwnew))
+stor[which(Xwnew[, (nf + 1)] < (ymean - 0.4 * sd(Xwnew[, (nf + 1)])))] <- 2
+stor[which(Xwnew[, (nf + 1)] > (ymean + 0.4 * sd(Xwnew[, (nf + 1)])))] <- 0
+newlabels <- as.numeric(stor)
 
 # predict class labels
 predict.labels <- predict(object = tune.object, newdata = Xnew, 

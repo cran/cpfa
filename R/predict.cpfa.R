@@ -49,8 +49,8 @@ predict.cpfa <-
           storlist[[k]] <- newdata[, , k]
         }
       } else {
-        storlist <- vector("list", xdim[3])
-        for (k in 1:xdim[3]) {
+        storlist <- vector("list", xdim[4])
+        for (k in 1:xdim[4]) {
           storlist[[k]] <- newdata[, , , k]
         }
       }
@@ -313,10 +313,10 @@ predict.cpfa <-
                type.plr <- "response"
                if (family == "binomial") {
                  storprob[[colcount]] <- as.numeric(predict(plr.fit, 
-                                              newx = C.pred.plr, 
-                                              type = type.plr, 
-                                              s = lambda.min,
-                                              levels = plr.fit.class))
+                                                    newx = C.pred.plr, 
+                                                    type = type.plr, 
+                                                    s = lambda.min,
+                                                    levels = plr.fit.class))
                  colcount <- colcount + 1
                }
                if (family == "multinomial") {
@@ -338,16 +338,20 @@ predict.cpfa <-
              if (type == "response") {
                if (family == "binomial") {
                  svm.prob <- attr(predict(svm.fit, C.pred, type = type,
-                                  probability = TRUE),"probabilities")
+                                  probability = TRUE), "probabilities")
                  svm.prob <- svm.prob[, which(colnames(svm.prob) == "1")]
                  storfac[, colcount] <- as.numeric(svm.prob > threshold)
                  colcount <- colcount + 1
                }
                if (family == "multinomial") {
                  svm.prob <- attr(predict(svm.fit, C.pred, type = type,
-                                  probability = TRUE),"probabilities")
-                 storfac[, colcount] <- as.numeric((apply(svm.prob, 
-                                                          1, which.max))) - 1
+                                  probability = TRUE), "probabilities")
+                 sord <- cbind(1:ncol(svm.prob), 
+                              as.numeric(colnames(svm.prob)) + 1)
+                 svmord <- sord[order(sord[,2]), ]
+                 svm.prob <- svm.prob[, svmord[, 1]]
+                 storfac[, colcount] <- as.numeric((apply(svm.prob, 1, 
+                                                          which.max))) - 1
                  colcount <- colcount + 1
                }
              }
@@ -355,15 +359,16 @@ predict.cpfa <-
                type.svm <- "response"
                if (family == "binomial") {
                  svm.prob <- attr(predict(svm.fit, C.pred, type = type.svm,
-                                  probability = TRUE),"probabilities")
+                                  probability = TRUE), "probabilities")
                  svm.prob <- svm.prob[, which(colnames(svm.prob) == "1")]
                  storprob[[colcount]] <- as.numeric(svm.prob)
                  colcount <- colcount + 1
                }
                if (family == "multinomial") {
                  storprob[[colcount]] <- attr(predict(svm.fit, C.pred, 
-                                            type = type.svm,
-                                            probability = TRUE),"probabilities")
+                                              type = type.svm,
+                                              probability = TRUE),
+                                              "probabilities")
                  colcount <- colcount + 1
                }
              }
@@ -379,8 +384,8 @@ predict.cpfa <-
                }
                if (family == "multinomial") {
                  rf.prob <- predict(rf.fit, C.pred, type = "prob")
-                 storfac[, colcount] <- as.numeric((apply(rf.prob, 
-                                                          1, which.max))) - 1
+                 storfac[, colcount] <- as.numeric((apply(rf.prob, 1, 
+                                                          which.max))) - 1
                  colcount <- colcount + 1
                }
              }
@@ -408,8 +413,8 @@ predict.cpfa <-
                }
                if (family == "multinomial") {
                  nn.prob <- predict(nn.fit, newdata = C.pred, type = "raw")
-                 storfac[, colcount] <- as.numeric((apply(nn.prob, 
-                                                          1, which.max))) - 1
+                 storfac[, colcount] <- as.numeric((apply(nn.prob, 1, 
+                                                          which.max))) - 1
                  colcount <- colcount + 1
                }
              }
@@ -443,8 +448,8 @@ predict.cpfa <-
                                      y = as.numeric(oyold) - 1, 
                                      xnew = t(C.pred), 
                                      type = "posterior")
-                 storfac[, colcount] <- as.numeric((apply(rda.prob, 
-                                                          1, which.max))) - 1
+                 storfac[, colcount] <- as.numeric((apply(rda.prob, 1, 
+                                                          which.max))) - 1
                }
              }
              if (type == "prob") {

@@ -1,3 +1,27 @@
+Changes:  version 1.1-2  (2024-2-15)
+
+1.) Bug fix in main package function tune.cpfa for argument 'nfac'
+	- Previously bug prevented argument 'nfac' from containing multiple values
+	- Now argument 'nfac' can contain multiple values  
+
+2.) Added a Parafac2 example to help files
+	- Previously help files did not include a Parafac2 example
+	- Now help files include a Parafac2 example
+
+3.) Bug fix in main package function tune.cpfa for argument 'cmode'
+	- Previously could not match 'y' length with classification mode's number of levels
+	- Now can match them together correctly
+
+4.) Bug fix in main package function predict.cpfa for argument 'newdata'
+	- Previously did not specify array dimensions correctly for four-way arrays
+	- Now specifies array dimensions correctly for four-way arrays
+
+5.) Bug fix in main package function predict.cpfa for method 'SVM' for multiclass response
+	- Previously columns of SVM predicted probabilities matrix were ordered incorrectly
+	- Now columns are ordered correctly, calculating correct performance measures
+
+----------------
+
 Changes:  version 1.1-1  (2024-2-03)
 
 1.) Added help file examples where tensor and response are related
