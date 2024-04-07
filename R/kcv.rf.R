@@ -55,9 +55,9 @@ kcv.rf <-
     if (parallel == TRUE) {
       cv.rf <- foreach (gg = 1:nfolds, .combine = cbind, 
                         .packages = 'randomForest') %dopar% {
-                        x.train <- as.matrix(x[which(foldid != gg),])
+                        x.train <- as.matrix(x[which(foldid != gg), ])
                         y.train <- y[which(foldid != gg)]
-                        x.test <- as.matrix(x[which(foldid == gg),])
+                        x.test <- as.matrix(x[which(foldid == gg), ])
                         y.test <- y[which(foldid == gg)]
                         stortune <- matrix(rep(0, grid.row), ncol = 1)
                         for (yy in 1:grid.row) {
@@ -81,9 +81,9 @@ kcv.rf <-
                }
     } else {
       for (gg in 1:nfolds) {
-         x.train <- as.matrix(x[which(foldid != gg),])
+         x.train <- as.matrix(x[which(foldid != gg), ])
          y.train <- y[which(foldid != gg)]
-         x.test <- as.matrix(x[which(foldid == gg),])
+         x.test <- as.matrix(x[which(foldid == gg), ])
          y.test <- y[which(foldid == gg)]
          stortune <- matrix(rep(0, grid.row), ncol = 1)
          for (yy in 1:grid.row) {

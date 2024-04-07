@@ -1,7 +1,7 @@
 cpfa <- 
   function(x, y, model = c("parafac", "parafac2"), nfac = 1, 
            nrep = 5, ratio = 0.8, nfolds = 10,
-           method = c("PLR", "SVM", "RF", "NN", "RDA"), 
+           method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"),
            family = c("binomial", "multinomial"), parameters = list(), 
            type.out = c("measures", "descriptives"), foldid = NULL, 
            prior = NULL, cmode = NULL, seeds = NULL, plot.out = FALSE, 
@@ -180,6 +180,9 @@ cpfa <-
     if (!(is.logical(plot.out))) {
       stop("Input 'plot.out' must be a logical value.")
     }
+    if (length(plot.out) != 1L) {
+      stop("Input 'plot.out' must be a single value.")
+    }
     if (plot.out) {
       if (is.null(plot.measures)) {
         plottype <- 5
@@ -225,25 +228,26 @@ cpfa <-
          X.train <- x[train.id]
          X.test <- x[-train.id]
        }
-       cpfalist <- tune.cpfa(x = X.train, y = y.train, nfac = nfac,            
+       tcpfalist <- tunecpfa(x = X.train, y = y.train, nfac = nfac,            
                              nfolds = nfolds, method = method, foldid = foldid, 
                              prior = prior, model = model, family = family,
                              parameters = parameters, parallel = parallel, 
                              cl = cl, verbose = verbose, cmode = cmode, ...)
-       Aw[[i]] <- cpfalist$Aweights
-       Bw[[i]] <- cpfalist$Bweights
-       Cw[[i]] <- cpfalist$Cweights
-       Pw[[i]] <- cpfalist$Phi
-       opara[[i]] <- cpfalist$opt.param
-       yhat <- predict(object = cpfalist, newdata = X.test, type = "response")                        
+       Aw[[i]] <- tcpfalist$Aweights
+       Bw[[i]] <- tcpfalist$Bweights
+       Cw[[i]] <- tcpfalist$Cweights
+       Pw[[i]] <- tcpfalist$Phi
+       opara[[i]] <- tcpfalist$opt.param
+       yhat <- predict(object = tcpfalist, newdata = X.test, type = "response")                        
        out <- cpm.all(x = yhat, y = y.test, level = levels(y))
-       stor[,,i] <- as.matrix(out$cpms)
-       predstor[[i]] <- predict(object = cpfalist, newdata = X.test, 
+       stor[ , , i] <- as.matrix(out$cpms)
+       predstor[[i]] <- predict(object = tcpfalist, newdata = X.test, 
                                 type = "classify.weights")
        if ((plot.out) && (i = 1)) {
-         plot.mind <- cpfalist$method
+         plot.mind <- tcpfalist$method
        }
     }
+    mconst <- tcpfalist$const
     rnam <- rownames(out$cpms)
     cnam <- colnames(out$cpms)
     dimnames(stor)[[1]] <- rnam
@@ -259,7 +263,7 @@ cpfa <-
       plotcname <- c("method", "nfac", "rep", colnames(stor))
       colnames(plotstor) <- plotcname
       matnum <- ncomps * nmethods
-      methnames0 <- sapply(strsplit(rownames(stor), split ='.', fixed = TRUE), 
+      methnames0 <- sapply(strsplit(rownames(stor), split = '.', fixed = TRUE), 
                            function(x) (x[2]))
       methnames <- gsub('[[:digit:]]+', '', methnames0)
       nfacnames <- as.numeric(gsub(".*?([0-9]+).*", "\\1", rownames(stor)))
@@ -281,9 +285,12 @@ cpfa <-
       }
     }
     if (type.out == "measures") {
-      return(list(measure = stor, predweights = predstor,
-                  train.weights = train.weights, opt.tune = opara,
-                  mean.opt.tune = mean.tune.param))                                                              
+      cpfalist <- list(measure = stor, predweights = predstor,
+                       train.weights = train.weights, opt.tune = opara,
+                       mean.opt.tune = mean.tune.param, X = x, nfac = nfac,
+                       model = model, method = method, const = mconst)
+      class(cpfalist) <- "wrapcpfa"
+      return(cpfalist)                                                              
     } else {
       dfun <- c("mean", "median", "sd")
       output <- vector(mode = "list", length = length(dfun))
@@ -294,9 +301,12 @@ cpfa <-
          rownames(output[[j]]) <- rnam
          colnames(output[[j]]) <- cnam
       }
-      names(output) <- dfun                                                     
-      return(list(descriptive = output, predweights = predstor,
-                  train.weights = train.weights, opt.tune = opara,
-                  mean.opt.tune = mean.tune.param))
+      names(output) <- dfun      
+      cpfalist <- list(descriptive = output, predweights = predstor,
+                       train.weights = train.weights, opt.tune = opara,
+                       mean.opt.tune = mean.tune.param, X = x, nfac = nfac,
+                       model = model, method = method, const = mconst)
+      class(cpfalist) <- "wrapcpfa"
+      return(cpfalist)
     }
 }

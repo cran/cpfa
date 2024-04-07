@@ -53,9 +53,9 @@ kcv.rda <-
     if (parallel == TRUE) {
       cv.rda <- foreach(gg = 1:nfolds, .combine = cbind, 
                         .packages = 'rda') %dopar% {
-                        x.train <- as.matrix(x[which(foldid != gg),])
+                        x.train <- as.matrix(x[which(foldid != gg), ])
                         y.train <- y[which(foldid != gg)]
-                        x.test <- as.matrix(x[which(foldid == gg),])
+                        x.test <- as.matrix(x[which(foldid == gg), ])
                         y.test <- y[which(foldid == gg)]
                         stortune <- matrix(rep(0, grid.row), ncol = 1)
                         for (yy in 1:grid.row) {
@@ -64,7 +64,8 @@ kcv.rda <-
                                           alpha = rda.grid[yy, 1],
                                           delta = rda.grid[yy, 2],
                                           regularization = regularization,
-                                          genelist = genelist, trace = trace)
+                                          genelist = genelist, 
+                                          trace = trace)
                            rda.pred <- predict(rda.fit, x = t(x.train), 
                                                y = y.train, xnew = t(x.test), 
                                                alpha = rda.grid[yy, 1], 
@@ -76,9 +77,9 @@ kcv.rda <-
                 }
     } else {
       for (gg in 1:nfolds) {
-         x.train <- as.matrix(x[which(foldid != gg),])
+         x.train <- as.matrix(x[which(foldid != gg), ])
          y.train <- y[which(foldid != gg)]
-         x.test <- as.matrix(x[which(foldid == gg),])
+         x.test <- as.matrix(x[which(foldid == gg), ])
          y.test <- y[which(foldid == gg)]
          stortune <- matrix(rep(0, grid.row), ncol = 1)
          for (yy in 1:grid.row) {

@@ -1,10 +1,10 @@
-predict.cpfa <-
+predict.tunecpfa <-
   function(object, newdata = NULL, method = NULL,
            type = c("response", "prob", "classify.weights"), 
            threshold = NULL, ...)                                               
 {   
-    if (!inherits(object, "cpfa")) {
-      stop("Input 'object' must be of class 'cpfa'.")
+    if (!inherits(object, "tunecpfa")) {
+      stop("Input 'object' must be of class 'tunecpfa'.")
     }
     model <- object$model
     xold.dim <- object$xdim
@@ -137,12 +137,12 @@ predict.cpfa <-
       method <- object$method
       lmethod <- length(method)
     } else {
-      methods <- c("PLR", "SVM", "RF", "NN", "RDA")
-      checkmethod <- sum(toupper(method) %in% methods)
+      omethods <- c("PLR", "SVM", "RF", "NN", "RDA", "GBM")
+      checkmethod <- sum(toupper(method) %in% omethods)
       if (checkmethod != length(method)) {
         stop("Input 'method' contains at least one value that is not valid.")
       }
-      method <- which(methods %in% toupper(method) == TRUE)
+      method <- which(omethods %in% toupper(method) == TRUE)
       lmethod <- length(method)
       if (sum(method %in% object$method) != lmethod) {
         stop("Input 'method' contains at least one method that was not tuned \n
@@ -158,6 +158,7 @@ predict.cpfa <-
       meth.names <- c(meth.names, "RDA")
       train.weights <- object$train.weights
     }
+    if (6 %in% method) {meth.names <- c(meth.names, "GBM")}
     meth.names <- tolower(meth.names)
     opt.model <- object$opt.model
     Aweights <- object$Aweights
@@ -165,8 +166,6 @@ predict.cpfa <-
     Cweights <- object$Cweights
     Phi <- object$Phi
     const <- object$const
-    storfac <- vector("list", lnfac)
-    names(storfac) <- nfac.names
     classify.weights <- vector("list", lnfac)
     names(classify.weights) <- nfac.names
     if (length(type) != 1) {
@@ -442,6 +441,7 @@ predict.cpfa <-
                  colnames(rda.prob) <- c(0, 1)
                  rda.prob <- rda.prob[, which(colnames(rda.prob) == "1")]
                  storfac[, colcount] <- as.numeric(rda.prob > threshold)
+                 colcount <- colcount + 1
                }
                if (family == "multinomial") {
                  rda.prob <- predict(rda.fit, x = t(train.weights[[w]]), 
@@ -450,6 +450,7 @@ predict.cpfa <-
                                      type = "posterior")
                  storfac[, colcount] <- as.numeric((apply(rda.prob, 1, 
                                                           which.max))) - 1
+                 colcount <- colcount + 1
                }
              }
              if (type == "prob") {
@@ -461,6 +462,7 @@ predict.cpfa <-
                  colnames(rda.prob) <- c(0, 1)
                  rda.prob <- rda.prob[, which(colnames(rda.prob) == "1")]
                  storprob[[colcount]] <- as.numeric(rda.prob)
+                 colcount <- colcount + 1
                }
                if (family == "multinomial") {
                  storprob[[colcount]]  <- predict(rda.fit, 
@@ -468,26 +470,50 @@ predict.cpfa <-
                                                   y = as.numeric(oyold) - 1, 
                                                   xnew = t(C.pred), 
                                                   type = "posterior")
+                 colcount <- colcount + 1
                }
              }
            }
+           if ('6' %in% method) {
+             gbm.fit <- opt.model[[w]][[6]]
+             xgdata <- xgb.DMatrix(data = C.pred)
+             num_classes <- length(unique(oyold))
+             if (type == "response") {
+               if (family == "binomial") {
+                 gbm.pred <- predict(gbm.fit, xgdata)
+                 storfac[, colcount] <- as.numeric(gbm.pred > threshold)       
+               }
+               if (family == "multinomial") {
+                 gbm.pred <- t(matrix(predict(gbm.fit, xgdata), 
+                                      nrow = num_classes))
+                 storfac[, colcount] <- as.numeric((apply(gbm.pred, 1, 
+                                                          which.max))) - 1
+               }
+             }
+             if (type == "prob") {
+               if (family == "binomial") {
+                 storprob[[colcount]] <- predict(gbm.fit, xgdata)
+               }
+               if (family == "multinomial") {
+                 storprob[[colcount]] <- t(matrix(predict(gbm.fit, xgdata), 
+                                                  nrow = num_classes))
+               }
+             }
+           } 
        }
     }
     storfac <- as.data.frame(storfac)
     colnames(storfac) <- stor.name
     names(storprob) <- stor.name
     if (type == "classify.weights") {
-      classify.weight.names <- paste(nfac, "-factor(s)", sep = "")
+      classify.weight.names <- paste(nfac, "-factor(s)", sep ="")
       names(classify.weights) <- classify.weight.names
-      .Deprecated("predict.tunecpfa")
       return(classify.weights)
     } 
     if (type == "response") {
-      .Deprecated("predict.tunecpfa")
       return(storfac)
     } 
     if (type == "prob") {
-      .Deprecated("predict.tunecpfa")
       return(storprob)
     }
 }

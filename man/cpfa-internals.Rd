@@ -8,6 +8,7 @@
 \alias{kcv.rf}
 \alias{kcv.nn}
 \alias{kcv.rda}
+\alias{kcv.gbm}
 
 \description{
   Internal functions for the "cpfa" package.

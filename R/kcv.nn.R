@@ -46,30 +46,35 @@ kcv.nn <-
            input 'nfolds'.")
     }
     if (is.null(weights)) {
-      weights <- rep(1, length(y))
+      weights <- as.numeric((table(y)[y] / length(y)))
     }
     x <- as.matrix(x)
-    weights <- as.matrix(weights)
+    weights <- as.matrix(weights)                                               
     grid.row <- nrow(nn.grid)
     cv.nn <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
     if (parallel == TRUE) {
       cv.nn <- foreach (gg = 1:nfolds, .combine = cbind, 
                         .packages = 'nnet') %dopar% {
-                        x.train <- as.matrix(x[which(foldid != gg),])
+                        x.train <- as.matrix(x[which(foldid != gg), ])
                         y.train <- y[which(foldid != gg)]
-                        x.test <- as.matrix(x[which(foldid == gg),])
+                        x.test <- as.matrix(x[which(foldid == gg), ])
                         y.test <- as.numeric(y[which(foldid == gg)]) - 1
-                        trweights <- as.matrix(weights[which(foldid != gg),])
+                        trweights <- as.matrix(weights[which(foldid != gg), ])
                         data.ytrain <- data.frame(y.train)
                         con.ytrain <- model.matrix(~y.train - 1, data.ytrain)
                         stortune <- matrix(rep(0, grid.row), ncol = 1)
                         for (yy in 1:grid.row) {
-                           nn.fit <- nnet(x = x.train, y = con.ytrain, 
-                                          trace = FALSE, size = nn.grid[yy, 1], 
+                           nn.fit <- nnet(x = x.train, 
+                                          y = con.ytrain, 
+                                          trace = FALSE, 
+                                          size = nn.grid[yy, 1], 
                                           decay = nn.grid[yy, 2], 
-                                          linout = linout, weights = trweights,
-                                          censored = censored, skip = skip, 
-                                          rang = rang, MaxNWts = 10000)
+                                          linout = linout, 
+                                          weights = trweights,
+                                          censored = censored, 
+                                          skip = skip, 
+                                          rang = rang, 
+                                          MaxNWts = 10000)
                            nn.pred <- predict(nn.fit, newdata = x.test, 
                                               type = 'raw')
                            y.pred <- as.numeric((apply(nn.pred, 1, 
@@ -80,11 +85,11 @@ kcv.nn <-
                }
     } else {
       for (gg in 1:nfolds) {
-         x.train <- as.matrix(x[which(foldid != gg),])
+         x.train <- as.matrix(x[which(foldid != gg), ])
          y.train <- y[which(foldid != gg)]
-         x.test <- as.matrix(x[which(foldid == gg),])
+         x.test <- as.matrix(x[which(foldid == gg), ])
          y.test <- as.numeric(y[which(foldid == gg)]) - 1
-         trweights <- as.matrix(weights[which(foldid != gg),])
+         trweights <- as.matrix(weights[which(foldid != gg), ])
          data.ytrain <- data.frame(y.train)
          con.ytrain <- model.matrix(~y.train - 1, data.ytrain)
          stortune <- matrix(rep(0, grid.row), ncol = 1)

@@ -59,4 +59,5 @@ print.cpfa <-
         cat(paste0("  ", " Error = ", error, " (", time, ")"))
       }
    }
+   .Deprecated("print.tunecpfa")
 }

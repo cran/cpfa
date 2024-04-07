@@ -10,19 +10,19 @@ Calculates multiple performance measures for binary or multiclass classification
 cpm(x, y, level = NULL, fbeta = NULL, prior = NULL)
 }
 \arguments{
-  \item{x}{
+\item{x}{
   Known class labels of class numeric, factor, or integer. If factor, converted to class integer in the order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, levels become 0, 1, 2, etc.). 
 }
-  \item{y}{
+\item{y}{
   Predicted class labels of class numeric, factor, or integer. If factor, converted to class integer in the order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.).
 }
-  \item{level}{
+\item{level}{
   Optional argument specifying possible class labels. For cases when \code{x} or \code{y} do not contain all possible classes. Can be of class numeric, integer, or character. Must contain two elements for binary classification, and contain three or more elements for multiclass classification. If integer, integers should be ordered (e.g., binary with \code{c(0, 1)}; or three-class with \code{c(0, 1, 2)}). Note: if both \code{x} and \code{y} jointly contain only a single value (e.g., 1), must specify argument \code{level} in order to identify classification as binary or multiclass. 
 }
-  \item{fbeta}{
+\item{fbeta}{
   Optional numeric argument specifying beta value for F-score. Defaults to \code{fbeta = 1}, providing an F1-score (i.e., the balanced harmonic mean between precision and recall). Can be any real number.
 }
-  \item{prior}{
+\item{prior}{
   Optional numeric argument specifying weights for classes. Currently only implemented with multiclass problems. Defaults to \code{prior = c(rep(1/llev, llev))}, where \code{llev} is the number of classes, providing equal importance across classes.
   }
 }
@@ -62,43 +62,42 @@ FS = (1 + beta^2) * ((PPV * TPR) / (((beta^2)*PPV) + TPR)).
 All performance measures calculated are between 0 and 1, inclusive. For multiclass classification, macro-averaged values are provided for each performance measure. Note that 'beta' in FS represents the relative weight such that recall (TPR) is beta times more important than precision (PPV). See reference for more details.
 }
 \value{
-
 Returns list where first element is a full confusion matrix \code{cm} and where the second element is a data frame containing performance measures. Note that for multiclass classification, macro-averaged values are provided (i.e., each measure is calculated for each class, then averaged over all classes; the average is weighted by argument \code{prior} if provided). The second list element contains the following performance measures:
 
-  \item{cm}{
+\item{cm}{
   A confusion matrix with counts for each of the possible outcomes.
 }
-  \item{err}{
+\item{err}{
   Overall error (ERR). Also called fraction incorrect.
 }
-  \item{acc}{
+\item{acc}{
   Overall accuracy (ACC). Also called fraction correct.
 }
-  \item{tpr}{
+\item{tpr}{
   True positive rate (TPR). Also called recall, hit rate, or sensitivity.
 }
-  \item{fpr}{
+\item{fpr}{
   False positive rate (FPR). Also called fall-out.
 }
-  \item{tnr}{
+\item{tnr}{
   True negative rate (TNR). Also called specificity or selectivity.
 }
-  \item{fnr}{
+\item{fnr}{
   False negative rate (FNR). Also called miss rate.
 }
-  \item{ppv}{
+\item{ppv}{
   Positive predictive value (PPV). Also called precision.
 }
-  \item{npv}{
+\item{npv}{
   Negative predicted value (NPV).
 }
-  \item{fdr}{
+\item{fdr}{
   False discovery rate (FDR).
 }
-  \item{fom}{
+\item{fom}{
   False omission rate (FOR).
 }
-  \item{fs}{
+\item{fs}{
   F-score. Mean between TPR (recall) and PPV (precision) varying by importance 
 given to recall over precision (see Details section and argument \code{fbeta}). 
 }
@@ -148,31 +147,23 @@ X <- Xmat + Emat
 y <- factor(as.numeric(Xw[ , (nf + 1)] > ymean))
 
 # initialize
-alpha <- seq(0, 1, length = 2)
 gamma <- c(0, 0.01)
 cost <- c(1, 2)
-ntree <- c(100, 200)
-nodesize <- c(1, 2)
-size <- c(1, 2)
-decay <- c(0, 1)
-rda.alpha <- c(0.1, 0.6)
-delta <- c(0.1, 2)
-method <- c("PLR", "SVM", "RF", "NN", "RDA")
+method <- c("SVM")
 family <- "binomial"
-parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
-                   nodesize = nodesize, size = size, decay = decay, 
-                   rda.alpha = rda.alpha, delta = delta)
+parameters <- list(gamma = gamma, cost = cost)
 model <- "parafac"
 nfolds <- 3
+nstart <- 3
 
 # constrain first mode weights to be orthogonal
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
-tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = nf, 
-                         nfolds = nfolds, method = method, family = family, 
-                         parameters = parameters, parallel = FALSE, 
-                         const = const)
+tune.object <- tunecpfa(x = X, y = y, model = model, nfac = nf, 
+                        nfolds = nfolds, method = method, family = family, 
+                        parameters = parameters, parallel = FALSE, 
+                        const = const, nstart = nstart)
                          
 # create new data with Parafac structure and C weights related to response
 mydim.new <- c(10, 11, 20)

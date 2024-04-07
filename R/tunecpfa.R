@@ -1,6 +1,6 @@
-tune.cpfa <- 
+tunecpfa <- 
   function(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
-           method = c("PLR", "SVM", "RF", "NN", "RDA"), 
+           method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"),
            family = c("binomial", "multinomial"), parameters = list(), 
            foldid = NULL, prior = NULL, cmode = NULL, parallel = FALSE, 
            cl = NULL, verbose = TRUE, ...)
@@ -19,10 +19,15 @@ tune.cpfa <-
       decay = NULL
       rda.alpha = NULL
       delta = NULL
+      eta = NULL 
+      max.depth = NULL
+      subsample = NULL
+      nrounds = NULL
     } else {
       names(parameters) <- tolower(names(parameters))
-      paranames <- c("alpha", "lambda", "cost", "gamma", "ntree", 
-                     "nodesize", "size", "decay", "rda.alpha", "delta")
+      paranames <- c("alpha", "lambda", "cost", "gamma", "ntree", "nodesize", 
+                     "size", "decay", "rda.alpha", "delta", "eta", "max.depth", 
+                     "subsample", "nrounds")
       paralogical <- paranames %in% names(parameters)
       if (sum(paralogical) == 0) {
         stop("Input 'parameters' was provided but does not contain any \n
@@ -35,7 +40,7 @@ tune.cpfa <-
              parameter names. Input 'parameters' cannot contain duplicates.")
       }
       logicalpara <- names(parameters) %in% paranames
-      if ((sum(logicalpara) < length(parameters)) & (sum(logicalpara) > 0)) {
+      if ((sum(logicalpara) < length(parameters)) && (sum(logicalpara) > 0)) {
         stop("Input 'parameters' was provided and contains some acceptable \n
              values. However, 'parameters' also contains one or more values \n
              that are not acceptable. Input 'parameters' must contain only \n 
@@ -171,7 +176,7 @@ tune.cpfa <-
     } else {
       stop("Input 'x' must be of class 'array' or 'list'.")
     }
-    if (!is.factor(y)) {
+    if (!(is.factor(y))) {
       stop("Input 'y' must be of class 'factor'.")
     }
     if (model == "parafac") {
@@ -196,8 +201,8 @@ tune.cpfa <-
     }
     nfac <- sort(nfac)
     lnfac <- length(nfac)
-    if (!is.numeric(nfac)) {
-      stop("Input 'nfac' must contain integer(s).")
+    if (!((is.numeric(nfac)) || (is.integer(nfac)))) {
+      stop("Input 'nfac' must be of class integer or numeric.")
     }
     if (!((is.integer(nfolds)) || (is.numeric(nfolds)))) {
       stop("Input 'nfolds' must be of class integer or numeric.")
@@ -217,13 +222,13 @@ tune.cpfa <-
         stop("Input 'foldid' must match number of levels in classification \n
              mode.")
       }
-      if (!is.integer(foldid)) {
+      if (!(is.integer(foldid))) {
         stop("Input 'foldid' must be of class integer.")
       }
       if (length(unique(foldid)) < 2L) {
         stop("Input 'foldid' must contain IDs for two or more folds.")
       }
-      if (!all(foldid == floor(foldid))) {
+      if (!(all(foldid == floor(foldid)))) {
         stop("Input 'foldid' must contain integers.")
       }
       if (length(unique(foldid)) != as.integer(nfolds)) {
@@ -231,14 +236,14 @@ tune.cpfa <-
              to nfolds.")
       }
     }
-    methods <- c("PLR", "SVM", "RF", "NN", "RDA")
-    checkmethod <- sum(toupper(method) %in% methods)
+    omethods <- c("PLR", "SVM", "RF", "NN", "RDA", "GBM") 
+    checkmethod <- sum(toupper(method) %in% omethods)
     if (checkmethod != length(method)) {
       stop("Input 'method' contains at least one value that is not valid.")
     }
-    method <- which(methods %in% toupper(method) == TRUE)
+    method <- which(omethods %in% toupper(method) == TRUE)
     if (length(method) == 0) {
-      method <- 1:5
+      method <- 1:6                                                            
     }
     if (!(is.logical(verbose))) {
       stop("Input 'verbose' must be of class logical.")
@@ -254,7 +259,7 @@ tune.cpfa <-
         stop("Input 'alpha' must contain real numbers 
                   between zero and one (inclusive).")
       }
-      if (!is.numeric(alpha)) {
+      if (!(is.numeric(alpha))) {
         stop("Input 'alpha' must be numeric.")
       }
       alpha <- sort(alpha)
@@ -267,7 +272,7 @@ tune.cpfa <-
         stop("Input 'gamma' must contain real numbers equal 
                   to or greater than zero.")
       }
-      if (!is.numeric(gamma)) {
+      if (!(is.numeric(gamma))) {
         stop("Input 'gamma' must be numeric.")
       }
       gamma <- sort(gamma)
@@ -277,7 +282,7 @@ tune.cpfa <-
       if (any(cost <= 0L)) {
         stop("Input 'cost' must be a real number greater than zero.")
       }
-      if (!is.numeric(cost)) {
+      if (!(is.numeric(cost))) {
         stop("Input 'cost' must be numeric.")
       }
       cost <- sort(cost)
@@ -290,10 +295,10 @@ tune.cpfa <-
       if (any(ntree < 1L)) {
         stop("Input 'ntree' must be greater than or equal to one.")
       }
-      if (!all(ntree == floor(ntree))) {
+      if (!(all(ntree == floor(ntree)))) {
         stop("Input 'ntree' must contain only integers.")
       }
-      if (!is.numeric(ntree)) {
+      if (!(is.numeric(ntree))) {
         stop("Input 'ntree' must be numeric.")
       }
       ntree <- sort(ntree)
@@ -303,10 +308,10 @@ tune.cpfa <-
       if (any(nodesize < 1L)) {
         stop("Input 'nodesize' must be greater than or equal to one.") 
       }
-      if (!all(nodesize == floor(nodesize))) {
+      if (!(all(nodesize == floor(nodesize)))) {
         stop("Input 'nodesize' must be integer.")
       }
-      if (!is.numeric(nodesize)) {
+      if (!(is.numeric(nodesize))) {
         stop("Input 'nodesize' must be numeric.")
       }
       nodesize <- sort(nodesize)
@@ -314,22 +319,22 @@ tune.cpfa <-
     }
     if ('4' %in% method) {
       if (is.null(size)) {
-        size = c(1, 2, 4, 8, 16, 32, 64)
+        size <- c(1, 2, 4, 8, 16, 32, 64)
       } 
       if (any(size < 0L)) {
         stop("Input 'size' must be greater than or equal to zero.")
       }
-      if (!all(size == floor(size))) {
+      if (!(all(size == floor(size)))) {
         stop("Input 'size' must contain only integers.")
       }
-      if (!is.numeric(size)) {
+      if (!(is.numeric(size))) {
         stop("Input 'size' must be numeric.")
       }
       size <- sort(size)
       if (is.null(decay)) {
-        decay = c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16)
+        decay <- c(0.001, 0.01, 0.1, 1, 2, 4, 8, 16)
       }
-      if (!is.numeric(decay)) {
+      if (!(is.numeric(decay))) {
         stop("Input 'decay' must be numeric.")
       }
       decay <- sort(decay)
@@ -337,28 +342,77 @@ tune.cpfa <-
     }
     if ('5' %in% method) {
       if (is.null(rda.alpha)) {
-        rda.alpha = seq(0, 0.999, length = 6)
+        rda.alpha <- seq(0, 0.999, length = 6)
       }
-      if (any(rda.alpha < 0L) | any(rda.alpha >= 1L)) {
+      if (any(rda.alpha < 0L) || any(rda.alpha >= 1L)) {
         stop("Input 'rda.alpha' must contain real numbers equal \n
              to or greater than zero, and less than one.")
       }
-      if (!is.numeric(rda.alpha)) {
+      if (!(is.numeric(rda.alpha))) {
         stop("Input 'rda.alpha' must be numeric.")
       }
       rda.alpha <- sort(rda.alpha)
       if (is.null(delta)) {
-        delta = c(0, 0.1, 1, 2, 3, 4)
+        delta <- c(0, 0.1, 1, 2, 3, 4)
       }
       if (any(delta < 0L)) {
         stop("Input 'delta' must be a real number greater than or equal \n 
              to zero.")
       }
-      if (!is.numeric(delta)) {
+      if (!(is.numeric(delta))) {
         stop("Input 'delta' must be numeric.")
       }
       delta <- sort(delta)
       rda.grid <- expand.grid(rda.alpha, delta)
+    }      
+    if ('6' %in% method) {
+      if (is.null(eta)) {
+        eta <- c(0.1, 0.3, 0.5, 0.7, 0.9)
+      }
+      if (any(eta <= 0L) || any(eta >= 1L)) {
+        stop("Input 'eta' must contain real numbers greater than zero and \n 
+             less than one.")
+      }
+      if (!(is.numeric(eta))) {
+        stop("Input 'eta' must be numeric.")
+      }
+      eta <- sort(eta)
+      if (is.null(max.depth)) {
+        max.depth <- c(1, 2, 3, 4)
+      } 
+      if (any(max.depth < 1L)) {
+        stop("Input 'max.depth' must be greater than or equal to one.")
+      }
+      if (!(all(max.depth == floor(max.depth)))) {
+        stop("Input 'max.depth' must contain only integers.")
+      }
+      if (!(is.numeric(max.depth))) {
+        stop("Input 'max.depth' must be numeric.")
+      }
+      max.depth <- sort(max.depth)
+      if (is.null(subsample)) {
+        subsample <- c(0.6, 0.7, 0.8, 0.9)
+      }
+      if (any(subsample <= 0L) || any(subsample > 1L)) {
+        stop("Input 'subsample' must be greater than zero and less than or \n
+             equal to one.")
+      }
+      if (!(is.numeric(subsample))) {
+        stop("Input 'subsample' must be numeric.")
+      }
+      if (is.null(nrounds)) {
+        nrounds <- c(100, 200, 300, 500)
+      } 
+      if (any(nrounds < 1L)) {
+        stop("Input 'nrounds' must be greater than or equal to one.")
+      }
+      if (!(all(nrounds == floor(nrounds)))) {
+        stop("Input 'nrounds' must contain only integers.")
+      }
+      if (!(is.numeric(nrounds))) {
+        stop("Input 'nrounds' must be numeric.")
+      }
+      gbm.grid <- expand.grid(eta, max.depth, subsample, nrounds)
     }
     families <- c("binomial", "multinomial")
     family <- pmatch(tolower(family), families)
@@ -384,11 +438,22 @@ tune.cpfa <-
     } else if (lfam == 1L && family == 2L) {
       family <- "multinomial"
     }
-    if (!is.null(prior)) {
-      if (sum(prior) != 1) {
+    if (is.null(prior)) {
+      frac <- table(y) / length(y)
+      prior <- as.numeric(frac)
+      if (family == "binomial") {
+        names(frac) <- c(0, 1)
+        weight <- as.numeric(frac[y])
+      }
+      if (family == "multinomial") {
+        names(frac) <- seq_along(levels(y)) - 1
+        weight <- as.numeric(frac[y])
+      }
+    } else {
+      if (!(abs(sum(prior) - 1) < .Machine$double.eps^0.5)) {
         stop("Values within input 'prior' must sum to one.")
       }
-      if (!is.numeric(prior)) {
+      if (!(is.numeric(prior))) {
         stop("Input 'prior' must be numeric.")
       }
       if (family == "binomial") {
@@ -401,7 +466,6 @@ tune.cpfa <-
           stop("Input 'prior' must contain three or more values for 
                family of 'multinomial'.")
       }
-      prior <- prior
       frac <- as.table(prior)                                                  
       if (family == "binomial") {
         names(frac) <- c(0, 1)
@@ -412,20 +476,8 @@ tune.cpfa <-
         weight <- as.numeric(frac[y])
       }
     }
-    if (is.null(prior)) {
-      frac <- table(y) / length(y)
-      prior <- as.numeric(frac)
-      if (family == "binomial") {
-        names(frac) <- c(0, 1)
-        weight <- as.numeric(frac[y])
-      }
-      if (family == "multinomial") {
-        names(frac) <- seq_along(levels(y)) - 1
-        weight <- as.numeric(frac[y])
-      }
-    }
     if ('1' %in% method) {
-      plr.weights <- as.numeric((table(y)[y] / length(y)))
+        plr.weights <- as.numeric((table(y)[y] / length(y)))
     }
     opt.model <- vector("list", lnfac)
     Aweights <- vector("list", lnfac)                                           
@@ -436,14 +488,13 @@ tune.cpfa <-
     opt.param <- NULL
     est.time <- NULL
     kcv.error <- NULL
-    clstop <- FALSE
     if (!(is.logical(parallel))) {
       stop("Input 'parallel' must be of class logical.")
     }
     if (length(parallel) != 1L) {
       stop("Input 'parallel' must be a single value.")
     }
-    if (parallel == TRUE) {
+    if (parallel) {
       if (is.null(cl)) {
         cl <- makeCluster(detectCores())
       }
@@ -451,7 +502,7 @@ tune.cpfa <-
         registerDoParallel(cl)
     }
     for (w in 1:lnfac) {
-       optmodel.new <- vector("list", 5)
+       optmodel.new <- vector("list", 6)                                        
        if (model == "parafac") {
          if (verbose == TRUE) {
            cat("nfac =", nfac[w], "method = parafac", fill = TRUE)
@@ -541,7 +592,7 @@ tune.cpfa <-
          time.svm <- toc[3] - tic[3]
          error.svm <- svm.results$error
          svm.id <- svm.results$svm.grid.id
-         svm.opt <- svm.grid[svm.id,]
+         svm.opt <- svm.grid[svm.id, ]
          optmodel.new[[2]] <- svm.fit <- svm.results$svm.fit
        } else {
          time.svm <- NA
@@ -561,7 +612,7 @@ tune.cpfa <-
          time.rf <- toc[3] - tic[3]
          error.rf <- rf.results$error
          rf.id <- rf.results$rf.grid.id
-         rf.opt <- rf.grid[rf.id,]
+         rf.opt <- rf.grid[rf.id, ]
          optmodel.new[[3]] <- rf.results$rf.fit
        } else {
          time.rf <- NA
@@ -581,7 +632,7 @@ tune.cpfa <-
          time.nn <- toc[3] - tic[3]
          error.nn <- nn.results$error
          nn.id <- nn.results$nn.grid.id
-         nn.opt <- nn.grid[nn.id,]
+         nn.opt <- nn.grid[nn.id, ]
          optmodel.new[[4]] <- nn.fit <- nn.results$nn.fit
        } else {
          time.nn <- NA
@@ -597,61 +648,86 @@ tune.cpfa <-
          tic <- proc.time()
          rda.results <- kcv.rda(x = train, y = as.numeric(y) - 1, 
                                 nfolds = nfolds, foldid = foldid, 
-                                rda.grid = rda.grid, prior = frac,
+                                rda.grid = rda.grid, prior = frac, 
                                 parallel = parallel)
          toc <- proc.time()
          time.rda <- toc[3] - tic[3]
          error.rda <- rda.results$error
          rda.id <- rda.results$rda.grid.id
-         rda.opt <- rda.grid[rda.id,]
-         optmodel.new[[5]] <- rda.fit <- rda.results$rda.fit
+         rda.opt <- rda.grid[rda.id, ]
+         optmodel.new[[5]] <- rda.fit <- rda.results$rda.fit                  
        } else {
          time.rda <- NA
          error.rda <- NA
          rda.opt <- data.frame(NA, NA)
          optmodel.new[[5]] <- NULL
        }
+       if ('6' %in% method) {
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "method = gbm", fill = TRUE)
+         }
+         tic <- proc.time()
+         gbm.results <- kcv.gbm(x = train, y = y, nfolds = nfolds, 
+                                foldid = foldid, family = family, 
+                                gbm.grid = gbm.grid, prior = frac, 
+                                parallel = parallel)
+         toc <- proc.time()
+         time.gbm <- toc[3] - tic[3]
+         error.gbm <- gbm.results$error
+         gbm.id <- gbm.results$gbm.grid.id
+         gbm.opt <- gbm.grid[gbm.id, ]
+         optmodel.new[[6]] <- gbm.fit <- gbm.results$gbm.fit                  
+       } else {
+         time.gbm <- NA
+         error.gbm <- NA
+         gbm.opt <- data.frame(NA, NA, NA, NA)
+         optmodel.new[[6]] <- NULL
+       } 
        opt.model[[w]] <- optmodel.new
        optparam.new <- data.frame(nfac = nfac[w], alpha = plr.opt,
-                                  lambda = lambda.min, gamma = svm.opt[1,1], 
-                                  cost = svm.opt[1,2], ntree = rf.opt[1,1], 
-                                  nodesize = rf.opt[1,2], size = nn.opt[1,1], 
-                                  decay = nn.opt[1,2], rda.alpha = rda.opt[1,1], 
-                                  delta = rda.opt[1,2])
+                                  lambda = lambda.min, gamma = svm.opt[1, 1], 
+                                  cost = svm.opt[1, 2], ntree = rf.opt[1, 1], 
+                                  nodesize = rf.opt[1, 2], size = nn.opt[1, 1], 
+                                  decay = nn.opt[1, 2], 
+                                  rda.alpha = rda.opt[1, 1], 
+                                  delta = rda.opt[1, 2], eta = gbm.opt[1, 1],
+                                  max.depth = gbm.opt[1, 2], 
+                                  subsample = gbm.opt[1, 3], 
+                                  nrounds = gbm.opt[1, 4])
        esttime.new <- data.frame(nfac = nfac[w], time.pfac = time.pfac,
                                  time.plr = time.plr, time.svm = time.svm,
                                  time.rf = time.rf, time.nn = time.nn,
-                                 time.rda = time.rda)
+                                 time.rda = time.rda, time.gbm)
        kcv.error.new <- data.frame(nfac = nfac[w], error.plr = error.plr,
                                    error.svm = error.svm, error.rf = error.rf,
-                                   error.nn = error.nn, error.rda = error.rda)
+                                   error.nn = error.nn, error.rda = error.rda,
+                                   error.gbm)
        opt.param <- rbind(opt.param, optparam.new)
        est.time <- rbind(est.time, esttime.new)
        kcv.error <- rbind(kcv.error, kcv.error.new)
-    } 
+    }                                                                      
     if (parallel == TRUE) {
       stopCluster(cl)
     }
     levels(y) <- names(frac)
     if (lxdim == 3L) {
-      cpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
-                       kcv.error = kcv.error, est.time = est.time, 
-                       model = model, method = method, x = x, y = y, 
-                       Aweights = Aweights, Bweights = Bweights, 
-                       Cweights = NULL, Phi = Phi, const = const,
-                       cmode = cmode, family = family, xdim = xdim, 
-                       lxdim = lxdim, train.weights = train.weights)
+      tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
+                        kcv.error = kcv.error, est.time = est.time, 
+                        model = model, method = method, x = x, y = y, 
+                        Aweights = Aweights, Bweights = Bweights, 
+                        Cweights = NULL, Phi = Phi, const = const,
+                        cmode = cmode, family = family, xdim = xdim, 
+                        lxdim = lxdim, train.weights = train.weights)
     }
     if (lxdim == 4L) {
-      cpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
-                       kcv.error = kcv.error, est.time = est.time, 
-                       model = model, method = method, x = x, y = y, 
-                       Aweights = Aweights, Bweights = Bweights, 
-                       Cweights = Cweights, Phi = Phi, const = const, 
-                       cmode = cmode, family = family, xdim = xdim, 
-                       lxdim = lxdim, train.weights = train.weights)
+      tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
+                        kcv.error = kcv.error, est.time = est.time, 
+                        model = model, method = method, x = x, y = y, 
+                        Aweights = Aweights, Bweights = Bweights, 
+                        Cweights = Cweights, Phi = Phi, const = const, 
+                        cmode = cmode, family = family, xdim = xdim, 
+                        lxdim = lxdim, train.weights = train.weights)
     }
-    class(cpfalist) <- "cpfa"
-    .Deprecated("tunecpfa")
-    return(cpfalist)
+    class(tcpfalist) <- "tunecpfa"
+    return(tcpfalist)
 }

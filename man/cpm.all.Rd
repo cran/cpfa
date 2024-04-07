@@ -4,19 +4,19 @@
 Wrapper for Calculating Classification Performance Measures
 }
 \description{
-Applies function \code{cpm} to multiple sets of class labels. Each set of class labels is evaluated against the same set of predicted labels. Works with output from function \code{predict.cpfa} and calculates classification performance measures for multiple classifiers or numbers of components.
+Applies function \code{cpm} to multiple sets of class labels. Each set of class labels is evaluated against the same set of predicted labels. Works with output from function \code{predict.tunecpfa} and calculates classification performance measures for multiple classifiers or numbers of components.
 }
 \usage{
 cpm.all(x, y,  ...)
 }
 \arguments{
-  \item{x}{
+\item{x}{
   A data frame where each column contains a set of known class labels of class numeric, factor, or integer. If a set is of class factor, that set is converted to class integer in the order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, levels become 0, 1, 2, etc.). 
 }
-  \item{y}{
+\item{y}{
   Predicted class labels of class numeric, factor, or integer. If factor, converted to class integer in order of factor levels with integers beginning at 0 (i.e., for binary classification, factor levels become 0 and 1; for multiclass, 0, 1, 2, etc.).
 }
- \item{...}{
+\item{...}{
   Additional arguments to be passed to function \code{cpm} for calculating classification performance measures.
 }
 }
@@ -25,10 +25,10 @@ Wrapper function that applies function \code{cpm} to multiple sets of class labe
 }
 \value{
 Returns a list with the following two elements: 
-  \item{cm.list}{
+\item{cm.list}{
   A list of confusion matrices, denoted \code{cm}, where each confusion matrix is associated with one comparison.
 }
-  \item{cpms}{
+\item{cpms}{
   A data frame containing classification performance measures where each row contains measures for one comparison.
 }
 }
@@ -79,28 +79,21 @@ y <- factor(as.numeric(Xw[ , (nf + 1)] > ymean))
 alpha <- seq(0, 1, length = 2)
 gamma <- c(0, 0.01)
 cost <- c(1, 2)
-ntree <- c(100, 200)
-nodesize <- c(1, 2)
-size <- c(1, 2)
-decay <- c(0, 1)
-rda.alpha <- c(0.1, 0.6)
-delta <- c(0.1, 2)
-method <- c("PLR", "SVM", "RF", "NN", "RDA")
+method <- c("PLR", "SVM")
 family <- "binomial"
-parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
-                   nodesize = nodesize, size = size, decay = decay, 
-                   rda.alpha = rda.alpha, delta = delta)
+parameters <- list(alpha = alpha, gamma = gamma, cost = cost)
 model <- "parafac"
 nfolds <- 3
+nstart <- 3
 
 # constrain first mode weights to be orthogonal
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
-tune.object <- tune.cpfa(x = X, y = y, model = model, nfac = nf, 
-                         nfolds = nfolds, method = method, family = family, 
-                         parameters = parameters, parallel = FALSE, 
-                         const = const)
+tune.object <- tunecpfa(x = X, y = y, model = model, nfac = nf, 
+                        nfolds = nfolds, method = method, family = family, 
+                        parameters = parameters, parallel = FALSE, 
+                        const = const, nstart = nstart)
                          
 # create new data with Parafac structure and C weights related to response
 mydim.new <- c(10, 11, 20)
