@@ -10,8 +10,6 @@ import(doParallel)
 
 S3method(print, tunecpfa)
 S3method(predict, tunecpfa)
-S3method(print, cpfa)
-S3method(predict, cpfa)
 
 importFrom("stats", "na.omit", "predict")
 importFrom("graphics", "boxplot")

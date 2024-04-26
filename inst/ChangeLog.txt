@@ -1,3 +1,11 @@
+Changes: version 1.1-4  (2024-04-26)
+
+1.) Removed three deprecated functions
+	- Previously functions 'tune.cpfa', 'predict.cpfa', and 'print.cpfa' remained   
+	- Now all three functions have been removed
+
+----------------
+
 Changes: version 1.1-3  (2024-04-07)
 
 1.) Modified names of three functions (old functions remain available until next update)

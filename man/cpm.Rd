@@ -33,7 +33,7 @@ Multiple evaluation measures are calculated using these four outcomes. Measures 
 
 In multiclass classification, the four outcomes are possible for each individual class in macro-averaging, and performance measures are averaged over classes. Macro-averaging gives equal importance to all classes. For multiclass classification, calculated measures are currently only macro-averaged. See the listed reference in this help file for additional details on micro-averaging.
 
-Note that, for binary classification, this function assumes a negative class and a positive class (i.e., it contains a reference group) and is ordered. Multiclass classification is currently assumed to be unordered. 
+For binary classification, this function assumes a negative class and a positive class (i.e., it contains a reference group) and is ordered. Multiclass classification is currently assumed to be unordered. 
 
 Computational details:
 
@@ -62,7 +62,7 @@ FS = (1 + beta^2) * ((PPV * TPR) / (((beta^2)*PPV) + TPR)).
 All performance measures calculated are between 0 and 1, inclusive. For multiclass classification, macro-averaged values are provided for each performance measure. Note that 'beta' in FS represents the relative weight such that recall (TPR) is beta times more important than precision (PPV). See reference for more details.
 }
 \value{
-Returns list where first element is a full confusion matrix \code{cm} and where the second element is a data frame containing performance measures. Note that for multiclass classification, macro-averaged values are provided (i.e., each measure is calculated for each class, then averaged over all classes; the average is weighted by argument \code{prior} if provided). The second list element contains the following performance measures:
+Returns list where first element is a full confusion matrix \code{cm} and where the second element is a data frame containing performance measures. For multiclass classification, macro-averaged values are provided (i.e., each measure is calculated for each class, then averaged over all classes; the average is weighted by argument \code{prior} if provided). The second list element contains the following performance measures:
 
 \item{cm}{
   A confusion matrix with counts for each of the possible outcomes.

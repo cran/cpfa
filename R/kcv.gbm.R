@@ -137,8 +137,7 @@ kcv.gbm <-
             } else {
               gbm.pred <- t(matrix(predict(gbm.fit, xgtest), 
                                    nrow = num_classes))
-              gbm.class <- as.numeric((apply(gbm.pred, 1, 
-                                             which.max))) - 1
+              gbm.class <- as.numeric((apply(gbm.pred, 1, which.max))) - 1
             }
             stortune[yy, 1] <- 1 - mean(gbm.class == y.test) 
          }
@@ -160,6 +159,6 @@ kcv.gbm <-
     xgdata <- xgb.DMatrix(data = x, label = y, weight = weights)
     gbm.fit.best <- xgboost(params = params, data = xgdata,
                             nrounds = gbm.grid[minid, 4], verbose = 0)
-    return(list(gbm.grid.id = minid, gbm.fit = gbm.fit.best,
+    return(list(gbm.grid.id = minid, gbm.fit = gbm.fit.best, 
                 error = gbm.mean[minid]))
 }
