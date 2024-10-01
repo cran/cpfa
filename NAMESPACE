@@ -13,6 +13,7 @@ S3method(predict, tunecpfa)
 
 importFrom("stats", "na.omit", "predict")
 importFrom("graphics", "boxplot")
+importFrom("graphics", "box", "text")
 importFrom("stats", "formula")
 importFrom("parallel", "makeCluster", "detectCores", "clusterEvalQ", "stopCluster")
 importFrom(doParallel, registerDoParallel)

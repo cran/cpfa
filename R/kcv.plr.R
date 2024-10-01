@@ -4,9 +4,7 @@ kcv.plr <-
            weights = NULL, standardize = FALSE, grouped = TRUE, keep = FALSE, 
            parallel = FALSE, maxit = 1e+06) 
 {
-    if (!is.factor(y)) {
-      y <- factor(y)
-    } 
+    if (!is.factor(y)) {y <- factor(y)} 
     if (length(unique(y)) == 1L) {
       stop("Input 'y' must contain some variation (i.e., cannot contain \n
            only a single type of label).")
@@ -48,9 +46,7 @@ kcv.plr <-
     }
     lalpha <- length(alpha)
     cvlist <- vector("list", lalpha)
-    if (ncol(x) == 1) {
-      x <- cbind(0, x)
-    }
+    if (ncol(x) == 1) {x <- cbind(0, x)}
     if (nfolds == 2) {
       if (is.null(weights)) {
         weights <- as.numeric((table(y)[y] / length(y)))
@@ -66,13 +62,13 @@ kcv.plr <-
       stor.minlam <- rep(NA, lalpha)
       for (h in 1:lalpha) {
          v.alpha <- alpha[h]
-         x1 <- x[foldid == 1,]
-         x2 <- x[foldid == 2,]
+         x1 <- x[foldid == 1, ]
+         x2 <- x[foldid == 2, ]
          y1 <- y[foldid == 1]
          y2 <- y[foldid == 2]
          fweight <- cbind(foldid, weights)
-         weight1 <- fweight[which(fweight[,1] == 1), 2]
-         weight2 <- fweight[which(fweight[,1] == 2), 2]
+         weight1 <- fweight[which(fweight[, 1] == 1), 2]
+         weight2 <- fweight[which(fweight[, 1] == 2), 2]
          fit0 <- glmnet(x, y, family = family, weights = weights, 
                         alpha = v.alpha)
          if (is.null(lambda)) {
@@ -92,14 +88,14 @@ kcv.plr <-
          cvm <- rep(NA, nlam)
          for (i in 1:nlam) {
             if (family == "binomial") {
-              class1 <- as.numeric(pred1[,i] > threshold)
-              class2 <- as.numeric(pred2[,i] > threshold)
+              class1 <- as.numeric(pred1[, i] > threshold)
+              class2 <- as.numeric(pred2[, i] > threshold)
               precvm <- ((1 - mean(class1 == y1)) + (1 - mean(class2 == y2)))
               cvm[i] <- precvm / 2
             }
             if (family == "multinomial") {
-              class1 <- as.numeric((apply(pred1[,,i], 1, which.max))) - 1
-              class2 <- as.numeric((apply(pred2[,,i], 1, which.max))) - 1
+              class1 <- as.numeric((apply(pred1[, , i], 1, which.max))) - 1
+              class2 <- as.numeric((apply(pred2[, , i], 1, which.max))) - 1
               precvm <- ((1 - mean(class1 == y1)) + (1 - mean(class2 == y2)))
               cvm[i] <- precvm / 2
             }
@@ -130,6 +126,6 @@ kcv.plr <-
                   error = mincv[minid], lambda.min = minlam))
     } else {
       return(list(alpha.id = minid, plr.fit = cvlist[[minid]],
-             error = mincv[minid]))
+                  error = mincv[minid]))
     }
 }

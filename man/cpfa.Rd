@@ -151,7 +151,7 @@ For all six methods, k-fold cross-validation is implemented to tune classificati
     Number of components used to fit each Parafac or Parafac2 model.
   }
   \item{model}{
-  Character designating the Parafac model that was used, either \code{model = "parafac"} for the Parafac model or \code{model = "parafac2"} for the Parafac2 model.
+    Character designating the Parafac model that was used, either \code{model = "parafac"} for the Parafac model or \code{model = "parafac2"} for the Parafac2 model.
   }
   \item{method}{
     Classification methods used.
@@ -159,6 +159,9 @@ For all six methods, k-fold cross-validation is implemented to tune classificati
   \item{const}{
     Constraints used in fitting Parafac or Parafac2 models.
   }
+  \item{cmode}{
+    Integer value used to specify the mode whose component weights were predictors for classification. 
+}
 }
 \note{
 If argument \code{cmode} is not null, input array \code{x} is reshaped with function \code{aperm} such that the \code{cmode} dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a four-way array) weights that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if \code{x} is a four-way array and \code{cmode = 2}, the original input modes 1, 2, 3, and 4 will correspond to output modes 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 (i.e., the second mode specified by \code{cmode} has been moved to the D mode/last mode). For \code{model = "parafac2"}, classification mode is assumed to be the last mode (i.e., mode C for three-way array and mode D for four-way array). 

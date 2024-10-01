@@ -3,9 +3,7 @@ kcv.gbm <-
            family = c("binomial", "multinomial"), min_child_weight = 1,
            colsample_bytree = 1, booster = "gbtree", parallel = FALSE) 
 {
-    if (!is.factor(y)) {
-      y <- factor(y)
-    }
+    if (!is.factor(y)) {y <- factor(y)}
     if (length(unique(y)) == 1L) {
       stop("Input 'y' must contain some variation (i.e., cannot contain \n
            only a single type of label).")
@@ -28,12 +26,8 @@ kcv.gbm <-
              number of observations cannot be less than 'nfolds'.")
       }
     }
-    if (family == "binomial") {
-      objective <- "binary:logistic"
-    }
-    if (family == "multinomial") {
-      objective <- "multi:softprob"
-    }
+    if (family == "binomial") {objective <- "binary:logistic"}
+    if (family == "multinomial") {objective <- "multi:softprob"}
     if (is.null(parallel)) {
       parallel <- FALSE
     } else {
@@ -126,9 +120,7 @@ kcv.gbm <-
                            min_child_weight = min_child_weight,
                            subsample = gbm.grid[yy, 3],
                            colsample_bytree = colsample_bytree)
-            if (family == "multinomial") {
-              params$num_class <- num_classes
-            }
+            if (family == "multinomial") {params$num_class <- num_classes}
             gbm.fit <- xgboost(params = params, data = xgtrain,
                                nrounds = gbm.grid[yy, 4], verbose = 0)
             if (family == "binomial") {
@@ -153,9 +145,7 @@ kcv.gbm <-
                    min_child_weight = min_child_weight,
                    subsample = gbm.grid[minid, 3],
                    colsample_bytree = colsample_bytree)
-    if (family == "multinomial") {
-      params$num_class <- num_classes
-    }
+    if (family == "multinomial") {params$num_class <- num_classes}
     xgdata <- xgb.DMatrix(data = x, label = y, weight = weights)
     gbm.fit.best <- xgboost(params = params, data = xgdata,
                             nrounds = gbm.grid[minid, 4], verbose = 0)

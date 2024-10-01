@@ -4,9 +4,7 @@ kcv.rf <-
            localImp = FALSE, nPerm = 1, norm.votes = TRUE, do.trace = FALSE, 
            corr.bias = FALSE, keep.inbag = FALSE, parallel = FALSE) 
 {
-    if (!is.factor(y)) {
-      y <- factor(y)
-    }
+    if (!is.factor(y)) {y <- factor(y)}
     if (length(unique(y)) == 1L) {
       stop("Input 'y' must contain some variation (i.e., cannot contain \n
            only a single type of label).")
@@ -20,9 +18,7 @@ kcv.rf <-
       if (length(unique(nfolds)) != 1L) {
         stop("Input 'nfolds' must contain only a single value.")
       }
-      if ((nfolds %% 1) != 0) {
-        stop("Input 'nfolds' must be an integer.")
-      }
+      if ((nfolds %% 1) != 0) {stop("Input 'nfolds' must be an integer.")}
       if ((nfolds < 2) | (nfolds > length(y))) {
         stop("Input 'nfolds' must be an integer between 2 and the \n
              number of observations, inclusive. Alternatively, the \n

@@ -3,9 +3,7 @@ kcv.rda <-
            regularization = "S", genelist = FALSE, trace = FALSE, 
            parallel = FALSE) 
 {
-    if (!is.factor(y)) {
-      y <- factor(y)
-    }
+    if (!is.factor(y)) {y <- factor(y)}
     if (length(unique(y)) == 1L) {
       stop("Input 'y' must contain some variation (i.e., cannot contain \n
            only a single type of label).")
@@ -19,9 +17,7 @@ kcv.rda <-
       if (length(unique(nfolds)) != 1L) {
         stop("Input 'nfolds' must contain only a single value.")
       }
-      if ((nfolds %% 1) != 0) {
-        stop("Input 'nfolds' must be an integer.")
-      }
+      if ((nfolds %% 1) != 0) {stop("Input 'nfolds' must be an integer.")}
       if ((nfolds < 2) | (nfolds > length(y))) {
         stop("Input 'nfolds' must be an integer between 2 and the \n
              number of observations, inclusive. Alternatively, the \n
@@ -45,9 +41,7 @@ kcv.rda <-
       stop("Input 'foldid' must contain the number of unique values equal to \n
            input 'nfolds'.")
     }
-    if (is.null(prior)) {
-      prior <- table(y) / length(y)
-    }
+    if (is.null(prior)) {prior <- table(y) / length(y)}
     grid.row <- nrow(rda.grid)
     cv.rda <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
     if (parallel == TRUE) {
@@ -102,6 +96,6 @@ kcv.rda <-
                         alpha = rda.grid[minid, 1], delta = rda.grid[minid, 2],
                         regularization = regularization, genelist = genelist, 
                         trace = trace)
-    return(list(rda.grid.id = minid, rda.fit = rda.fit.best,
+    return(list(rda.grid.id = minid, rda.fit = rda.fit.best, 
                 error = rda.mean[minid]))
 }

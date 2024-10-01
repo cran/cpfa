@@ -24,12 +24,10 @@ cpfa <-
       if (any(is.nan(x)) || any(is.infinite(x))) {
         stop("Input 'x' cannot contain NaN or Inf values.")
       }
-      if (any(is.na(x))) {
-        stop("Input 'x' cannot contain missing values.")
-      }
+      if (any(is.na(x))) {stop("Input 'x' cannot contain missing values.")}
       if (!(is.null(cmode))) {
         if (!(cmode %in% (1:lxdim))) {
-          stop("Input 'cmode' must be 1, 2, or 3 \n 
+          stop("Input 'cmode' must be 1, 2, or 3 \n
                (or 4 if 'x' is a 4-way array).")
         }
         modeval <- 1:lxdim
@@ -47,9 +45,7 @@ cpfa <-
       if (any(is.nan(x)) || any(is.infinite(x))) {
         stop("Input 'x' cannot contain NaN or Inf values.")
       }
-      if (any(is.na(x))) {
-        stop("Input 'x' cannot contain missing values.")
-      }
+      if (any(is.na(x))) {stop("Input 'x' cannot contain missing values.")}
       if (!is.null(cmode)) {
         cmode <- lxdim
         warning("Input 'cmode' is ignored when 'model = parafac2'. Last mode \n
@@ -88,10 +84,10 @@ cpfa <-
       if (any(as.logical(lapply(x, function(a){return(any(is.nan(a)))})))) {
         stop("Input 'x' cannot contain NaN values")
       }
-      if (any(as.logical(lapply(x,function(a){return(any(is.infinite(a)))})))) {
+      if (any(as.logical(lapply(x, function(a){return(any(is.infinite(a)))})))){
         stop("Input 'x' cannot contain Inf values")
       }
-      if (any(as.logical(lapply(x,function(a){return(any(is.na(a)))})))) {
+      if (any(as.logical(lapply(x, function(a){return(any(is.na(a)))})))) {
         stop("Input 'x' cannot contain missing values")
       }
       if (lxdim == 3L) {
@@ -122,9 +118,7 @@ cpfa <-
     } else {
       stop("Input 'x' must be of class 'array' or 'list'.")
     }
-    if (!is.factor(y)) {
-      stop("Input 'y' must be of class 'factor'.")
-    }
+    if (!is.factor(y)) {stop("Input 'y' must be of class 'factor'.")}
     if (!(length(y) == xdim[cmode])) {
       stop("Length of 'y' must match number of levels in \n 
            classification mode/dimension of 'x'.")
@@ -132,9 +126,7 @@ cpfa <-
     if ((!(ceiling(nrep) == nrep)) || (nrep < 1) || (length(ratio) != 1L)) {
       stop("Input 'nrep' must be a single integer greater than 0.")
     }
-    if (!(is.numeric(ratio))) {
-      stop("Input 'ratio' must be of class numeric.")
-    }
+    if (!(is.numeric(ratio))) {stop("Input 'ratio' must be of class numeric.")}
     if ((ratio > 1) || (ratio < 0) || (length(ratio) != 1L)) {
       stop("Input 'ratio' must be a number between 0 and 1, inclusive.")
     }
@@ -199,30 +191,23 @@ cpfa <-
       } 
     }
     stor <- array(0, dim = c(length(nfac) * length(method), 11, nrep))
-    predstor <- vector(mode = "list", length = nrep)
-    Aw <- vector(mode = "list", length = nrep)
-    Bw <- vector(mode = "list", length = nrep)
-    Cw <- vector(mode = "list", length = nrep)
-    Pw <- vector(mode = "list", length = nrep)
-    opara <- vector(mode = "list", length = nrep)
-    if (cmode <- lxdim) {
-      cmode <- NULL
-    }
+    predstor <- Aw <- Bw <- Cw <- Pw <- vector(mode = "list", length = nrep)
+    opara <- predstor
+    cmode0 <- cmode
+    if (cmode <- lxdim) {cmode <- NULL}
     for (i in 1:nrep) {
-       if (verbose == TRUE) {
-         cat("nrep =", i, " \n")
-       }
+       if (verbose == TRUE) {cat("nrep =", i, " \n")}
        set.seed(seed = seeds[i])
        train.id <- sample.int(nobs, size = ntrain)
        y.train <- y[train.id]
        y.test <- as.numeric(y[-train.id]) - 1 
        if (model == "parafac") {
          if (lxdim == 3L) { 
-           X.train <- x[,,train.id]                                               
-           X.test <- x[,,-train.id]
+           X.train <- x[, , train.id]                                               
+           X.test <- x[, , -train.id]
          } else {
-           X.train <- x[,,,train.id]
-           X.test <- x[,,, -train.id]
+           X.train <- x[, , , train.id]
+           X.test <- x[, , , -train.id]
          }
        } else {
          X.train <- x[train.id]
@@ -243,9 +228,7 @@ cpfa <-
        stor[ , , i] <- as.matrix(out$cpms)
        predstor[[i]] <- predict(object = tcpfalist, newdata = X.test, 
                                 type = "classify.weights")
-       if ((plot.out) && (i = 1)) {
-         plot.mind <- tcpfalist$method
-       }
+       if ((plot.out) && (i = 1)) {plot.mind <- tcpfalist$method}
     }
     mconst <- tcpfalist$const
     rnam <- rownames(out$cpms)
@@ -288,7 +271,8 @@ cpfa <-
       cpfalist <- list(measure = stor, predweights = predstor,
                        train.weights = train.weights, opt.tune = opara,
                        mean.opt.tune = mean.tune.param, X = x, nfac = nfac,
-                       model = model, method = method, const = mconst)
+                       model = model, method = method, const = mconst, 
+                       cmode = cmode0)
       class(cpfalist) <- "wrapcpfa"
       return(cpfalist)                                                              
     } else {
@@ -305,7 +289,8 @@ cpfa <-
       cpfalist <- list(descriptive = output, predweights = predstor,
                        train.weights = train.weights, opt.tune = opara,
                        mean.opt.tune = mean.tune.param, X = x, nfac = nfac,
-                       model = model, method = method, const = mconst)
+                       model = model, method = method, const = mconst, 
+                       cmode = cmode0)
       class(cpfalist) <- "wrapcpfa"
       return(cpfalist)
     }

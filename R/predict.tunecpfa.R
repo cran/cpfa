@@ -10,9 +10,7 @@ predict.tunecpfa <-
     xold.dim <- object$xdim
     cmode <- object$cmode
     oyold <- object$y
-    if (is.null(newdata)) {
-      newdata <- object$x
-    }
+    if (is.null(newdata)) {newdata <- object$x}
     if (is.array(newdata) && (model == "parafac")) {
       xdim <- dim(newdata)                                                            
       lxdim <- length(xdim)
@@ -78,8 +76,8 @@ predict.tunecpfa <-
         xdim[2] <- xdim1[2]
         xdim[3] <- length(newdata)
         if (any(unlist(lapply(newdata, ncol)) != xdim[2])) {
-          stop("Input 'newdata' must be list of matrices with same \n 
-                  number of columns.")
+          stop("Input 'newdata' must be list of matrices with same number \n
+               of columns.")
         }
       } else {
         xdim <- rep(NA, 4)
@@ -104,28 +102,28 @@ predict.tunecpfa <-
     }
     if (model == "parafac") {
       if (xdim[1] != xold.dim[1]) {
-        stop("Number of levels for A mode of input 'newdata' must 
-            match number of levels for A mode used in 'object'.")
+        stop("Number of levels for A mode of input 'newdata' must match \n
+             number of levels for A mode used in 'object'.")
       }
       if (xdim[2] != xold.dim[2]) {
-        stop("Number of levels for B mode of input 'newdata' must 
-           match number of levels for B mode used in 'object'.")
+        stop("Number of levels for B mode of input 'newdata' must match \n
+             number of levels for B mode used in 'object'.")
       }
       if (lxdim == 4L) {
         if (xdim[3] != xold.dim[3]) {
-          stop("Number of levels for C mode of input 'newdata' must 
-             match number of levels for C mode used in 'object'.")
+          stop("Number of levels for C mode of input 'newdata' must match \n 
+               number of levels for C mode used in 'object'.")
         }
       }
     } else {
       if (xdim[2] != xold.dim[2]) {
-        stop("Number of levels for B mode of input 'newdata' must 
-           match number of levels for B mode used in 'object'.")
+        stop("Number of levels for B mode of input 'newdata' must match \n 
+             number of levels for B mode used in 'object'.")
       }
       if (lxdim == 4L) {
         if (xdim[3] != xold.dim[3]) {
-          stop("Number of levels for C mode of input 'newdata' must 
-             match number of levels for C mode used in 'object'.")
+          stop("Number of levels for C mode of input 'newdata' must match \n 
+               number of levels for C mode used in 'object'.")
         }
       }
     }
@@ -180,7 +178,7 @@ predict.tunecpfa <-
     if (family == "binomial") {
       if (!(is.null(threshold))) {
         if ((threshold < 0) || (threshold > 1) || (length(threshold) > 1)) {
-          stop("Input 'threshold' must be a single real number from 0 to 1, 
+          stop("Input 'threshold' must be a single real number from 0 to 1, \n
               inclusive, for binary classification.")
         }
       }
@@ -189,9 +187,7 @@ predict.tunecpfa <-
         fraction <- table(yt) / length(yt)
         threshold <- fraction[which(names(fraction) == "0")]
       }
-      if ((is.null(threshold)) && (type == "prob")) {
-        threshold <- 0.5
-      }
+      if ((is.null(threshold)) && (type == "prob")) {threshold <- 0.5}
     }
     if (family == "multinomial") {
       if (!(is.null(threshold))) {
@@ -284,12 +280,8 @@ predict.tunecpfa <-
                lambda.min <- opt.param[which(
                  opt.param$nfac == nfac[w]), ]$lambda
              }
-             if (dim(C.pred)[2] == 1) {
-               C.pred.plr <- cbind(0, C.pred)
-             } 
-             if (dim(C.pred)[2] > 1) {
-               C.pred.plr <- C.pred
-             }
+             if (dim(C.pred)[2] == 1) {C.pred.plr <- cbind(0, C.pred)} 
+             if (dim(C.pred)[2] > 1) {C.pred.plr <- C.pred}
              if (type == "response") {
                type.plr <- "response" 
                if (family == "binomial") {
@@ -436,8 +428,7 @@ predict.tunecpfa <-
                if (family == "binomial") {
                  rda.prob <- predict(rda.fit, x = t(train.weights[[w]]), 
                                      y = as.numeric(oyold) - 1, 
-                                     xnew = t(C.pred), 
-                                     type = "posterior")
+                                     xnew = t(C.pred), type = "posterior")
                  colnames(rda.prob) <- c(0, 1)
                  rda.prob <- rda.prob[, which(colnames(rda.prob) == "1")]
                  storfac[, colcount] <- as.numeric(rda.prob > threshold)
@@ -446,8 +437,7 @@ predict.tunecpfa <-
                if (family == "multinomial") {
                  rda.prob <- predict(rda.fit, x = t(train.weights[[w]]), 
                                      y = as.numeric(oyold) - 1, 
-                                     xnew = t(C.pred), 
-                                     type = "posterior")
+                                     xnew = t(C.pred), type = "posterior")
                  storfac[, colcount] <- as.numeric((apply(rda.prob, 1, 
                                                           which.max))) - 1
                  colcount <- colcount + 1
@@ -457,8 +447,7 @@ predict.tunecpfa <-
                if (family == "binomial") {
                  rda.prob <- predict(rda.fit, x = t(train.weights[[w]]), 
                                      y = as.numeric(oyold) - 1, 
-                                     xnew = t(C.pred), 
-                                     type = "posterior")
+                                     xnew = t(C.pred), type = "posterior")
                  colnames(rda.prob) <- c(0, 1)
                  rda.prob <- rda.prob[, which(colnames(rda.prob) == "1")]
                  storprob[[colcount]] <- as.numeric(rda.prob)
@@ -510,10 +499,6 @@ predict.tunecpfa <-
       names(classify.weights) <- classify.weight.names
       return(classify.weights)
     } 
-    if (type == "response") {
-      return(storfac)
-    } 
-    if (type == "prob") {
-      return(storprob)
-    }
+    if (type == "response") {return(storfac)} 
+    if (type == "prob") {return(storprob)}
 }

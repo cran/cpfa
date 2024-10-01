@@ -10,12 +10,8 @@ cpm <-
     if (!(class(y) %in% c("numeric", "factor", "integer"))) {
       stop("Input 'y' must be of class 'numeric', 'factor', or 'integer'.")
     }
-    if (any(is.na(x))) {
-      stop("Input 'x' cannot contain missing values.")
-    }
-    if (any(is.na(y))) {
-      stop("Input 'y' cannot contain missing values.") 
-    }
+    if (any(is.na(x))) {stop("Input 'x' cannot contain missing values.")}
+    if (any(is.na(y))) {stop("Input 'y' cannot contain missing values.")}
     if (length(x) != length(y)) {
       stop("Input 'x' must be same length as input 'y'.") 
     }
@@ -48,9 +44,7 @@ cpm <-
        cm[roww, colum] <- cm[roww, colum] + 1
     }
     colnames(cm) <- rownames(cm) <- level
-    if (is.null(fbeta)) {
-      fbeta <- 1
-    }
+    if (is.null(fbeta)) {fbeta <- 1}
     if (!(is.null(fbeta))) {
       if ((length(fbeta) != 1) || (!(is.numeric(fbeta)))) {
         stop("Input 'fbeta' must be a single real number when inputted and of \n
@@ -73,9 +67,7 @@ cpm <-
         stop("When inputted, 'prior' must contain values that sum to 1.")
       }
     }
-    if (is.null(prior)) {
-      prior <- rep((1 / llev), llev)
-    }
+    if (is.null(prior)) {prior <- rep((1 / llev), llev)}
     acc <- (sum(diag(cm))) / sum(cm)
     err <- 1 - acc
     if (llev == 2) {
@@ -111,7 +103,7 @@ cpm <-
       fdr <- sum(prior * fdr.sum)
       fom <- sum(prior * fom.sum)
     }
-    fs <- (1 + (fbeta^2)) * ((ppv * tpr) / (((fbeta^2) * ppv) +  tpr))
+    fs <- (1 + (fbeta^2)) * ((ppv * tpr) / (((fbeta^2) * ppv) + tpr))
     class.eval <- data.frame(err = err, acc = acc, tpr = tpr, fpr = fpr, 
                              tnr = tnr, fnr = fnr, ppv = ppv, npv = npv,
                              fdr = fdr, fom = fom, fs = fs)
