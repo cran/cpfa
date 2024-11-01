@@ -9,20 +9,9 @@ tunecpfa <-
       stop("Input 'parameters' must be of class 'list'.")
     } 
     if (length(parameters) == 0) {
-      alpha = NULL 
-      lambda = NULL 
-      cost = NULL 
-      gamma = NULL 
-      ntree = NULL
-      nodesize = NULL 
-      size = NULL
-      decay = NULL
-      rda.alpha = NULL
-      delta = NULL
-      eta = NULL 
-      max.depth = NULL
-      subsample = NULL
-      nrounds = NULL
+      size <- nodesize <- ntree <- gamma <- cost <- lambda <- alpha <- NULL 
+      subsample <-  max.depth <- eta <- delta <- decay <- rda.alpha <- size
+      nrounds <- subsample
     } else {
       names(parameters) <- tolower(names(parameters))
       paranames <- c("alpha", "lambda", "cost", "gamma", "ntree", "nodesize", 
@@ -65,7 +54,7 @@ tunecpfa <-
     model0 <- sum(tolower(model) %in% models)
     if ((model0 == 0L) || (model0 > 1L)) {
       stop("Input 'model' not specified correctly. Input must be one of \n
-            either 'parafac' or 'parafac2'.")
+           either 'parafac' or 'parafac2'.")
     }
     model <- tolower(model)
     if (is.array(x) && (model == "parafac")) {
@@ -109,14 +98,10 @@ tunecpfa <-
       }
       if (lxdim == 3L) {
         storlist <- vector("list", xdim[cmode])
-        for (k in 1:xdim[cmode]) {
-          storlist[[k]] <- x[, , k]
-        }
+        for (k in 1:xdim[cmode]) {storlist[[k]] <- x[, , k]}
       } else {
         storlist <- vector("list", xdim[cmode])
-        for (k in 1:xdim[cmode]) {
-          storlist[[k]] <- x[, , , k]
-        }
+        for (k in 1:xdim[cmode]) {storlist[[k]] <- x[, , , k]}
       }
       x <- storlist
       rm(storlist)
@@ -149,8 +134,8 @@ tunecpfa <-
         xdim[2] <- xdim1[2]
         xdim[3] <- length(x)
         if (any(unlist(lapply(x, ncol)) != xdim[2])) {
-          stop("Input 'x' must be list of matrices with same \n 
-                  number of columns.")
+          stop("Input 'x' must be list of matrices with same \n
+               number of columns.")
         }
       } else {
         xdim <- rep(NA, 4)
@@ -160,8 +145,7 @@ tunecpfa <-
         index2 <- seq(2, (3 * length(x) - 1), by = 3)
         index3 <- seq(3, (3 * length(x)), by = 3)
         if (any(unlist(lapply(x, dim))[index2] != xdim[2])) {
-          stop("Input 'x' must be list of arrays with same number \n 
-               of columns.")
+          stop("Input 'x' must be list of arrays with same number of columns.")
         }
         if (any(unlist(lapply(x, dim))[index3] != xdim[3])) {
           stop("Input 'x' must be list of arrays with same number of slabs.")
@@ -175,13 +159,13 @@ tunecpfa <-
     if (!(is.factor(y))) {stop("Input 'y' must be of class 'factor'.")}
     if (model == "parafac") {
       if (!(length(y) == origdim[cmode])) {
-        stop("Length of 'y' must match number of levels in 
-             classification mode of 'x'.")
+        stop("Length of 'y' must match number of levels in classification \n 
+             mode of 'x'.")
       }
     } else {
       if (!(length(y) == xdim[cmode])) {
-        stop("Length of 'y' must match number of levels in 
-             classification mode of 'x'.")
+        stop("Length of 'y' must match number of levels in classification \n 
+             mode of 'x'.")
       }
     }
     if (length(unique(y)) == 0L || length(unique(y)) == 1L) {
@@ -494,10 +478,7 @@ tunecpfa <-
          if (nfolds == 2) {lambda.min <- plr.results$lambda.min}
          if (nfolds >= 3) {lambda.min <- plr.fit$lambda.min}
        } else {
-         time.plr <- NA
-         error.plr <- NA
-         plr.opt <- NA
-         lambda.min <- NA
+         lambda.min <- plr.opt <- error.plr <- time.plr <- NA
          optmodel.new[[1]] <- NULL
        }
        if ('2' %in% method) {
@@ -515,8 +496,7 @@ tunecpfa <-
          svm.opt <- svm.grid[svm.id, ]
          optmodel.new[[2]] <- svm.fit <- svm.results$svm.fit
        } else {
-         time.svm <- NA
-         error.svm <- NA
+         error.svm <- time.svm <- NA
          svm.opt <- data.frame(NA, NA)
          optmodel.new[[2]] <- NULL
        }
@@ -535,8 +515,7 @@ tunecpfa <-
          rf.opt <- rf.grid[rf.id, ]
          optmodel.new[[3]] <- rf.results$rf.fit
        } else {
-         time.rf <- NA
-         error.rf <- NA
+         error.rf <- time.rf <- NA
          rf.opt <- data.frame(NA, NA)
          optmodel.new[[3]] <- NULL
        }
@@ -555,9 +534,7 @@ tunecpfa <-
          nn.opt <- nn.grid[nn.id, ]
          optmodel.new[[4]] <- nn.fit <- nn.results$nn.fit
        } else {
-         time.nn <- NA
-         error.nn <- NA
-         nn.opt <- NA
+         nn.opt <- error.nn <- time.nn <- NA
          nn.opt <- data.frame(NA, NA)
          optmodel.new[[4]] <- NULL
        }
@@ -577,8 +554,7 @@ tunecpfa <-
          rda.opt <- rda.grid[rda.id, ]
          optmodel.new[[5]] <- rda.fit <- rda.results$rda.fit                  
        } else {
-         time.rda <- NA
-         error.rda <- NA
+         error.rda <- time.rda <- NA
          rda.opt <- data.frame(NA, NA)
          optmodel.new[[5]] <- NULL
        }
@@ -598,8 +574,7 @@ tunecpfa <-
          gbm.opt <- gbm.grid[gbm.id, ]
          optmodel.new[[6]] <- gbm.fit <- gbm.results$gbm.fit                  
        } else {
-         time.gbm <- NA
-         error.gbm <- NA
+         error.gbm <- time.gbm <- NA
          gbm.opt <- data.frame(NA, NA, NA, NA)
          optmodel.new[[6]] <- NULL
        } 

@@ -12,7 +12,7 @@ cpfa <-
     model0 <- sum(tolower(model) %in% models)
     if ((model0 == 0) || (model0 > 1L)) {
       stop("Input 'model' not specified correctly. Input must be only one of \n
-            either 'parafac' or 'parafac2'.")
+           either 'parafac' or 'parafac2'.")
     }
     model <- tolower(model)
     if (is.array(x) && (model == "parafac")) {
@@ -27,7 +27,7 @@ cpfa <-
       if (any(is.na(x))) {stop("Input 'x' cannot contain missing values.")}
       if (!(is.null(cmode))) {
         if (!(cmode %in% (1:lxdim))) {
-          stop("Input 'cmode' must be 1, 2, or 3 \n
+          stop("Input 'cmode' must be 1, 2, or 3 \n 
                (or 4 if 'x' is a 4-way array).")
         }
         modeval <- 1:lxdim
@@ -55,14 +55,10 @@ cpfa <-
       }
       if (lxdim == 3L) {
         storlist <- vector("list", xdim[cmode])
-        for (k in 1:xdim[cmode]) {
-          storlist[[k]] <- x[, , k]
-        }
+        for (k in 1:xdim[cmode]) {storlist[[k]] <- x[, , k]}
       } else {
         storlist <- vector("list", xdim[cmode])
-        for (k in 1:xdim[cmode]) {
-           storlist[[k]] <- x[, , , k]
-        }
+        for (k in 1:xdim[cmode]) {storlist[[k]] <- x[, , , k]}
       }
       x <- storlist
       rm(storlist)
@@ -96,7 +92,7 @@ cpfa <-
         xdim[3] <- length(x)
         if (any(unlist(lapply(x, ncol)) != xdim[2])) {
           stop("Input 'x' must be list of matrices with same \n 
-                  number of columns.")
+               number of columns.")
         }
       } else {
         xdim <- rep(NA, 4)
@@ -106,8 +102,7 @@ cpfa <-
         index2 <- seq(2, (3 * length(x) - 1), by = 3)
         index3 <- seq(3, (3 * length(x)), by = 3)
         if (any(unlist(lapply(x, dim))[index2] != xdim[2])) {
-          stop("Input 'x' must be list of arrays with same number 
-               \n of columns.")
+          stop("Input 'x' must be list of arrays with same number of columns.")
         }
         if (any(unlist(lapply(x, dim))[index3] != xdim[3])) {
           stop("Input 'x' must be list of arrays with same number of slabs.")
@@ -120,8 +115,8 @@ cpfa <-
     }
     if (!is.factor(y)) {stop("Input 'y' must be of class 'factor'.")}
     if (!(length(y) == xdim[cmode])) {
-      stop("Length of 'y' must match number of levels in \n 
-           classification mode/dimension of 'x'.")
+      stop("Length of 'y' must match number of levels in classification \n 
+           mode of 'x'.")
     }
     if ((!(ceiling(nrep) == nrep)) || (nrep < 1) || (length(ratio) != 1L)) {
       stop("Input 'nrep' must be a single integer greater than 0.")
@@ -184,8 +179,8 @@ cpfa <-
         plottype.num <- sum(cmeasures %in% plot.measures)
         if (plottype.num == 0) {
           stop("Input 'plot.out' is true, but input 'plot.measures' does not \n
-               contain any accepted values. See help file and \n
-               argument 'plot.measures' for a list of accepted values.")
+               contain any accepted values. See help file and argument \n
+               'plot.measures' for a list of accepted values.")
         }
         plottype <- which(cmeasures %in% plot.measures == TRUE) + 3
       } 
@@ -238,7 +233,7 @@ cpfa <-
     train.weights <- list(Atrain.weights = Aw, Btrain.weights = Bw, 
                           Ctrain.weights = Cw, Phitrain = Pw)
     mean.tune.param <- Reduce("+", opara) / length(opara)
-    if (plot.out) {
+    if (plot.out == TRUE) {
       ncomps <- length(nfac)
       nmethods <- length(method)
       plotstor <- data.frame(matrix(0, nrow = (ncomps * nmethods * nrep), 
@@ -262,9 +257,8 @@ cpfa <-
       for (j in 1:length(plottype)) {
          pformula <- formula(paste0(toplot[j], " ~ ", "method * nfac"))
          boxplot(pformula, data = plotstor, ylim = c(0, 1), 
-                 xlab = "Method and Number of Components", 
-                 ylab = toupper(toplot[j]), main = "Performance Measure",
-                 na.rm = FALSE)
+                 xlab = "Method and Number of Components", na.rm = FALSE,
+                 ylab = toupper(toplot[j]), main = "Performance Measure")
       }
     }
     if (type.out == "measures") {

@@ -3,58 +3,15 @@ kcv.gbm <-
            family = c("binomial", "multinomial"), min_child_weight = 1,
            colsample_bytree = 1, booster = "gbtree", parallel = FALSE) 
 {
-    if (!is.factor(y)) {y <- factor(y)}
-    if (length(unique(y)) == 1L) {
-      stop("Input 'y' must contain some variation (i.e., cannot contain \n
-           only a single type of label).")
-    }
-    if (is.null(nfolds)) {
-      nfolds <- 10
-    } else {
-      if (!(is.integer(nfolds) || is.numeric(nfolds))) {
-        stop("Input 'nfolds' must be of class 'integer' or 'numeric'.")
-      }
-      if (length(unique(nfolds)) != 1L) {
-        stop("Input 'nfolds' must contain only a single value.")
-      }
-      if ((nfolds %% 1) != 0) {
-        stop("Input 'nfolds' must be an integer.")
-      }
-      if ((nfolds < 2) | (nfolds > length(y))) {
-        stop("Input 'nfolds' must be an integer between 2 and the \n
-             number of observations, inclusive. Alternatively, the \n
-             number of observations cannot be less than 'nfolds'.")
-      }
-    }
+    kcvcheck(y = y, nfolds = nfolds, parallel = parallel, foldid = foldid)
     if (family == "binomial") {objective <- "binary:logistic"}
     if (family == "multinomial") {objective <- "multi:softprob"}
-    if (is.null(parallel)) {
-      parallel <- FALSE
-    } else {
-      if (!(is.logical(parallel))) {
-        stop("Input 'parallel' must be of class 'logical'.")
-      }
-      if (length(unique(parallel)) != 1L) {
-        stop("Input 'parallel' must contain only a single value.")
-      }  
-    }
-    if (is.null(foldid)) {
-      foldid <- sample(rep(1:nfolds, length.out = length(y)))
-    }
-    if (length(unique(foldid)) != as.integer(nfolds)) {
-      stop("Input 'foldid' must contain the number of unique values equal to \n
-           input 'nfolds'.")
-    }
     if (is.null(prior)) {
       weights <- as.numeric((table(y)[y] / length(y)))
-      if (family == "binomial") {
-        threshold <- (table(y) / length(y))[1]
-      }
+      if (family == "binomial") {threshold <- (table(y) / length(y))[1]}
     } else {
       weights <- as.numeric((prior * length(y))[y] / length(y))
-      if (family == "binomial") {
-        threshold <- prior[1]
-      }
+      if (family == "binomial") {threshold <- prior[1]}
     }
     y <- as.numeric(y) - 1
     num_classes <- length(unique(y))
@@ -66,8 +23,7 @@ kcv.gbm <-
                         x.train <- as.matrix(x[which(foldid != gg), ])
                         y.train <- y[which(foldid != gg)]
                         trweights <- as.matrix(weights[which(foldid != gg)])
-                        xgtrain <- xgb.DMatrix(data = x.train, 
-                                               label = y.train, 
+                        xgtrain <- xgb.DMatrix(data = x.train, label = y.train, 
                                                weight = trweights)
                         x.test <- as.matrix(x[which(foldid == gg), ])
                         y.test <- y[which(foldid == gg)]
@@ -105,18 +61,15 @@ kcv.gbm <-
          x.train <- as.matrix(x[which(foldid != gg), ])
          y.train <- y[which(foldid != gg)]
          trweights <- as.matrix(weights[which(foldid != gg)])
-         xgtrain <- xgb.DMatrix(data = x.train, 
-                                label = y.train, 
+         xgtrain <- xgb.DMatrix(data = x.train, label = y.train, 
                                 weight = trweights)
          x.test <- as.matrix(x[which(foldid == gg), ])
          y.test <- y[which(foldid == gg)]
          xgtest <- xgb.DMatrix(data = x.test)
          stortune <- matrix(rep(0, grid.row), ncol = 1)
          for (yy in 1:grid.row) {
-            params <- list(booster = booster,
-                           objective = objective,
-                           eta = gbm.grid[yy, 1],
-                           max_depth = gbm.grid[yy, 2],
+            params <- list(booster = booster, objective = objective,
+                           eta = gbm.grid[yy, 1], max_depth = gbm.grid[yy, 2],
                            min_child_weight = min_child_weight,
                            subsample = gbm.grid[yy, 3],
                            colsample_bytree = colsample_bytree)
@@ -138,12 +91,10 @@ kcv.gbm <-
     }
     gbm.mean <- apply(cv.gbm, 1, mean)
     minid <- which.min(gbm.mean)
-    params <- list(booster = booster,
-                   objective = objective,
-                   eta = gbm.grid[minid, 1],
-                   max_depth = gbm.grid[minid, 2],
+    params <- list(booster = booster, objective = objective, 
+                   eta = gbm.grid[minid, 1], max_depth = gbm.grid[minid, 2],
                    min_child_weight = min_child_weight,
-                   subsample = gbm.grid[minid, 3],
+                   subsample = gbm.grid[minid, 3], 
                    colsample_bytree = colsample_bytree)
     if (family == "multinomial") {params$num_class <- num_classes}
     xgdata <- xgb.DMatrix(data = x, label = y, weight = weights)

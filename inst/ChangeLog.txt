@@ -1,3 +1,19 @@
+Changes: version 1.1-6  (2024-11-01)
+
+1.) Bug fix in package function 'plotcpfa' for argument '...'
+	- Previously a bug prevented arguments from being passed forward
+	- Now additional arguments can be passed to model fitting functions
+
+2.) Simplified code for internal cross-validation functions
+	- Previously some redundancies existed in error checking for internal functions
+	- Now code has been simplified to reduce repetition
+
+3.) Simplified code for 'print.tunecpfa' function
+	- Previously redundant code existed in this function
+	- Now the code has been simplified
+
+----------------
+
 Changes: version 1.1-5  (2024-10-01)
 
 1.) Added new function ‘plotcpfa’ to plot output from function 'cpfa'

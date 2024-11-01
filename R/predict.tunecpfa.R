@@ -43,14 +43,10 @@ predict.tunecpfa <-
       }
       if (lxdim == 3L) {
         storlist <- vector("list", xdim[3])
-        for (k in 1:xdim[3]) {
-          storlist[[k]] <- newdata[, , k]
-        }
+        for (k in 1:xdim[3]) {storlist[[k]] <- newdata[, , k]}
       } else {
         storlist <- vector("list", xdim[4])
-        for (k in 1:xdim[4]) {
-          storlist[[k]] <- newdata[, , , k]
-        }
+        for (k in 1:xdim[4]) {storlist[[k]] <- newdata[, , , k]}
       }
       newdata <- storlist
       rm(storlist)
@@ -227,17 +223,15 @@ predict.tunecpfa <-
          Bfixed <- Bweights[[w]]
          if (lxdim == 3L) {
            ppfac <- parafac(X = newdata, nfac = nfac[w], nstart = 1, 
-                            ctol = sqrt(.Machine$double.eps), 
-                            verbose = FALSE, const = const,
-                            Afixed = Afixed, Bfixed = Bfixed)                
+                            ctol = sqrt(.Machine$double.eps), verbose = FALSE, 
+                            const = const, Afixed = Afixed, Bfixed = Bfixed)                
            classify.weights[[w]] <- C.pred <- ppfac$C
          }
          if (lxdim == 4L) {
            Cfixed <- Cweights[[w]]
            ppfac <- parafac(X = newdata, nfac = nfac[w], nstart = 1, 
-                            ctol = sqrt(.Machine$double.eps), 
-                            verbose = FALSE, const = const,
-                            Afixed = Afixed, Bfixed = Bfixed,
+                            ctol = sqrt(.Machine$double.eps), verbose = FALSE, 
+                            const = const, Afixed = Afixed, Bfixed = Bfixed,
                             Cfixed = Cfixed)                                
            classify.weights[[w]] <- C.pred <- ppfac$D
          }
@@ -252,17 +246,15 @@ predict.tunecpfa <-
          Bfixed <- Bweights[[w]]
          if (lxdim == 3L) {
            ppfac <- parafac2(X = newdata, nfac = nfac[w], nstart = 1, 
-                             ctol = sqrt(.Machine$double.eps), 
-                             verbose = FALSE, const = const,
-                             Gfixed = Gfixed, Bfixed = Bfixed)                
+                             ctol = sqrt(.Machine$double.eps), verbose = FALSE, 
+                             const = const, Gfixed = Gfixed, Bfixed = Bfixed)                
            classify.weights[[w]] <- C.pred <- ppfac$C
          }
          if (lxdim == 4L) {
            Cfixed <- Cweights[[w]]
            ppfac <- parafac2(X = newdata, nfac = nfac[w], nstart = 1, 
-                             ctol = sqrt(.Machine$double.eps), 
-                             verbose = FALSE, const = const,
-                             Gfixed = Gfixed, Bfixed = Bfixed,
+                             ctol = sqrt(.Machine$double.eps), verbose = FALSE, 
+                             const = const, Gfixed = Gfixed, Bfixed = Bfixed,
                              Cfixed = Cfixed)                                
            classify.weights[[w]] <- C.pred <- ppfac$D
          }
@@ -278,7 +270,7 @@ predict.tunecpfa <-
              if (is.null(plr.fit$glmnet.fit)) {
                plr.fit.class <- plr.fit$classnames
                lambda.min <- opt.param[which(
-                 opt.param$nfac == nfac[w]), ]$lambda
+                                       opt.param$nfac == nfac[w]), ]$lambda
              }
              if (dim(C.pred)[2] == 1) {C.pred.plr <- cbind(0, C.pred)} 
              if (dim(C.pred)[2] > 1) {C.pred.plr <- C.pred}
@@ -286,8 +278,7 @@ predict.tunecpfa <-
                type.plr <- "response" 
                if (family == "binomial") {
                  vals <- as.numeric(predict(plr.fit, newx = C.pred.plr, 
-                                            type = type.plr, 
-                                            s = lambda.min,
+                                            type = type.plr, s = lambda.min,
                                             levels = plr.fit.class))
                  storfac[, colcount] <- as.numeric(vals > threshold)
                  colcount <- colcount + 1
@@ -295,8 +286,8 @@ predict.tunecpfa <-
                if (family == "multinomial") {
                  vals <- predict(plr.fit, newx = C.pred.plr, type = type.plr, 
                                  s = lambda.min, levels = plr.fit.class)
-                 storfac[, colcount] <- as.numeric((apply(vals, 
-                                                    1, which.max))) - 1
+                 storfac[, colcount] <- as.numeric((apply(vals, 1, 
+                                                          which.max))) - 1
                  colcount <- colcount + 1
                }
              }

@@ -71,7 +71,7 @@ plotcpfa <-
     }
     if (model == "parafac") {
       pfac <- parafac(X = X, nfac = nfac.opt, const = const, cl = cl, 
-                      parallel = parallel)#, ...)
+                      parallel = parallel, ...)
       if ((!(is.null(scale.remode))) && (!(is.null(scale.abmode)))) {
         pfac <- rescale(pfac, mode = scale.remode, newscale = newscales, 
                         absorb = scale.abmode)
@@ -85,7 +85,7 @@ plotcpfa <-
       if (lxdim == 4L) {mapstor[[3]] <- pfac$C}
     } else {
       pfac <- parafac2(X = X, nfac = nfac.opt, const = const, cl = cl, 
-                       parallel = parallel)#, ...)
+                       parallel = parallel, ...)
       if ((!(is.null(scale.remode))) && (!(is.null(scale.abmode)))) {
         pfac <- rescale(pfac, mode = scale.remode, newscale = newscales, 
                         absorb = scale.abmode)
@@ -125,5 +125,6 @@ plotcpfa <-
          }
        }
     }
+    names(mapstor) <- plotlabels
     return(mapstor)
 }
