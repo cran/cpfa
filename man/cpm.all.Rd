@@ -7,7 +7,7 @@ Wrapper for Calculating Classification Performance Measures
 Applies function \code{cpm} to multiple sets of class labels. Each set of class labels is evaluated against the same set of predicted labels. Works with output from function \code{predict.tunecpfa} and calculates classification performance measures for multiple classifiers or numbers of components.
 }
 \usage{
-cpm.all(x, y,  ...)
+cpm.all(x, y, ...)
 }
 \arguments{
 \item{x}{
@@ -40,7 +40,7 @@ Matthew Snodgress <snodg031@umn.edu>
 }
 \examples{
 ########## Parafac example with 3-way array and binary response ##########
-
+\dontrun{
 # set seed and specify dimensions of a three-way tensor
 set.seed(3)
 mydim <- c(10, 11, 80)
@@ -119,4 +119,5 @@ evalmeasure <- cpm.all(x = predict.labels, y = newlabel)
 
 # print performance measures
 evalmeasure
+}
 }

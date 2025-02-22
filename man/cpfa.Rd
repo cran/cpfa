@@ -108,13 +108,13 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
   Logical indicating whether to output one or more box plots of classification performance measures that are plotted across classification methods and number of components.
 }
 \item{plot.measures}{
-  Character vector containing values that specify for plotting one or more of 11 possible classification performance measures. Only relevant when \code{plot.out = TRUE}. Should contain one or more of the following labels: \code{c("err", "acc", "tpr", "fpr", "tnr", "fnr", "ppv", "npv", "fdr", "fom", "fs")}. A box plot will be created for each measure that is specified, summarizing output across replications. Note that additional information about each label is available in the Details section of the help file for function \code{cpm}. Note also that there are a few cases where the x-axis tick labels for a plot might not appear. This issue will be resolved in a future update.
+  Character vector containing values that specify for plotting one or more of 11 possible classification performance measures. Only relevant when \code{plot.out = T}. Should contain one or more of the following labels: \code{c("err", "acc", "tpr", "fpr", "tnr", "fnr", "ppv", "npv", "fdr", "fom", "fs")}. A box plot will be created for each measure that is specified, summarizing output across replications. Note that additional information about each label is available in the Details section of the help file for function \code{cpm}. Note also that there are a few cases where the x-axis tick labels for a plot might not appear. This issue will be resolved in a future update.
 }
 \item{parallel}{
   Logical indicating if parallel computing should be implemented. If TRUE, the package \bold{parallel} is used for parallel computing. For all classification methods except penalized logistic regression, the \bold{doParallel} package is used as a wrapper. Defaults to FALSE, which implements sequential computing.
 }
 \item{cl}{
-  Cluster for parallel computing, which is used when \code{parallel = TRUE}. Note that if \code{parallel = TRUE} and \code{cl = NULL}, then the cluster is defined as \code{makeCluster(detectCores())}.
+  Cluster for parallel computing, which is used when \code{parallel = T}. Note that if \code{parallel = T} and \code{cl = NULL}, then the cluster is defined as \code{makeCluster(detectCores())}.
 }
 \item{verbose}{
   If TRUE, progress is printed.
@@ -210,7 +210,7 @@ Zou, H. and Hastie, T. (2005). Regularization and variable selection via the ela
 }
 \examples{
 ########## Parafac2 example with 4-way array and multiclass response ##########
-
+\dontrun{
 # set seed and specify dimensions of a four-way tensor
 set.seed(5)
 mydim <- c(10, 11, 12, 100)
@@ -286,7 +286,7 @@ nstart <- 3
 const <- c("orthog", "uncons", "uncons", "nonneg")
 
 # fit Parafac2 model and use fourth mode weights to tune classification
-# methods, to predict class labels, and to return classificaiton 
+# methods, to predict class labels, and to return classification 
 # performance measures pooled across multiple train-test splits
 output <- cpfa(x = X, y = y, model = model, nfac = nf, nrep = 2, ratio = 0.8, 
                nfolds = nfolds, method = method, family = family, 
@@ -296,4 +296,5 @@ output <- cpfa(x = X, y = y, model = model, nfac = nf, nrep = 2, ratio = 0.8,
 
 # print performance measure means across train-test splits
 output$descriptive$mean
+}
 }

@@ -31,7 +31,7 @@ See help file for function \code{tunecpfa} for a list of references.
 }
 \examples{
 ########## Parafac example with 3-way array and binary response ##########
-
+\dontrun{
 # set seed and specify dimensions of a three-way tensor
 set.seed(3)
 mydim <- c(10, 11, 80)
@@ -71,7 +71,7 @@ alpha <- seq(0, 1, length = 2)
 gamma <- c(0, 0.01)
 cost <- c(1, 2)
 method <- c("PLR", "SVM")
-family <- "multinomial"
+family <- "binomial"
 parameters <- list(alpha = alpha, gamma = gamma, cost = cost)
 model <- "parafac"
 nfolds <- 3
@@ -88,4 +88,5 @@ tune.object <- tunecpfa(x = X, y = y, model = model, nfac = nf,
                          
 # print summary of output
 print(tune.object)
+}
 }

@@ -2,7 +2,7 @@ kcv.plr <-
   function(x, y, foldid = NULL, alpha, nfolds = NULL, 
            family = c("binomial", "multinomial"), offset = NULL, lambda = NULL, 
            weights = NULL, standardize = FALSE, grouped = TRUE, keep = FALSE, 
-           parallel = FALSE, maxit = 1e+06) 
+           parallel = FALSE, maxit = 1e6) 
 {
     kcvcheck(y = y, nfolds = nfolds, parallel = parallel, foldid = foldid)
     lalpha <- length(alpha)
@@ -26,8 +26,8 @@ kcv.plr <-
          fweight <- cbind(foldid, weights)
          weight1 <- fweight[which(fweight[, 1] == 1), 2]
          weight2 <- fweight[which(fweight[, 1] == 2), 2]
-         fit0 <- glmnet(x, y, family = family, weights = weights, 
-                        alpha = v.alpha)
+         cvlist[[h]] <- fit0 <- glmnet(x, y, family = family, weights = weights, 
+                                       alpha = v.alpha)
          if (is.null(lambda)) {
            lam <- fit0$lambda
            nlam <- length(fit0$lambda)
@@ -65,6 +65,8 @@ kcv.plr <-
       minid <- which.min(stor.cvm)
       minlam <- stor.minlam[minid]
       mincv <- stor.cvm
+      return(list(alpha.id = minid, plr.fit = cvlist[[minid]], 
+                  error = mincv[minid], lambda.min = minlam))
     } else {
       for (h in 1:lalpha) {
          cvlist[[h]] <- cv.glmnet(x, y, family = family, offset = offset,
@@ -77,12 +79,7 @@ kcv.plr <-
       }
       mincv <- sapply(cvlist, function(x) min(x$cvm))
       minid <- which.min(mincv)
-    } 
-    if (nfolds == 2) {
-      return(list(alpha.id = minid, plr.fit = fit0, error = mincv[minid], 
-                  lambda.min = minlam))
-    } else {
       return(list(alpha.id = minid, plr.fit = cvlist[[minid]],
                   error = mincv[minid]))
-    }
+    } 
 }

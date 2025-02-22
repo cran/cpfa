@@ -18,7 +18,7 @@ tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
   For Parafac or Parafac2, a three-way or four-way data array. For Parafac2, can be a list of length \code{K} where the \code{k}-th element is a matrix or three-way array associated with the \code{k}-th element. Array or list must contain real numbers. See note below.
 } 
 \item{y}{
-  A vector containing at least two unique class labels. Should be a factor that contains two or more levels . For binary case, ensure the order of factor levels (left to right) is such that negative class is first and positive class is second.
+  A vector containing at least two unique class labels. Should be a factor that contains two or more levels. For binary case, ensure the order of factor levels (left to right) is such that negative class is first and positive class is second.
 }
 \item{model}{
   Character designating the Parafac model to use, either \code{model = "parafac"} to fit the Parafac model or \code{model = "parafac2"} to fit the Parafac2 model.
@@ -95,7 +95,7 @@ tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
   Logical indicating if parallel computing should be implemented. If TRUE, the package \bold{parallel} is used for parallel computing. For all classification methods except penalized logistic regression, the \bold{doParallel} package is used as a wrapper. Defaults to FALSE, which implements sequential computing.
 }
 \item{cl}{
-  Cluster for parallel computing, which is used when \code{parallel = TRUE}. Note that if \code{parallel = TRUE} and \code{cl = NULL}, then the cluster is defined as \code{makeCluster(detectCores())}.
+  Cluster for parallel computing, which is used when \code{parallel = T}. Note that if \code{parallel = T} and \code{cl = NULL}, then the cluster is defined as \code{makeCluster(detectCores())}.
 }
 \item{verbose}{
   If TRUE, progress is printed.
@@ -214,7 +214,7 @@ Zou, H. and Hastie, T. (2005). Regularization and variable selection via the ela
 
 \examples{
 ########## Parafac example with 3-way array and binary response ##########
-
+\dontrun{
 # set seed and specify dimensions of a three-way tensor
 set.seed(3)
 mydim <- c(10, 11, 80)
@@ -285,4 +285,5 @@ tune.object <- tunecpfa(x = X, y = y, model = model, nfac = nf,
 
 # print tuning object
 tune.object
+}
 }

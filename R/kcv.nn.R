@@ -9,7 +9,7 @@ kcv.nn <-
     weights <- as.matrix(weights)                                               
     grid.row <- nrow(nn.grid)
     cv.nn <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
-    if (parallel == TRUE) {
+    if (parallel == T) {
       cv.nn <- foreach (gg = 1:nfolds, .combine = cbind, 
                         .packages = 'nnet') %dopar% {
                         x.train <- as.matrix(x[which(foldid != gg), ])
@@ -22,7 +22,7 @@ kcv.nn <-
                         stortune <- matrix(rep(0, grid.row), ncol = 1)
                         for (yy in 1:grid.row) {
                            nn.fit <- nnet(x = x.train, y = con.ytrain, 
-                                          trace = FALSE, size = nn.grid[yy, 1], 
+                                          trace = F, size = nn.grid[yy, 1], 
                                           decay = nn.grid[yy, 2], 
                                           linout = linout, weights = trweights,
                                           censored = censored, skip = skip, 
@@ -46,7 +46,7 @@ kcv.nn <-
          con.ytrain <- model.matrix(~y.train - 1, data.ytrain)
          stortune <- matrix(rep(0, grid.row), ncol = 1)
          for (yy in 1:grid.row) {
-            nn.fit <- nnet(x = x.train, y = con.ytrain, trace = FALSE,
+            nn.fit <- nnet(x = x.train, y = con.ytrain, trace = F,
                            size = nn.grid[yy, 1], decay = nn.grid[yy, 2],
                            linout = linout, censored = censored, skip = skip, 
                            weights = trweights, rang = rang, MaxNWts = 10000)
@@ -61,10 +61,10 @@ kcv.nn <-
     minid <- which.min(nn.mean)
     data.y <- data.frame(y)
     con.y <- model.matrix(~y - 1, data.y)
-    nn.fit.best <- nnet(x = x, y = con.y, trace = FALSE, 
-                        size = nn.grid[minid, 1], decay = nn.grid[minid, 2],
-                        linout = linout, censored = censored, skip = skip, 
-                        weights = weights, rang = rang, MaxNWts = 10000)
+    nn.fit.best <- nnet(x = x, y = con.y, trace = F, size = nn.grid[minid, 1], 
+                        decay = nn.grid[minid, 2], linout = linout, 
+                        censored = censored, skip = skip, weights = weights, 
+                        rang = rang, MaxNWts = 1e4)
     return(list(nn.grid.id = minid, nn.fit = nn.fit.best, 
                 error = nn.mean[minid]))
 }

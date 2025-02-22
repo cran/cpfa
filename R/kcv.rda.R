@@ -4,10 +4,10 @@ kcv.rda <-
            parallel = FALSE) 
 {
     kcvcheck(y = y, nfolds = nfolds, parallel = parallel, foldid = foldid)
-    if (is.null(prior)) {prior <- table(y) / length(y)}
+    if (is.null(prior)) {prior <- (table(y) / length(y))}
     grid.row <- nrow(rda.grid)
     cv.rda <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
-    if (parallel == TRUE) {
+    if (parallel == T) {
       cv.rda <- foreach(gg = 1:nfolds, .combine = cbind, 
                         .packages = 'rda') %dopar% {
                         x.train <- as.matrix(x[which(foldid != gg), ])

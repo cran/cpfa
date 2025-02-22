@@ -18,11 +18,11 @@ cpm <-
     if (!(is.null(level))) {
       llev <- length(level)
       if (!(class(level) %in% c("numeric", "integer", "character"))) {
-        stop ("Input 'level' must be of class 'numeric', 'integer' \n 
-              or 'character'.")
+        stop("Input 'level' must be of class 'numeric', 'integer' \n 
+             or 'character'.")
       }
       if (llev == 1) {
-        stop ("Input 'level' must contain two or more values when supplied.")
+        stop("Input 'level' must contain two or more values when supplied.")
       }
     } else {
       luni <- length(unique(c(x, y)))

@@ -8,7 +8,7 @@ kcv.svm <-
     kcvcheck(y = y, nfolds = nfolds, parallel = parallel, foldid = foldid)
     grid.row <- nrow(svm.grid)
     cv.svm <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
-    if (parallel == TRUE) {
+    if (parallel == T) {
       cv.svm <- foreach (gg = 1:nfolds, .combine = cbind, 
                          .packages = 'e1071') %dopar% {
                          x.train <- as.matrix(x[which(foldid != gg), ])
@@ -23,7 +23,8 @@ kcv.svm <-
                                            cost = svm.grid[yy, 2], nu = nu, 
                                            class.weights = class.weights,
                                            cachesize = cachesize, 
-                                           tolerance = tolerance, 
+                                           tolerance = tolerance, scale = scale,
+                                           kernel = kernel, degree = degree,
                                            shrinking = shrinking, cross = cross,
                                            probability = probability, 
                                            fitted = fitted, 
@@ -47,6 +48,7 @@ kcv.svm <-
                            class.weights = class.weights, cachesize = cachesize,
                            tolerance = tolerance, shrinking = shrinking,
                            cross = cross, probability = probability,
+                           kernel = kernel, degree = degree, scale = scale,
                            fitted = fitted, na.action = na.action)
             svm.pred <- predict(svm.fit, x.test, type = 'response')
             stortune[yy, 1] <- 1 - mean(svm.pred == y.test) 
@@ -61,6 +63,7 @@ kcv.svm <-
                         class.weights = class.weights, cachesize = cachesize,
                         tolerance = tolerance, shrinking = shrinking,
                         cross = cross, probability = probability, 
+                        kernel = kernel, degree = degree, scale = scale,
                         fitted = fitted, na.action = na.action)
     return(list(svm.grid.id = minid, svm.fit = svm.fit.best,
                 error = svm.mean[minid]))

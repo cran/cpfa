@@ -111,7 +111,7 @@ Matthew Snodgress <snodg031@umn.edu>
 }
 \examples{
 ########## Parafac example with 3-way array and binary response ##########
-
+\dontrun{
 # set seed and specify dimensions of a three-way tensor
 set.seed(3)
 mydim <- c(10, 11, 80)
@@ -190,4 +190,5 @@ evalmeasure <- cpm(x = newlabel, y = y.pred)
 
 # print performance measures
 evalmeasure
+}
 }

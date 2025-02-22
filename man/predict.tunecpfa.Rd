@@ -28,7 +28,7 @@ Obtains predictions for class labels from a 'tunecpfa' model object obtained usi
   For binary classification, value indicating prediction threshold over which observations are classified as the positive class. If not provided, calculates threshold using class proportions in original data. For multiclass classification, \code{threshold} is not currently implemented.
 }
 \item{...}{
-  Currently ignored. Additional predict arguments.
+  Additional predict arguments. Currently ignored.
 }
 }
 
@@ -42,7 +42,7 @@ Returns one of the following, depending on the choice for argument \code{type}:
 
 \item{type = "response"}{A data frame containing predicted class labels or probabilities (binary case) for each Parafac model and classification method selected (see argument \code{type}). Number of columns is equal to number of methods times number of Parafac models. Number of rows is equal to number of predicted observations.
 }
-\item{type = "prob"}{A list containing predicted probabilities for each Parafac model and classification method selected (see argument \code{type}). Only returned if original response was multiclass (i.e., contained three or more class labels). The number of list elements is equal to number of methods times the number of Parafac models.
+\item{type = "prob"}{A list containing predicted probabilities for each Parafac model and classification method selected (see argument \code{type}). Only returned if original response was multiclass (i.e., contained three or more class labels). The number of list elements is equal to the number of methods times the number of Parafac models.
 }
 \item{type = "classify.weights"}{List containing predicted component weights for each Parafac or Parafac2 model. Length is equal to number of Parafac models that were fit.
 }
@@ -55,7 +55,7 @@ See help file for function \code{tunecpfa} for a list of references.
 }
 \examples{
 ########## Parafac2 example with 4-way array and multiclass response ##########
-
+\dontrun{
 # set seed and specify dimensions of a four-way tensor
 set.seed(5)
 mydim <- c(10, 11, 12, 90)
@@ -158,4 +158,5 @@ predict.labels <- predict(object = tune.object, newdata = Xnew,
 
 # print predicted labels
 predict.labels
+}
 }

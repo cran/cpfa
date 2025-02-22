@@ -11,7 +11,7 @@ kcv.rf <-
     }
     grid.row <- nrow(rf.grid)
     cv.rf <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
-    if (parallel == TRUE) {
+    if (parallel == T) {
       cv.rf <- foreach (gg = 1:nfolds, .combine = cbind, 
                         .packages = 'randomForest') %dopar% {
                         x.train <- as.matrix(x[which(foldid != gg), ])

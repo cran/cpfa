@@ -182,16 +182,16 @@ cpfa <-
                contain any accepted values. See help file and argument \n
                'plot.measures' for a list of accepted values.")
         }
-        plottype <- which(cmeasures %in% plot.measures == TRUE) + 3
+        plottype <- which(cmeasures %in% plot.measures == T) + 3
       } 
     }
     stor <- array(0, dim = c(length(nfac) * length(method), 11, nrep))
     predstor <- Aw <- Bw <- Cw <- Pw <- vector(mode = "list", length = nrep)
     opara <- predstor
     cmode0 <- cmode
-    if (cmode <- lxdim) {cmode <- NULL}
+    if (cmode == lxdim) {cmode <- NULL}
     for (i in 1:nrep) {
-       if (verbose == TRUE) {cat("nrep =", i, " \n")}
+       if (verbose == T) {cat("nrep =", i, " \n")}
        set.seed(seed = seeds[i])
        train.id <- sample.int(nobs, size = ntrain)
        y.train <- y[train.id]
@@ -223,7 +223,7 @@ cpfa <-
        stor[ , , i] <- as.matrix(out$cpms)
        predstor[[i]] <- predict(object = tcpfalist, newdata = X.test, 
                                 type = "classify.weights")
-       if ((plot.out) && (i = 1)) {plot.mind <- tcpfalist$method}
+       if ((plot.out) && (i == 1)) {plot.mind <- tcpfalist$method}
     }
     mconst <- tcpfalist$const
     rnam <- rownames(out$cpms)
@@ -233,7 +233,7 @@ cpfa <-
     train.weights <- list(Atrain.weights = Aw, Btrain.weights = Bw, 
                           Ctrain.weights = Cw, Phitrain = Pw)
     mean.tune.param <- Reduce("+", opara) / length(opara)
-    if (plot.out == TRUE) {
+    if (plot.out == T) {
       ncomps <- length(nfac)
       nmethods <- length(method)
       plotstor <- data.frame(matrix(0, nrow = (ncomps * nmethods * nrep), 
@@ -241,7 +241,7 @@ cpfa <-
       plotcname <- c("method", "nfac", "rep", colnames(stor))
       colnames(plotstor) <- plotcname
       matnum <- ncomps * nmethods
-      methnames0 <- sapply(strsplit(rownames(stor), split = '.', fixed = TRUE), 
+      methnames0 <- sapply(strsplit(rownames(stor), split = '.', fixed = T), 
                            function(x) (x[2]))
       methnames <- gsub('[[:digit:]]+', '', methnames0)
       nfacnames <- as.numeric(gsub(".*?([0-9]+).*", "\\1", rownames(stor)))
@@ -257,7 +257,7 @@ cpfa <-
       for (j in 1:length(plottype)) {
          pformula <- formula(paste0(toplot[j], " ~ ", "method * nfac"))
          boxplot(pformula, data = plotstor, ylim = c(0, 1), 
-                 xlab = "Method and Number of Components", na.rm = FALSE,
+                 xlab = "Method and Number of Components", na.rm = F,
                  ylab = toupper(toplot[j]), main = "Performance Measure")
       }
     }
@@ -275,7 +275,7 @@ cpfa <-
       for (j in seq_along(dfun)) {
          output[[j]] <- apply(stor, 1:2, 
                              FUN = function(x){return(get(dfun[j])(x, 
-                                                                na.rm = TRUE))})
+                                                                na.rm = T))})
          rownames(output[[j]]) <- rnam
          colnames(output[[j]]) <- cnam
       }

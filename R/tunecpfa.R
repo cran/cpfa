@@ -219,7 +219,7 @@ tunecpfa <-
     if (checkmethod != length(method)) {
       stop("Input 'method' contains at least one value that is not valid.")
     }
-    method <- which(omethods %in% toupper(method) == TRUE)
+    method <- which(omethods %in% toupper(method) == T)
     if (length(method) == 0) {method <- 1:6}
     if (!(is.logical(verbose))) {
       stop("Input 'verbose' must be of class logical.")
@@ -414,8 +414,8 @@ tunecpfa <-
     for (w in 1:lnfac) {
        optmodel.new <- vector("list", 6)                                        
        if (model == "parafac") {
-         if (verbose == TRUE) {
-           cat("nfac =", nfac[w], "method = parafac", fill = TRUE)
+         if (verbose == T) {
+           cat("nfac =", nfac[w], "method = parafac", fill = T)
          }
          tic <- proc.time()
          pfac <- parafac(X = x, nfac = nfac[w], parallel = parallel, cl = cl,   
@@ -431,8 +431,8 @@ tunecpfa <-
            train <- train.weights[[w]] <- as.matrix(pfac$D)
          }
        } else {
-         if (verbose == TRUE) {
-           cat("nfac =", nfac[w], "method = parafac2", fill = TRUE)
+         if (verbose == T) {
+           cat("nfac =", nfac[w], "method = parafac2", fill = T)
          }
          tic <- proc.time()
          pfac <- parafac2(X = x, nfac = nfac[w], parallel = parallel, cl = cl,  
@@ -450,8 +450,8 @@ tunecpfa <-
          Phi[[w]] <- pfac$Phi
        }
        if ('1' %in% method) {
-         if (verbose == TRUE) {
-           cat("nfac =", nfac[w], "method = plr", fill = TRUE)
+         if (verbose == T) {
+           cat("nfac =", nfac[w], "method = plr", fill = T)
          }
          tic <- proc.time()
          if (nfac[w] == 1 || nfac[w] == 1L) {
@@ -482,8 +482,8 @@ tunecpfa <-
          optmodel.new[[1]] <- NULL
        }
        if ('2' %in% method) {
-         if (verbose == TRUE) {
-           cat("nfac =", nfac[w], "method = svm", fill = TRUE)
+         if (verbose == T) {
+           cat("nfac =", nfac[w], "method = svm", fill = T)
          }
          tic <- proc.time()
          svm.results <- kcv.svm(x = train, y = y, nfolds = nfolds,
@@ -501,8 +501,8 @@ tunecpfa <-
          optmodel.new[[2]] <- NULL
        }
        if ('3' %in% method) {
-         if (verbose == TRUE) {
-           cat("nfac =", nfac[w], "method = rf", fill = TRUE)
+         if (verbose == T) {
+           cat("nfac =", nfac[w], "method = rf", fill = T)
          }
          tic <- proc.time()
          rf.results <- kcv.rf(x = train, y = y, nfolds = nfolds,
@@ -520,8 +520,8 @@ tunecpfa <-
          optmodel.new[[3]] <- NULL
        }
        if ('4' %in% method) {
-         if (verbose == TRUE) {
-           cat("nfac =", nfac[w], "method = nn", fill = TRUE)
+         if (verbose == T) {
+           cat("nfac =", nfac[w], "method = nn", fill = T)
          }
          tic <- proc.time()
          nn.results <- kcv.nn(x = train, y = y, nfolds = nfolds,
@@ -539,8 +539,8 @@ tunecpfa <-
          optmodel.new[[4]] <- NULL
        }
        if ('5' %in% method) {
-         if (verbose == TRUE) {
-           cat("nfac =", nfac[w], "method = rda", fill = TRUE)
+         if (verbose == T) {
+           cat("nfac =", nfac[w], "method = rda", fill = T)
          }
          tic <- proc.time()
          rda.results <- kcv.rda(x = train, y = as.numeric(y) - 1, 
@@ -559,8 +559,8 @@ tunecpfa <-
          optmodel.new[[5]] <- NULL
        }
        if ('6' %in% method) {
-         if (verbose == TRUE) {
-           cat("nfac =", nfac[w], "method = gbm", fill = TRUE)
+         if (verbose == T) {
+           cat("nfac =", nfac[w], "method = gbm", fill = T)
          }
          tic <- proc.time()
          gbm.results <- kcv.gbm(x = train, y = y, nfolds = nfolds, 
@@ -601,7 +601,7 @@ tunecpfa <-
        est.time <- rbind(est.time, esttime.new)
        kcv.error <- rbind(kcv.error, kcv.error.new)
     }                                                                      
-    if (parallel == TRUE) {stopCluster(cl)}
+    if (parallel == T) {stopCluster(cl)}
     levels(y) <- names(frac)
     if (lxdim == 3L) {
       tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 

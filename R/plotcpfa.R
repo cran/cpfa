@@ -45,7 +45,7 @@ plotcpfa <-
       X <- aperm(X, mode.re)
     }
     values <- object$descriptive
-    if (meanvalue == TRUE) {
+    if (meanvalue == T) {
       finalvalues <- values$mean
     } else {
       finalvalues <- values$median
@@ -57,14 +57,14 @@ plotcpfa <-
     }
     lowisbest <- c("err", "fpr", "fnr", "fdr", "fom")
     if (cmeasure %in% lowisbest) {
-      methodnfac <- names(which(vals == min(vals, na.rm = TRUE)))
+      methodnfac <- names(which(vals == min(vals, na.rm = T)))
     } else {
-      methodnfac <- names(which(vals == max(vals, na.rm = TRUE)))
+      methodnfac <- names(which(vals == max(vals, na.rm = T)))
     }
     nfac.opt0 <- as.numeric(gsub("[^0-9]", "", methodnfac))
     nfac.opt <- min(nfac.opt0)
     mapstor <- vector("list", 3)
-    if (parallel == TRUE) {
+    if (parallel == T) {
       if (is.null(cl)) {cl <- makeCluster(detectCores())}
       ce <- clusterEvalQ(cl, library(multiway))
       registerDoParallel(cl)
@@ -97,7 +97,7 @@ plotcpfa <-
       mapstor[[2]] <- pfac$B                                             
       if (lxdim == 4L) {mapstor[[3]] <- pfac$C}
     }
-    if (parallel == TRUE) {stopCluster(cl)}
+    if (parallel == T) {stopCluster(cl)}
     plotlabels <- c("A Weights", "B Weights", "C Weights")
     palette_colors <- colorRampPalette(c("red", "white", "green"))(50)
     par(mfrow = c(1, 1))
@@ -111,11 +111,11 @@ plotcpfa <-
          maxabs <- max(abs(mat))
          image(x = 1:ncol(mat), y = 1:nrow(mat), z = t(mat)[, nrow(mat):1],
                col = palette_colors, xlab = "Components", ylab = "Levels", 
-               axes = FALSE, zlim = c(-maxabs, maxabs), main = mainlab)
+               axes = F, zlim = c(-maxabs, maxabs), main = mainlab)
          axis(1, at = 1:ncol(mat), labels = colnames(mat))
          axis(2, at = 1:nrow(mat), labels = rev(rownames(mat)))
          box()
-         if (!(supNum == TRUE)) {
+         if (!(supNum == T)) {
            for (j in 1:nrow(mat)) {
               for (k in 1:ncol(mat)) {
                  text(x = k, y = (nrow(mat) - j + 1), 

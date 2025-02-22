@@ -17,7 +17,7 @@ kcv.gbm <-
     num_classes <- length(unique(y))
     grid.row <- nrow(gbm.grid)
     cv.gbm <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
-    if (parallel == TRUE) {
+    if (parallel == T) {
       cv.gbm <- foreach(gg = 1:nfolds, .combine = cbind, 
                         .packages = 'xgboost') %dopar% {
                         x.train <- as.matrix(x[which(foldid != gg), ])
