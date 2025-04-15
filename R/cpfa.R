@@ -7,7 +7,7 @@ cpfa <-
            prior = NULL, cmode = NULL, seeds = NULL, plot.out = FALSE, 
            plot.measures = NULL, parallel = FALSE, cl = NULL, 
            verbose = TRUE, ...) 
-{   
+{
     models <- c("parafac", "parafac2")
     model0 <- sum(tolower(model) %in% models)
     if ((model0 == 0) || (model0 > 1L)) {

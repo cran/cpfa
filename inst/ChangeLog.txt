@@ -1,3 +1,23 @@
+Changes: version 1.1-8  (2025-04-16)
+
+1.) Added new function ‘simcpfa’ for simulating data structures for 'cpfa'
+	- Previously package 'cpfa' did not have a function to simulate relevant data
+	- Now a new function simulates data arrays that are connected to class labels
+
+2.) Added new internal function 'distdraw' to support new function 'simcpfa'
+	- Previously package did not have a function to simulate data from common distributions
+	- Now a new internal function simulates data from distributions to support 'simcpfa'
+
+3.) Fixed contact email address in package help files
+	- Previously contact email listed in help files was a university email address
+	- Now contact email is listed as a personal email address
+
+4.) Updated references and fixed wording in help files
+	- Previously several help file references were outdated and some wording was vague
+	- Now help file references reflect R package updates and wording is improved
+
+----------------
+
 Changes: version 1.1-7  (2025-02-23)
 
 1.) Updated contact information

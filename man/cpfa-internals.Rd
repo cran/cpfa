@@ -10,6 +10,7 @@
 \alias{kcv.rda}
 \alias{kcv.gbm}
 \alias{kcvcheck}
+\alias{distdraw}
 
 \description{
   Internal functions for the "cpfa" package.
