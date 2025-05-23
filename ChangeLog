@@ -1,4 +1,28 @@
-Changes: version 1.1-8  (2025-04-16)
+Changes: version 1.1-9  (2025-05-23)
+
+1.) Fixed wording inconsistencies in help files
+	- Previously several help files contained wording errors
+	- Now errors are fixed with improved help file readability
+
+2.) Improved function 'simcpfa' by allowing different error structures
+	- Previously, added error could only come from a standard normal distribution
+	- Now different types of error can be added to the simulated array
+
+3.) Improved function 'simcpfa' by allowing custom classification mode weight matrices
+	- Previously a classification mode weight matrix could not be specified, only generated
+	- Now the classification mode weight matrix can be specified
+
+4.) Improved function 'simcpfa' by allowing additional probability distributions
+	- Previously weights could be drawn from only seven probability distributions
+	- Now weights can be drawn from 12 common probability distributions
+
+5.) Bug fix in package function 'simcpfa'
+	- Previously a bug prevented data from being generated when 'nfac = 1'
+	- Now data can be generated successfully when 'nfac = 1'
+
+----------------
+
+Changes: version 1.1-8  (2025-04-15)
 
 1.) Added new function ‘simcpfa’ for simulating data structures for 'cpfa'
 	- Previously package 'cpfa' did not have a function to simulate relevant data

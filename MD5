@@ -1,9 +1,10 @@
-890de373ebc99aeae2a8c36f08887a21 *DESCRIPTION
-9cadde060a796ba73f3f7bccfc31060a *NAMESPACE
+fa7aeb6db6f2507a2931011c2a0b0fa5 *ChangeLog
+dfa91bd1017e5a18c9385371c8225f88 *DESCRIPTION
+8bdbeedfa38a63b9ef8c194e91f0ade7 *NAMESPACE
 c0370f32f77e0359e24d9eabef586825 *R/cpfa.R
 1f14ffbb924d8504b7f30cac511611ff *R/cpm.R
 2c8f353ab2e217f7aabff5d3016ade49 *R/cpm.all.R
-94c2cbd485437a5c9cb963d8bbb45bc7 *R/distdraw.R
+74e1ad19bef99a784ca7c27688b58219 *R/distdraw.R
 b3c5bf5bfc77c3b400f6cc2a2f42ada5 *R/kcv.gbm.R
 2c0f2cf68d9d97bf5926fa0a041351a0 *R/kcv.nn.R
 4441e53a09de2b50fe104ebce9f0db2a *R/kcv.plr.R
@@ -14,9 +15,8 @@ daddccdd326ef4d4b497baeddf85625a *R/kcvcheck.R
 2e1f06d9a2226634c81c15b4f5c69792 *R/plotcpfa.R
 8077d2cd756efb0ae0f3389fc28c8566 *R/predict.tunecpfa.R
 a084dcfb58786ba7304aced79a302b78 *R/print.tunecpfa.R
-aba0a8edff46c5c46931154e2a18fc1e *R/simcpfa.R
-52930d7c9e69dc59c084284ef7093893 *R/tunecpfa.R
-6e8ef6b1ed6fe23a22d0e92ab8e80dc8 *inst/ChangeLog.txt
+9250763c14d55625fda810f3650e517a *R/simcpfa.R
+1637f2e710e813c27c7c90826948bf49 *R/tunecpfa.R
 9dd40e817c93c764488a12844811edd4 *man/cpfa-internals.Rd
 44e6e450c5ecd6111dfb1ce7a3dac3e9 *man/cpfa.Rd
 f8f9714f683c0c8f3c77adade8b9b7ba *man/cpm.Rd
@@ -24,5 +24,5 @@ f8f9714f683c0c8f3c77adade8b9b7ba *man/cpm.Rd
 215de5a2a27423b816fd14675eebe429 *man/plotcpfa.Rd
 052c3f879a7eb4d9db324d393a22302a *man/predict.tunecpfa.Rd
 35e8fc35fc807ef26209f918a4ea56d8 *man/print.tunecpfa.Rd
-973875ba2c0676a5d6b1b8d9966c9a63 *man/simcpfa.Rd
+387f24cea4119c45bcc8b9cabf75029c *man/simcpfa.Rd
 99f5f1bffce14066f573452e7e57bbe8 *man/tunecpfa.Rd

@@ -415,7 +415,7 @@ tunecpfa <-
        optmodel.new <- vector("list", 6)                                        
        if (model == "parafac") {
          if (verbose == T) {
-           cat("nfac =", nfac[w], "method = parafac", fill = T)
+           cat("nfac =", nfac[w], "model = parafac", fill = T)
          }
          tic <- proc.time()
          pfac <- parafac(X = x, nfac = nfac[w], parallel = parallel, cl = cl,   
@@ -432,7 +432,7 @@ tunecpfa <-
          }
        } else {
          if (verbose == T) {
-           cat("nfac =", nfac[w], "method = parafac2", fill = T)
+           cat("nfac =", nfac[w], "model = parafac2", fill = T)
          }
          tic <- proc.time()
          pfac <- parafac2(X = x, nfac = nfac[w], parallel = parallel, cl = cl,  

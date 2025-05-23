@@ -7,14 +7,15 @@ Simulate Data for Classification with Parallel Factor Analysis
 Simulates a three-way or four-way data array and a set of class labels that are 
 related to the simulated array through one mode of the array. Data array is 
 simulated using either a Parafac or Parafac2 model with no constraints. Weights 
-for different mode weight matrices can be drawn from seven common probability 
-distributions. 
+for mode weight matrices can be drawn from 12 common probability 
+distributions. Alternatively, custom weights can be provided for any mode.
 }
 \usage{
 simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100, 
-        onreps = 10, corresp = c(0.3, -0.3), meanpred = c(0, 0), modes = 3,
+        onreps = 10, corresp = c(0.3, -0.3), meanpred = c(0, 0), modes = 3, 
         corrpred = matrix(c(1, 0.2, 0.2, 1), nrow = 2), pf2num = NULL, 
-        Amat = NULL, Bmat = NULL, Cmat = NULL, Gmat = NULL, technical = list())
+        Amat = NULL, Bmat = NULL, Cmat = NULL, Dmat = NULL, Gmat = NULL, 
+        Emat = NULL, technical = list())
 }
 \arguments{
 \item{arraydim}{
@@ -23,7 +24,7 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
 }
 \item{model}{
   Character specifying the model to use for simulating the data array. Must be 
-  one of either 'parafac' or 'parafac2'.
+  either 'parafac' or 'parafac2'.
 }
 \item{nfac}{
   Number of components in the Parafac or Parafac2 model. Must be an integer 
@@ -50,7 +51,7 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
   Numeric vector of means used to generate the classification mode component 
   weights. Must be real numbers. Operates as the mean vector parameterizing a 
   multivariate normal distribution from which classification mode component 
-  weights are generated.
+  weights are generated. Length must be equal to input \code{nfac}.
 }
 \item{modes}{
   Single integer of either 3 or 4, indicating whether to simulate a three-way 
@@ -65,16 +66,18 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
 }
 \item{pf2num}{
   When \code{model = 'parafac2'}, number of rows for each simulated matrix in 
-  the list of matrices \code{Amat}. If not specified when 
-  \code{model = 'parafac2'}, defaults to 
-  \code{rep(c(nfac, (nfac + 1), (nfac + 2)), length.out = arraydim[modes])}.
+  the list of matrices \code{Amat}. Replaces the first element of input 
+  \code{arraydim} because, for the Parafac2 model, the number of rows in each 
+  simulated matrix can vary. If not specified when \code{model = 'parafac2'}, 
+  defaults to \code{rep(c((nfac + 1), (nfac + 2), (nfac + 3)), 
+  length.out = arraydim[modes])}.
 }
 \item{Amat}{
   When \code{model = 'parafac'}, a matrix of A mode weights with number of rows 
   equal to the first element of input 'arraydim' and with number of columns 
   equal to input 'nfac'. When \code{model = 'parafac2'}, a list with length 
   equal to the last element of input 'arraydim', where each list element 
-  contains a matrix with number of rows of at least 2 or more and with number 
+  contains a matrix with number of rows of at least 2 and with number 
   of columns equal to input 'nfac'. When provided, replaces a 
   simulated \code{Amat}.
 }
@@ -86,12 +89,31 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
 \item{Cmat}{
   A matrix of C mode weights with number of rows equal to the third element of 
   input 'arraydim' and with number of columns equal to the input 'nfac'. When 
-  provided, replaces a simulated \code{Cmat} when \code{modes = 3}.
+  provided, replaces a simulated \code{Cmat} when \code{modes = 4}. When
+  \code{modes = 3}, replaces the simulated classification mode weight matrix. If
+  provided when \code{modes = 3}, \code{onreps} is reduced to one.
+}
+\item{Dmat}{
+  A matrix of D mode weights with number of rows equal to the fourth element of 
+  input 'arraydim' and with number of columns equal to the input 'nfac'. When
+  \code{modes = 4}, replaces the simulated classification mode weight matrix.
+  When \code{modes = 3}, this argument is ignored.  If provided when 
+  \code{modes = 4}, \code{onreps} is reduced to one.
 }
 \item{Gmat}{
-  When \code{model = 'parafac2'}, a matrix of G weights with number of rows 
+  When \code{model = 'parafac2'}, a matrix of G mode weights with number of rows 
   equal to input 'nfac' and with number of columns equal to input 'nfac'. When 
   provided, replaces a simulated \code{Gmat}.
+}
+\item{Emat}{
+  When \code{model = 'parafac'}, an array containing noise to be added to the
+  corresponding elements in the simulated data array. Error array dimensions
+  must be equal to the values contained in \code{arraydim}. When
+  \code{model = 'parafac2'}, a list containing either matrices 
+  (i.e., when \code{modes = 3}) or three-way arrays (i.e., when 
+  \code{modes = 4}) whose elements contain noise to be added to corresponding 
+  elements in the simulated data array. When provided, replaces a simulated
+  \code{Emat}.
 }
 \item{technical}{
   List containing arguments related to distributions from which to simulate 
@@ -110,7 +132,7 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
   information on acceptable arguments.
 }
 \item{distC}{
-  List containing arguments specifying the distribution from which deviates 
+  For when \code{modes = '4'}, list containing arguments specifying the distribution from which deviates 
   are drawn for C mode weights contained in \code{Cmat}. Defaults to standard 
   normal distribution when not specified. See Details section for additional 
   information on acceptable arguments.
@@ -120,6 +142,12 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
   distribution from which deviates are drawn for G weights contained 
   in \code{Gmat}. Defaults to standard normal distribution when not specified. 
   See Details section for additional information on acceptable arguments.
+}
+\item{distE}{
+  List containing arguments specifying the distribution from which deviates 
+  are drawn for error contained in \code{Emat}. Defaults to standard 
+  normal distribution when not specified. See Details section for additional 
+  information on acceptable arguments.
 }
 }
 }
@@ -144,10 +172,14 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
   (i.e., with correlations closest to \code{corresp}) are retained as the final 
   class labels with corresponding final classification weights. An adaptive 
   sampling technique is used during the simulation such that optimal beta 
-  cofficients from previous iterations are used to parameterize a normal 
+  coefficients from previous iterations are used to parameterize a normal 
   distribution, from which new coefficients are drawn in subsequent iterations. 
   Note that, if any simulation replicate produces a set of class labels where 
   all labels are the same (i.e., have no variance), that replicate is discarded.
+  Note also that \code{onreps} is ignored when the classification mode weight 
+  matrix (i.e., \code{Cmat} when \code{modes = 3} or \code{Dmat} when 
+  \code{modes = 4}) is provided; in this case, class labels are simulated with 
+  respect to the provided classification mode weight matrix.
   
   Second, depending on the chosen model (i.e., Parafac or Parafac2) specified 
   via \code{model}, and depending on the number of modes specified 
@@ -158,22 +190,24 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
   first step. Alternatively, weight matrices can be provided to override random 
   generation for any weight matrix with the exception of the classification 
   mode. When provided, weight matrices are used to form the final data array. 
-  Finally, random noise from a standard normal distribution is added to each 
-  value in the array. The resulting output is a synthetic multiway data array 
+  Finally, random noise is added to each value in the array. 
+  The resulting output is a synthetic multiway data array 
   paired, through one mode of the array, with a simulated binary or multiclass 
   response.
   
   The \code{technical} argument controls the probability distributions used to 
   simulate weights for different modes. Currently, \code{technical} is highly 
   structured. In particular, \code{technical} must be provided as a named list 
-  whose elements must be one of 'distA', 'distB', 'distC', or 'distG', with the 
-  last letter of each name designating a mode. Each element provided must be
-  itself a list where the first inner list element is named 'dname', specifying 
-  the distribution to be used to generate weights for a given mode. There are 
-  seven 'dname' options, including: 'normal', 'uniform', 'gamma', 'beta', 
-  'binomial', 'poisson', or 'exponential'. Additional arguments can be added 
-  to each inner list to parameterize the probability distribution being used. 
-  These arguments can be one of the following, for each distribution allowed: 
+  whose elements must be one of 'distA', 'distB', 'distC', 'distG', or 'distE', 
+  with the last letter of each name designating a mode or, in the case of 
+  'distE', designating error. Each element provided must itself be a list where 
+  the first inner list element is named 'dname', specifying the distribution to 
+  be used to generate weights for a given mode or for error. There are 12 
+  'dname' options: 'normal', 'uniform', 'gamma', 'beta', 'binomial', 'poisson', 
+  'exponential', 'geometric', 'negbinomial', 'hypergeo', 'lognormal', and 
+  'cauchy'. Additional arguments can be added to each inner list to parameterize 
+  the probability distribution being used. These arguments can be one of the 
+  following, for each distribution allowed: 
   
   For \code{dname = 'normal'}, allowed arguments are \code{mean} or 
   \code{sd} (i.e., function \code{rnorm} is called).
@@ -195,9 +229,24 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
 
   For \code{dname = 'exponential'}, allowed argument is \code{rate} (i.e., 
   function \code{rexp} is called).
+  
+  For \code{dname = 'geometric'}, allowed argument is \code{prob} (i.e., 
+  function \code{rgeom} is called).
+  
+  For \code{dname = 'negbinomial'}, allowed arguments are \code{size} or 
+  \code{prob} (i.e., function \code{rnbinom} is called).
+
+  For \code{dname = 'hypergeo'}, allowed arguments are \code{m}, \code{n}, or 
+  \code{k} (i.e., function \code{rhyper} is called).
+
+  For \code{dname = 'lognormal'}, allowed arguments are \code{meanlog} or 
+  \code{sdlog} (i.e., function \code{rlnorm} is called).
+
+  For \code{dname = 'cauchy'}, allowed arguments are \code{location} or 
+  \code{scale} (i.e., function \code{rcauchy} is called).
 
   Note that if a weight matrix and technical information are both provided 
-  for a given mode, the weight matrix is used while technical 
+  for a given mode (or for error), the weight matrix is used while technical 
   information is ignored. See Examples below for an example of how to set up 
   \code{technical}.
 }
@@ -216,12 +265,6 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
   \item{model}{
     Character value indicating whether Parafac or Parafac2 model was used to 
     simulate the data array.
-  }
-  \item{Gmat}{
-    Simulated G weights provided when \code{model = 'parafac2'}. Provided as 
-    a matrix with number of rows and columns equal to \code{nfac}. If 
-    \code{Gmat} was supplied, returns original \code{Gmat} instead of a 
-    simulated \code{Gmat}.
   }
   \item{Amat}{
     Simulated A mode weights. When \code{model = 'parafac'}, output is a matrix
@@ -250,36 +293,36 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
     with number of rows equal to the fourth element of \code{arraydim} and with 
     number of columns equal to the number of components \code{nfac}.
   }
+  \item{Gmat}{
+    Simulated G weights provided when \code{model = 'parafac2'}. Provided as 
+    a matrix with number of rows and columns equal to \code{nfac}. If 
+    \code{Gmat} was supplied, returns original \code{Gmat} instead of a 
+    simulated \code{Gmat}.
+  }
   \item{Emat}{
-    Error array or list containing standard normal deviates added to 
-    corresponding elements of simulated data array \code{X}. Output has 
-    dimensions specified by \code{arraydim} and, when \code{model = 'parafac2'},
-    also by \code{pf2num}. When \code{model = 'parafac'}, \code{Emat} is an 
-    object of class 'array'. When \code{model = 'parafac2'}, \code{Emat} is an 
-    object of class 'list'. 
+    Error array or list containing noise added to corresponding elements of 
+    simulated data array. Output has dimensions specified by 
+    \code{arraydim} and, when \code{model = 'parafac2'}, also by \code{pf2num}. 
+    When \code{model = 'parafac'}, \code{Emat} is an object of class 'array'. 
+    When \code{model = 'parafac2'}, \code{Emat} is an object of class 'list'. 
   }
 }
 \note{
-This simulation implementation contains at least four limitations. First, there 
+This simulation implementation contains at least two limitations. First, there 
 is currently no argument to control the proportions of generated class labels. 
 Second, the covariance matrix parameterizing the multivariate normal 
 distribution generating classification mode weights is restricted to a 
-correlation matrix. Third, there is no argument to control noise added to the 
-simulated data array (i.e., noise is limited to draws from a standard normal 
-distribution). Fourth, a classification mode weight matrix cannot be provided 
-to replace a generated classification mode weight matrix. Future updates are 
-planned to address these limitations.
+correlation matrix. Future updates are planned to address these limitations.
 
-In addition, the simulation could be expanded in at least four ways. First, 
-more probability distribution types could be made allowable. Second, the Monte 
-Carlo simulation approach, as a brute-force strategy, is simple but not optimal 
-and could be replaced with a more optimal approach. Note that the correlations
-between simulated class labels and classification mode weights, while ideally 
-close to \code{corresp}, represent a best-case scenario---given values for 
-\code{onreps}, \code{nreps}, and \code{corrpred}. Third, class labels are 
-currently connected to the data array through only one mode but could be 
-simulated such that they are connected through two or more modes. Future 
-updates are planned to implement these enhancements.
+In addition, the simulation could be expanded in at least two ways. First, 
+the Monte Carlo simulation, as a brute-force strategy, is simple but 
+not optimal and could be replaced with a more efficient approach. Note that 
+the correlations between simulated class labels and classification mode 
+weights, while ideally close to \code{corresp}, represent a best-case 
+scenario---given values for \code{onreps}, \code{nreps}, and \code{corrpred}. 
+Second, class labels are currently connected to the data array through only one 
+mode but could be simulated such that they are connected through two or more 
+modes. Future updates are planned to implement these enhancements.
 }
 \author{
  Matthew Snodgress <mattgress@protonmail.ch>
