@@ -1,3 +1,15 @@
+Changes: version 1.2-0  (2025-06-11)
+
+1.) Bug fix in package function 'cpfa'
+	- Previously a bug prevented argument 'cmode' from permuting 'X' when using Parafac models
+	- Now 'cmode' correctly permutes 'X' for Parafac models
+
+2.) Added a short vignette describing how to use the package
+	- Previously package contained no guide for use
+	- Now adds vignette describing how to use the package
+
+----------------
+
 Changes: version 1.1-9  (2025-05-23)
 
 1.) Fixed wording inconsistencies in help files
@@ -24,7 +36,7 @@ Changes: version 1.1-9  (2025-05-23)
 
 Changes: version 1.1-8  (2025-04-15)
 
-1.) Added new function ‘simcpfa’ for simulating data structures for 'cpfa'
+1.) Added new function 'simcpfa' for simulating data structures for 'cpfa'
 	- Previously package 'cpfa' did not have a function to simulate relevant data
 	- Now a new function simulates data arrays that are connected to class labels
 
@@ -80,7 +92,7 @@ Changes: version 1.1-6  (2024-11-01)
 
 Changes: version 1.1-5  (2024-10-01)
 
-1.) Added new function ‘plotcpfa’ to plot output from function 'cpfa'
+1.) Added new function 'plotcpfa' to plot output from function 'cpfa'
 	- Previously 'cpfa' output did not have a method to visualize results
 	- Now a new function fits a model based on 'cpfa' output and plots results
 
@@ -208,7 +220,7 @@ Changes:  version 1.0-6  (2023-09-07)
 
 Changes:  version 1.0-5  (2023-08-07)
 
-1.) Added new function ‘cpfa’ as a wrapper function to implement method
+1.) Added new function 'cpfa' as a wrapper function to implement method
 	- Previously package functions were not united 
 	- Now new wrapper function unites package functions
 
@@ -254,4 +266,4 @@ Changes:  version 1.0-1  (2022-04-09)
 
 Changes:  version 1.0-0  (2022-03-09)
 
-1.) Submitted to CRAN a new package called ‘cpfa’
+1.) Submitted to CRAN a new package called 'cpfa'

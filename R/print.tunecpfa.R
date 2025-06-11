@@ -1,15 +1,12 @@
 print.tunecpfa <-
   function(x, ...)
 {
-    if (!inherits(x, "tunecpfa")) {
+    if (!(inherits(x, "tunecpfa"))) {
       stop("Input 'x' must be of class 'tunecpfa'.")
     }
-    kcv.error <- x$kcv.error
-    est.time <- x$est.time
-    method <- x$method
-    nfac <- x$opt.param$nfac
-    nway <- x$lxdim
-    model <- x$model
+    kcv.error <- x$kcv.error; est.time <- x$est.time
+    method <- x$method; nfac <- x$opt.param$nfac
+    nway <- x$lxdim; model <- x$model
     method.char <- NULL
     mname <- c("PLR", "SVM", "RF", "NN", "RDA", "GBM")
     nus <- as.character(1:6)

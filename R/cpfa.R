@@ -29,8 +29,8 @@ cpfa <-
         if (!(cmode %in% (1:lxdim))) {
           stop("Input 'cmode' must be 1, 2, or 3 \n 
                (or 4 if 'x' is a 4-way array).")
-        }
-        modeval <- 1:lxdim
+        } 
+        modeval <- 1:lxdim 
         mode.re <- c(modeval[-cmode], cmode)
         x <- aperm(x, mode.re)
       } else {
@@ -46,7 +46,7 @@ cpfa <-
         stop("Input 'x' cannot contain NaN or Inf values.")
       }
       if (any(is.na(x))) {stop("Input 'x' cannot contain missing values.")}
-      if (!is.null(cmode)) {
+      if (!(is.null(cmode))) {
         cmode <- lxdim
         warning("Input 'cmode' is ignored when 'model = parafac2'. Last mode \n
                 is classification mode by default.")
@@ -212,7 +212,7 @@ cpfa <-
                              nfolds = nfolds, method = method, foldid = foldid, 
                              prior = prior, model = model, family = family,
                              parameters = parameters, parallel = parallel, 
-                             cl = cl, verbose = verbose, cmode = cmode, ...)
+                             cl = cl, verbose = verbose, cmode = NULL)
        Aw[[i]] <- tcpfalist$Aweights
        Bw[[i]] <- tcpfalist$Bweights
        Cw[[i]] <- tcpfalist$Cweights

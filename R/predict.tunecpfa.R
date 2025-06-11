@@ -3,7 +3,7 @@ predict.tunecpfa <-
            type = c("response", "prob", "classify.weights"), 
            threshold = NULL, ...)                                               
 {   
-    if (!inherits(object, "tunecpfa")) {
+    if (!(inherits(object, "tunecpfa"))) {
       stop("Input 'object' must be of class 'tunecpfa'.")
     }
     model <- object$model
