@@ -1,10 +1,10 @@
 Package: cpfa
 Type: Package
 Title: Classification with Parallel Factor Analysis
-Version: 1.2-0
-Date: 2025-06-11
-Authors@R: person(c("Matthew", "A."), "Snodgress", email = "mattgress@protonmail.ch", role = c("aut", "cre"))
-Maintainer: Matthew A. Snodgress <mattgress@protonmail.ch>
+Version: 1.2-1
+Date: 2025-07-07
+Authors@R: person(c("Matthew", "A."), "Asisgress", email = "mattgress@protonmail.ch", role = c("aut", "cre"))
+Maintainer: Matthew A. Asisgress <mattgress@protonmail.ch>
 Depends: multiway
 Imports: glmnet, e1071, randomForest, nnet, rda, xgboost, foreach,
         doParallel
@@ -13,7 +13,7 @@ Description: Classification using Richard A. Harshman's Parallel Factor Analysis
 License: GPL (>= 2)
 VignetteBuilder: knitr, rmarkdown
 NeedsCompilation: no
-Packaged: 2025-06-11 18:41:11 UTC; nr2
-Author: Matthew A. Snodgress [aut, cre]
+Packaged: 2025-07-07 21:08:35 UTC; nr2
+Author: Matthew A. Asisgress [aut, cre]
 Repository: CRAN
-Date/Publication: 2025-06-11 19:10:02 UTC
+Date/Publication: 2025-07-08 00:00:06 UTC

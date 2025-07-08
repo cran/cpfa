@@ -126,7 +126,7 @@ predict.tunecpfa <-
     nfac <- object$opt.param$nfac
     opt.param <- object$opt.param
     lnfac <- length(nfac)
-    nfac.names <- paste("fac.", nfac, sep ="")
+    nfac.names <- paste("fac.", nfac, sep = "")
     if (is.null(method)) {
       method <- object$method
       lmethod <- length(method)
@@ -329,7 +329,7 @@ predict.tunecpfa <-
                  svm.prob <- attr(predict(svm.fit, C.pred, type = type,
                                   probability = TRUE), "probabilities")
                  sord <- cbind(1:ncol(svm.prob), 
-                              as.numeric(colnames(svm.prob)) + 1)
+                               as.numeric(colnames(svm.prob)) + 1)
                  svmord <- sord[order(sord[,2]), ]
                  svm.prob <- svm.prob[, svmord[, 1]]
                  storfac[, colcount] <- as.numeric((apply(svm.prob, 1, 

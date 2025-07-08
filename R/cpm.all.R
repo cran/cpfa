@@ -16,9 +16,8 @@ cpm.all <-
        cmat[[i]] <- values[[i]][[1]]
        cpms <- rbind(cpms, values[[i]][[2]]) 
     }
-    nam <- colnames(x)
-    names(cmat) <- nam
-    rownames(cpms) <- nam
+    names(cmat) <- colnames(x)
+    rownames(cpms) <- colnames(x)
     output <- list(cm.list = cmat, cpms = cpms)
     return(output)
 }

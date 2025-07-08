@@ -53,7 +53,7 @@ measures for classification tasks. Information Processing and Management,
 45(4), 427-437.
 }
 \author{
-Matthew Snodgress <mattgress@protonmail.ch>
+Matthew Asisgress <mattgress@protonmail.ch>
 }
 \examples{
 ########## Parafac example with 3-way array and binary response ##########

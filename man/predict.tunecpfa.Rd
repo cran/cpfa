@@ -86,7 +86,7 @@ that were fit.
 }
 }
 \author{
- Matthew Snodgress <mattgress@protonmail.ch>
+ Matthew Asisgress <mattgress@protonmail.ch>
 }
 \references{
 See help file for function \code{tunecpfa} for a list of references.

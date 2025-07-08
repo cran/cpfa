@@ -325,7 +325,7 @@ mode but could be simulated such that they are connected through two or more
 modes. Future updates are planned to implement these enhancements.
 }
 \author{
- Matthew Snodgress <mattgress@protonmail.ch>
+ Matthew Asisgress <mattgress@protonmail.ch>
 }
 \references{
 See help file for function \code{cpfa} for a list of references.

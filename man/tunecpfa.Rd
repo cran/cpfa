@@ -311,7 +311,7 @@ arguments is not currently allowed. This issue will be resolved in a future
 update.
 }
 \author{
-Matthew A. Snodgress <mattgress@protonmail.ch>
+Matthew A. Asisgress <mattgress@protonmail.ch>
 }
 \references{
 Breiman, L. (2001). Random forests. Machine Learning, 45(1), 5-32.

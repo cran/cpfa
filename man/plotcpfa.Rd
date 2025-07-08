@@ -97,11 +97,11 @@ Parafac2, plots B weights. For four-way Parafac2, plots B and C weights.
 }
 \value{
 Returns one or more heatmap plots of component weights for the optimal Parafac 
-or Parafac2 model. Returns list of estimated component weights used in the 
-plots.
+or Parafac2 model. Returns list of estimated component weights from the optimal
+model.
 }
 \author{
- Matthew Snodgress <mattgress@protonmail.ch>
+ Matthew Asisgress <mattgress@protonmail.ch>
 }
 \references{
 See help file for function \code{cpfa} for a list of references.

@@ -69,8 +69,7 @@ tunecpfa <-
       if (any(is.na(x))) {stop("Input 'x' cannot contain missing values.")}
       if (!(is.null(cmode))) {
         if (!(cmode %in% (1:lxdim))) {
-          stop("Input 'cmode' must be 1, 2, or 3 \n 
-               (or 4 if 'x' is a 4-way array).")
+          stop("Input 'cmode' must be 1, 2, or 3 (or 4 if 'x' is four-way).")
         }
         modeval <- 1:lxdim
         mode.re <- c(modeval[-cmode], cmode)
@@ -89,18 +88,17 @@ tunecpfa <-
         stop("Input 'x' cannot contain NaN or Inf values.")
       }
       if (any(is.na(x))) {stop("Input 'x' cannot contain missing values.")}
-      if (!is.null(cmode)) {
+      if (!(is.null(cmode))) {
         cmode <- lxdim
         warning("Input 'cmode' is ignored when 'model = parafac2'. Last mode \n
                 is classification mode by default.")
       } else {
         cmode <- lxdim
       }
+      storlist <- vector("list", xdim[cmode])
       if (lxdim == 3L) {
-        storlist <- vector("list", xdim[cmode])
         for (k in 1:xdim[cmode]) {storlist[[k]] <- x[, , k]}
       } else {
-        storlist <- vector("list", xdim[cmode])
         for (k in 1:xdim[cmode]) {storlist[[k]] <- x[, , , k]}
       }
       x <- storlist
@@ -177,11 +175,14 @@ tunecpfa <-
       stop("Input 'y' must contain labels of 0 and 1 for binary problems, or \n
            0, 1, 2, ..., for multiclass problems.")
     }
-    nfac <- sort(nfac)
-    lnfac <- length(nfac)
     if (!((is.numeric(nfac)) || (is.integer(nfac)))) {
       stop("Input 'nfac' must be of class integer or numeric.")
     }
+    if (!(all(nfac == floor(nfac)))) {
+      stop("Input 'nfac' must contain only integers.")
+    }
+    nfac <- sort(nfac)
+    lnfac <- length(nfac)
     if (!((is.integer(nfolds)) || (is.numeric(nfolds)))) {
       stop("Input 'nfolds' must be of class integer or numeric.")
     }
@@ -207,7 +208,7 @@ tunecpfa <-
         stop("Input 'foldid' must contain IDs for two or more folds.")
       }
       if (!(all(foldid == floor(foldid)))) {
-        stop("Input 'foldid' must contain integers.")
+        stop("Input 'foldid' must contain only integers.")
       }
       if (length(unique(foldid)) != as.integer(nfolds)) {
         stop("Input 'foldid' must contain the number of unique values equal \n
@@ -219,7 +220,7 @@ tunecpfa <-
     if (checkmethod != length(method)) {
       stop("Input 'method' contains at least one value that is not valid.")
     }
-    method <- which(omethods %in% toupper(method) == T)
+    method <- which(omethods %in% toupper(method) == TRUE)
     if (length(method) == 0) {method <- 1:6}
     if (!(is.logical(verbose))) {
       stop("Input 'verbose' must be of class logical.")
@@ -228,8 +229,8 @@ tunecpfa <-
     if ('1' %in% method) {
       if (is.null(alpha)) {alpha <- seq(0, 1, length = 6)}
       if (any(alpha < 0L) || any(alpha > 1L)) {
-        stop("Input 'alpha' must contain real numbers 
-                  between zero and one (inclusive).")
+        stop("Input 'alpha' must contain real numbers between zero and \n 
+             one (inclusive).")
       }
       if (!(is.numeric(alpha))) {stop("Input 'alpha' must be numeric.")}
       alpha <- sort(alpha)
@@ -265,7 +266,7 @@ tunecpfa <-
         stop("Input 'nodesize' must be greater than or equal to one.") 
       }
       if (!(all(nodesize == floor(nodesize)))) {
-        stop("Input 'nodesize' must be integer.")
+        stop("Input 'nodesize' must contain only integers.")
       }
       if (!(is.numeric(nodesize))) {stop("Input 'nodesize' must be numeric.")}
       nodesize <- sort(nodesize)
@@ -400,12 +401,7 @@ tunecpfa <-
     Aweights <- Bweights <- Cweights <- Phi <- vector("list", lnfac)
     train.weights <- opt.model <- Aweights                                         
     opt.param <- est.time <- kcv.error <- NULL
-    if (!(is.logical(parallel))) {
-      stop("Input 'parallel' must be of class logical.")
-    }
-    if (length(parallel) != 1L) {
-      stop("Input 'parallel' must be a single value.")
-    }
+    logicheck(parallel)
     if (parallel) {
       if (is.null(cl)) {cl <- makeCluster(detectCores())}
         ce <- clusterEvalQ(cl, library(multiway))
@@ -414,8 +410,8 @@ tunecpfa <-
     for (w in 1:lnfac) {
        optmodel.new <- vector("list", 6)                                        
        if (model == "parafac") {
-         if (verbose == T) {
-           cat("nfac =", nfac[w], "model = parafac", fill = T)
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "model = parafac", fill = TRUE)
          }
          tic <- proc.time()
          pfac <- parafac(X = x, nfac = nfac[w], parallel = parallel, cl = cl,   
@@ -431,8 +427,8 @@ tunecpfa <-
            train <- train.weights[[w]] <- as.matrix(pfac$D)
          }
        } else {
-         if (verbose == T) {
-           cat("nfac =", nfac[w], "model = parafac2", fill = T)
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "model = parafac2", fill = TRUE)
          }
          tic <- proc.time()
          pfac <- parafac2(X = x, nfac = nfac[w], parallel = parallel, cl = cl,  
@@ -450,8 +446,8 @@ tunecpfa <-
          Phi[[w]] <- pfac$Phi
        }
        if ('1' %in% method) {
-         if (verbose == T) {
-           cat("nfac =", nfac[w], "method = plr", fill = T)
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "method = plr", fill = TRUE)
          }
          tic <- proc.time()
          if (nfac[w] == 1 || nfac[w] == 1L) {
@@ -482,8 +478,8 @@ tunecpfa <-
          optmodel.new[[1]] <- NULL
        }
        if ('2' %in% method) {
-         if (verbose == T) {
-           cat("nfac =", nfac[w], "method = svm", fill = T)
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "method = svm", fill = TRUE)
          }
          tic <- proc.time()
          svm.results <- kcv.svm(x = train, y = y, nfolds = nfolds,
@@ -501,8 +497,8 @@ tunecpfa <-
          optmodel.new[[2]] <- NULL
        }
        if ('3' %in% method) {
-         if (verbose == T) {
-           cat("nfac =", nfac[w], "method = rf", fill = T)
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "method = rf", fill = TRUE)
          }
          tic <- proc.time()
          rf.results <- kcv.rf(x = train, y = y, nfolds = nfolds,
@@ -520,8 +516,8 @@ tunecpfa <-
          optmodel.new[[3]] <- NULL
        }
        if ('4' %in% method) {
-         if (verbose == T) {
-           cat("nfac =", nfac[w], "method = nn", fill = T)
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "method = nn", fill = TRUE)
          }
          tic <- proc.time()
          nn.results <- kcv.nn(x = train, y = y, nfolds = nfolds,
@@ -539,8 +535,8 @@ tunecpfa <-
          optmodel.new[[4]] <- NULL
        }
        if ('5' %in% method) {
-         if (verbose == T) {
-           cat("nfac =", nfac[w], "method = rda", fill = T)
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "method = rda", fill = TRUE)
          }
          tic <- proc.time()
          rda.results <- kcv.rda(x = train, y = as.numeric(y) - 1, 
@@ -559,8 +555,8 @@ tunecpfa <-
          optmodel.new[[5]] <- NULL
        }
        if ('6' %in% method) {
-         if (verbose == T) {
-           cat("nfac =", nfac[w], "method = gbm", fill = T)
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "method = gbm", fill = TRUE)
          }
          tic <- proc.time()
          gbm.results <- kcv.gbm(x = train, y = y, nfolds = nfolds, 
@@ -601,7 +597,7 @@ tunecpfa <-
        est.time <- rbind(est.time, esttime.new)
        kcv.error <- rbind(kcv.error, kcv.error.new)
     }                                                                      
-    if (parallel == T) {stopCluster(cl)}
+    if (parallel == TRUE) {stopCluster(cl)}
     levels(y) <- names(frac)
     if (lxdim == 3L) {
       tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 

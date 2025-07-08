@@ -280,6 +280,9 @@ replication.
   \item{X}{
     Three-way or four-way data array or list used in argument \code{x}.
   }
+  \item{y}{
+    Vector of class labels used in input argument \code{y}.
+  }
   \item{nfac}{
     Number of components used to fit each Parafac or Parafac2 model.
   }
@@ -322,7 +325,7 @@ arguments is not currently allowed. Future updates are planned to resolve this
 issue.
 }
 \author{
-Matthew A. Snodgress <mattgress@protonmail.ch>
+Matthew A. Asisgress <mattgress@protonmail.ch>
 }
 \references{
 Breiman, L. (2001). Random forests. Machine Learning, 45(1), 5-32.

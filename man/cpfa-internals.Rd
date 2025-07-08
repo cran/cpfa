@@ -9,8 +9,10 @@
 \alias{kcv.nn}
 \alias{kcv.rda}
 \alias{kcv.gbm}
-\alias{kcvcheck}
 \alias{distdraw}
+\alias{kcvcheck}
+\alias{logicheck}
+\alias{numcheck}
 
 \description{
   Internal functions for the "cpfa" package.

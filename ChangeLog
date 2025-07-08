@@ -1,3 +1,19 @@
+Changes: version 1.2-1  (2025-07-07)
+
+1.) Modified package function 'plotcpfa' to provide additional output
+	- Previously function 'plotcpfa' did not output weights for all modes of the optimal model
+	- Now 'plotcpfa' provides weights for all modes
+
+2.) Added new internal checking functions to improve code efficiency
+	- Previously did not contain checking functions for certain numeric or logical arguments
+	- Now contains new internal functions to check certain numeric or logical arguments
+
+3.) Updated author name in anticipation of upcoming marriage
+	- Previously package listed author's name as author's bachelor name: Snodgress
+	- Now package lists author's name as author's new marital name: Asisgress
+
+----------------
+
 Changes: version 1.2-0  (2025-06-11)
 
 1.) Bug fix in package function 'cpfa'

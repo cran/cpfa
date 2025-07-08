@@ -118,11 +118,12 @@ cpfa <-
       stop("Length of 'y' must match number of levels in classification \n 
            mode of 'x'.")
     }
-    if ((!(ceiling(nrep) == nrep)) || (nrep < 1) || (length(ratio) != 1L)) {
-      stop("Input 'nrep' must be a single integer greater than 0.")
+    numcheck(nrep)
+    if ((!(ceiling(nrep) == nrep)) || (nrep < 1)) {
+      stop("Input 'nrep' must be an integer greater than 0.")
     }
-    if (!(is.numeric(ratio))) {stop("Input 'ratio' must be of class numeric.")}
-    if ((ratio > 1) || (ratio < 0) || (length(ratio) != 1L)) {
+    numcheck(ratio)
+    if ((ratio > 1) || (ratio < 0)) {
       stop("Input 'ratio' must be a number between 0 and 1, inclusive.")
     }
     if (is.null(seeds)) {
@@ -164,12 +165,7 @@ cpfa <-
              mode.")
       }
     }
-    if (!(is.logical(plot.out))) {
-      stop("Input 'plot.out' must be a logical value.")
-    }
-    if (length(plot.out) != 1L) {
-      stop("Input 'plot.out' must be a single value.")
-    }
+    logicheck(plot.out)
     if (plot.out) {
       if (is.null(plot.measures)) {
         plottype <- 5
@@ -182,7 +178,7 @@ cpfa <-
                contain any accepted values. See help file and argument \n
                'plot.measures' for a list of accepted values.")
         }
-        plottype <- which(cmeasures %in% plot.measures == T) + 3
+        plottype <- which(cmeasures %in% plot.measures == TRUE) + 3
       } 
     }
     stor <- array(0, dim = c(length(nfac) * length(method), 11, nrep))
@@ -190,8 +186,9 @@ cpfa <-
     opara <- predstor
     cmode0 <- cmode
     if (cmode == lxdim) {cmode <- NULL}
+    logicheck(verbose)
     for (i in 1:nrep) {
-       if (verbose == T) {cat("nrep =", i, " \n")}
+       if (verbose == TRUE) {cat("nrep =", i, " \n")}
        set.seed(seed = seeds[i])
        train.id <- sample.int(nobs, size = ntrain)
        y.train <- y[train.id]
@@ -233,7 +230,7 @@ cpfa <-
     train.weights <- list(Atrain.weights = Aw, Btrain.weights = Bw, 
                           Ctrain.weights = Cw, Phitrain = Pw)
     mean.tune.param <- Reduce("+", opara) / length(opara)
-    if (plot.out == T) {
+    if (plot.out == TRUE) {
       ncomps <- length(nfac)
       nmethods <- length(method)
       plotstor <- data.frame(matrix(0, nrow = (ncomps * nmethods * nrep), 
@@ -241,7 +238,7 @@ cpfa <-
       plotcname <- c("method", "nfac", "rep", colnames(stor))
       colnames(plotstor) <- plotcname
       matnum <- ncomps * nmethods
-      methnames0 <- sapply(strsplit(rownames(stor), split = '.', fixed = T), 
+      methnames0 <- sapply(strsplit(rownames(stor), split = '.', fixed = TRUE), 
                            function(x) (x[2]))
       methnames <- gsub('[[:digit:]]+', '', methnames0)
       nfacnames <- as.numeric(gsub(".*?([0-9]+).*", "\\1", rownames(stor)))
@@ -251,7 +248,7 @@ cpfa <-
          plotstor[indl:indu, 1] <- methnames
          plotstor[indl:indu, 2] <- nfacnames
          plotstor[indl:indu, 3] <- i
-         plotstor[indl:indu, 4:14] <- stor[,,i]
+         plotstor[indl:indu, 4:14] <- stor[, , i]
       }
       toplot <- colnames(plotstor)[plottype]
       for (j in 1:length(plottype)) {
@@ -264,9 +261,9 @@ cpfa <-
     if (type.out == "measures") {
       cpfalist <- list(measure = stor, predweights = predstor,
                        train.weights = train.weights, opt.tune = opara,
-                       mean.opt.tune = mean.tune.param, X = x, nfac = nfac,
-                       model = model, method = method, const = mconst, 
-                       cmode = cmode0)
+                       mean.opt.tune = mean.tune.param, X = x, y = y, 
+                       nfac = nfac, model = model, method = method, 
+                       const = mconst, cmode = cmode0)
       class(cpfalist) <- "wrapcpfa"
       return(cpfalist)                                                              
     } else {
@@ -274,17 +271,17 @@ cpfa <-
       output <- vector(mode = "list", length = length(dfun))
       for (j in seq_along(dfun)) {
          output[[j]] <- apply(stor, 1:2, 
-                             FUN = function(x){return(get(dfun[j])(x, 
-                                                                na.rm = T))})
+                              FUN = function(x){return(get(dfun[j])(x, 
+                                                       na.rm = TRUE))})
          rownames(output[[j]]) <- rnam
          colnames(output[[j]]) <- cnam
       }
       names(output) <- dfun      
       cpfalist <- list(descriptive = output, predweights = predstor,
                        train.weights = train.weights, opt.tune = opara,
-                       mean.opt.tune = mean.tune.param, X = x, nfac = nfac,
-                       model = model, method = method, const = mconst, 
-                       cmode = cmode0)
+                       mean.opt.tune = mean.tune.param, X = x, y = y, 
+                       nfac = nfac, model = model, method = method, 
+                       const = mconst, cmode = cmode0)
       class(cpfalist) <- "wrapcpfa"
       return(cpfalist)
     }

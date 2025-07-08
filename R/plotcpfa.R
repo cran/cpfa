@@ -4,7 +4,7 @@ plotcpfa <-
            scale.abmode = NULL, sign.remode = NULL, newsigns = 1, 
            sign.abmode = NULL, ...) 
 {
-    if (!inherits(object, "wrapcpfa")) {
+    if (!(inherits(object, "wrapcpfa"))) {
       stop("Input 'object' must be of class 'wrapcpfa'.")
     }
     cmeasures <- c("err", "acc", "tpr", "fpr", "tnr", "fnr", "ppv", "npv", 
@@ -15,29 +15,9 @@ plotcpfa <-
       stop("Input 'cmeasure' must contain a single acceptable value. See help \n
            file for acceptable values.")
     }
-    if (!(is.logical(meanvalue))) {
-      stop("Input 'meanvalue' must be a logical value.")
-    }
-    if (length(meanvalue) != 1L) {
-      stop("Input 'meanvalue' must be a single value.")
-    }
-    if (!(is.logical(supNum))) {
-      stop("Input 'supNum' must be a logical value.")
-    }
-    if (length(supNum) != 1L) {
-      stop("Input 'supNum' must be a single value.")
-    }
-    if (!(is.logical(parallel))) {
-      stop("Input 'parallel' must be of class logical.")
-    }
-    if (length(parallel) != 1L) {
-      stop("Input 'parallel' must be a single value.")
-    }
-    model <- object$model
-    method <- object$method
-    const <- object$const
-    X <- object$X
-    cmode <- object$cmode
+    logicheck(meanvalue); logicheck(supNum); logicheck(parallel)
+    model <- object$model; method <- object$method; const <- object$const
+    X <- object$X; cmode <- object$cmode
     lxdim <- length(const)
     if (model == "parafac") {
       modeval <- 1:lxdim
@@ -45,7 +25,7 @@ plotcpfa <-
       X <- aperm(X, mode.re)
     }
     values <- object$descriptive
-    if (meanvalue == T) {
+    if (meanvalue == TRUE) {
       finalvalues <- values$mean
     } else {
       finalvalues <- values$median
@@ -57,14 +37,15 @@ plotcpfa <-
     }
     lowisbest <- c("err", "fpr", "fnr", "fdr", "fom")
     if (cmeasure %in% lowisbest) {
-      methodnfac <- names(which(vals == min(vals, na.rm = T)))
+      methodnfac <- names(which(vals == min(vals, na.rm = TRUE)))
     } else {
-      methodnfac <- names(which(vals == max(vals, na.rm = T)))
+      methodnfac <- names(which(vals == max(vals, na.rm = TRUE)))
     }
     nfac.opt0 <- as.numeric(gsub("[^0-9]", "", methodnfac))
     nfac.opt <- min(nfac.opt0)
+    outstor <- vector("list", 4)
     mapstor <- vector("list", 3)
-    if (parallel == T) {
+    if (parallel == TRUE) {
       if (is.null(cl)) {cl <- makeCluster(detectCores())}
       ce <- clusterEvalQ(cl, library(multiway))
       registerDoParallel(cl)
@@ -80,9 +61,13 @@ plotcpfa <-
         pfac <- resign(pfac, mode = sign.remode, newsign = newsigns, 
                        absorb = sign.abmode)
       }
-      mapstor[[1]] <- pfac$A
-      mapstor[[2]] <- pfac$B                                               
-      if (lxdim == 4L) {mapstor[[3]] <- pfac$C}
+      mapstor[[1]] <- outstor[[1]] <- pfac$A
+      mapstor[[2]] <- outstor[[2]] <- pfac$B   
+      outstor[[3]] <- pfac$C
+      if (lxdim == 4L) {
+        mapstor[[3]] <- pfac$C
+        outstor[[4]] <- pfac$D
+      }
     } else {
       pfac <- parafac2(X = X, nfac = nfac.opt, const = const, cl = cl, 
                        parallel = parallel, ...)
@@ -94,11 +79,17 @@ plotcpfa <-
         pfac <- resign(pfac, mode = sign.remode, newsign = newsigns, 
                        absorb = sign.abmode)
       }
-      mapstor[[2]] <- pfac$B                                             
-      if (lxdim == 4L) {mapstor[[3]] <- pfac$C}
+      outstor[[1]] <- pfac$A
+      mapstor[[2]] <- outstor[[2]] <- pfac$B   
+      outstor[[3]] <- pfac$C
+      if (lxdim == 4L) {
+        mapstor[[3]] <- pfac$C
+        outstor[[4]] <- pfac$D
+      }
     }
-    if (parallel == T) {stopCluster(cl)}
+    if (parallel == TRUE) {stopCluster(cl)}
     plotlabels <- c("A Weights", "B Weights", "C Weights")
+    plotlabels2 <- c(plotlabels, "D Weights")
     palette_colors <- colorRampPalette(c("red", "white", "green"))(50)
     par(mfrow = c(1, 1))
     layout(1)
@@ -111,11 +102,11 @@ plotcpfa <-
          maxabs <- max(abs(mat))
          image(x = 1:ncol(mat), y = 1:nrow(mat), z = t(mat)[, nrow(mat):1],
                col = palette_colors, xlab = "Components", ylab = "Levels", 
-               axes = F, zlim = c(-maxabs, maxabs), main = mainlab)
+               axes = FALSE, zlim = c(-maxabs, maxabs), main = mainlab)
          axis(1, at = 1:ncol(mat), labels = colnames(mat))
          axis(2, at = 1:nrow(mat), labels = rev(rownames(mat)))
          box()
-         if (!(supNum == T)) {
+         if (!(supNum == TRUE)) {
            for (j in 1:nrow(mat)) {
               for (k in 1:ncol(mat)) {
                  text(x = k, y = (nrow(mat) - j + 1), 
@@ -125,6 +116,6 @@ plotcpfa <-
          }
        }
     }
-    names(mapstor) <- plotlabels
-    return(mapstor)
+    names(outstor) <- plotlabels2
+    return(outstor)
 }

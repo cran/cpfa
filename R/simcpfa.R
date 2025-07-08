@@ -8,12 +8,7 @@ simcpfa <-
 if (is.null(nfac)) {
   warning("Input 'nfac' was NULL. 'nfac' was set to 2."); nfac <- 2
 }
-if (any(!is.numeric(nfac)) || (length(nfac) != 1)) {
-  stop("Input 'nfac' must be a single numeric value.")
-} 
-if ((is.infinite(nfac)) || (is.na(nfac)) || (is.nan(nfac))) { 
-  stop("Input 'nfac' must be a finite number and cannot be NA or NaN.") 
-}
+numcheck(nfac)
 if ((nfac < 1) || (nfac != floor(nfac))) { 
   stop("Input 'nfac' must be an integer value of 1 or greater.") 
 }
@@ -21,12 +16,7 @@ if (is.null(modes)) {
   warning("Input 'modes' was NULL. 'modes' was set to 3.")
   modes <- 3
 }
-if (any(!is.numeric(modes)) || (length(modes) != 1)) {
-  stop("Input 'modes' must be a single numeric value.")
-}
-if ((is.infinite(modes)) || (is.na(modes)) || (is.nan(modes))) { 
-  stop("Input 'modes' must be a finite number and cannot be NA or NaN.") 
-}
+numcheck(modes)
 if ((!(modes %in% c(3, 4))) || (modes != floor(modes))) { 
   stop("Input 'modes' must be an integer value of either 3 or 4.") 
 }
@@ -43,7 +33,7 @@ if (is.null(arraydim)) {
 if (length(arraydim) != modes) {
   stop("Input 'arraydim' must have length equal to 'modes' (e.g., 3 or 4).")
 }
-if (!is.numeric(arraydim)) {stop("Input 'arraydim' must be numeric.")}
+if (!(is.numeric(arraydim))) {stop("Input 'arraydim' must be numeric.")}
 if (any(is.na(arraydim)) || any(is.nan(arraydim))) { 
   stop("Input 'arraydim' must not contain NA or NaN values.")
 }
@@ -56,12 +46,7 @@ if (any(arraydim < 2) || any(arraydim != floor(arraydim))) {
 if (is.null(nclass)) {
   warning("Input 'nclass' was NULL. 'nclass' was set to 2."); nclass <- 2
 }
-if (any(!is.numeric(nclass)) || (length(nclass) != 1)) {
-  stop("Input 'nclass' must be a single numeric value.")
-} 
-if ((is.infinite(nclass)) || (is.na(nclass)) || (is.nan(nclass))) { 
-  stop("Input 'nclass' must be a finite number and cannot be NA or NaN.") 
-}
+numcheck(nclass)
 if ((nclass < 2) || (nclass != floor(nclass))) { 
   stop("Input 'nclass' must be an integer value of 2 or greater.") 
 }
@@ -72,7 +57,7 @@ if (is.null(corresp)) {
 if (length(corresp) != nfac) {
   stop("Input 'corresp' must have a length equal to 'nfac'.")
 }
-if (!is.numeric(corresp)) {stop("Input 'corresp' must be numeric.")}
+if (!(is.numeric(corresp))) {stop("Input 'corresp' must be numeric.")}
 if (any(is.na(corresp) | is.nan(corresp))) {
   stop("Input 'corresp' must not contain NA or NaN values.")
 }
@@ -83,24 +68,14 @@ n <- arraydim[modes]
 if (is.null(nreps)) {
   warning("Input 'nreps' was NULL. 'nreps' was set to 100."); nreps <- 100
 }
-if (any(!is.numeric(nreps)) || (length(nreps) != 1)) {
-  stop("Input 'nreps' must be a single numeric value.")
-} 
-if ((is.infinite(nreps)) || (is.na(nreps)) || (is.nan(nreps))) { 
-  stop("Input 'nreps' must be a finite number and cannot be NA or NaN.") 
-}
+numcheck(nreps)
 if ((nreps < 1) || (nreps != floor(nreps))) { 
   stop("Input 'nreps' must be an integer value of 1 or greater.") 
 }
 if (is.null(onreps)) {
   warning("Input 'onreps' was NULL. 'onreps' was set to 10."); onreps <- 10
 }
-if (any(!is.numeric(onreps)) || (length(onreps) != 1)) {
-  stop("Input 'onreps' must be a single numeric value.")
-}   
-if ((is.infinite(onreps)) || (is.na(onreps)) || (is.nan(onreps))) { 
-  stop("Input 'onreps' must be a finite number and cannot be NA or NaN.") 
-}
+numcheck(onreps)
 if ((onreps < 1) || (onreps != floor(onreps))) { 
   stop("Input 'onreps' must be an integer value of 1 or greater.") 
 }
@@ -110,7 +85,7 @@ if (is.null(meanpred)) {
   if (length(meanpred) != nfac) {
     stop("Input 'meanpred' must have a length equal to 'nfac' when provided.")
   }
-  if (!is.numeric(meanpred)) {stop("Input 'meanpred' must be numeric.")}
+  if (!(is.numeric(meanpred))) {stop("Input 'meanpred' must be numeric.")}
   if (any(is.na(meanpred)) || any(is.nan(meanpred))) { 
     stop("Input 'meanpred' must not contain NA or NaN values.")
   }
@@ -151,7 +126,7 @@ if (model == "parafac2") {
       stop("When provided, input 'pf2num' must have length equal to the last \n 
            value of input 'arraydim'.")
     }
-    if (!is.numeric(pf2num)) {stop("Input 'pf2num' must be numeric.")}
+    if (!(is.numeric(pf2num))) {stop("Input 'pf2num' must be numeric.")}
     if (any(is.na(pf2num) | is.nan(pf2num))) {
       stop("Input 'pf2num' must not contain NA or NaN values.")
     }
@@ -566,8 +541,6 @@ for (j in 1:onreps) {
      Z <- matrix(rnorm(n * nfac), nrow = n, ncol = nfac)
      Xq <- matrix(1, n, 1) %*% t(mum) + Z %*% Sigma.sqrt
    } else {if (modes == 3) {Xq <- Cmat} else {Xq <- Dmat}}
-   colvars <- apply(Xq, 2, var)
-   novars <- any(colvars == 0)
    for (i in 1:nreps) {
       if (nclass == 2) {
         if (is.null(bbest)) {
@@ -826,7 +799,7 @@ if ((modes == 3) && (model == "parafac")) {
     }
   }
   X <- Xmat <- vector("list", n)
-  if (errprov == FALSE) {Emat <- vector("list", n)}
+  if (errprov == FALSE) {Emat <- X}
   for (Dd in 1:n) {
      if (nfac == 1) {
        leftMat <- Amat[[Dd]] %*% as.matrix(Dmat[Dd, ])
