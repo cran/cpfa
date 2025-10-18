@@ -1,8 +1,8 @@
 Package: cpfa
 Type: Package
 Title: Classification with Parallel Factor Analysis
-Version: 1.2-1
-Date: 2025-07-07
+Version: 1.2-2
+Date: 2025-10-19
 Authors@R: person(c("Matthew", "A."), "Asisgress", email = "mattgress@protonmail.ch", role = c("aut", "cre"))
 Maintainer: Matthew A. Asisgress <mattgress@protonmail.ch>
 Depends: multiway
@@ -13,7 +13,7 @@ Description: Classification using Richard A. Harshman's Parallel Factor Analysis
 License: GPL (>= 2)
 VignetteBuilder: knitr, rmarkdown
 NeedsCompilation: no
-Packaged: 2025-07-07 21:08:35 UTC; nr2
+Packaged: 2025-10-18 22:44:15 UTC; nr2
 Author: Matthew A. Asisgress [aut, cre]
 Repository: CRAN
-Date/Publication: 2025-07-08 00:00:06 UTC
+Date/Publication: 2025-10-18 23:20:02 UTC

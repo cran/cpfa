@@ -17,13 +17,8 @@ plotcpfa <-
     }
     logicheck(meanvalue); logicheck(supNum); logicheck(parallel)
     model <- object$model; method <- object$method; const <- object$const
-    X <- object$X; cmode <- object$cmode
+    X <- object$X
     lxdim <- length(const)
-    if (model == "parafac") {
-      modeval <- 1:lxdim
-      mode.re <- c(modeval[-cmode], cmode)
-      X <- aperm(X, mode.re)
-    }
     values <- object$descriptive
     if (meanvalue == TRUE) {
       finalvalues <- values$mean

@@ -1,3 +1,15 @@
+Changes: version 1.2-2  (2025-10-19)
+
+1.) Bug fix in package function 'plotcpfa'
+	- Previously used 'cmode' to permute array 'X' used in function 'cpfa'
+	- Now does not permute because 'X' was already permuted using 'cpfa'
+
+2.) Added example to package vignette
+	- Previously package vignette did not contain a binary classification example
+	- Now vignette contains a binary classification example
+
+----------------
+
 Changes: version 1.2-1  (2025-07-07)
 
 1.) Modified package function 'plotcpfa' to provide additional output

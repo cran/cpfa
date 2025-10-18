@@ -2,7 +2,7 @@
 title: "An Introduction to cpfa"
 author: 
   - Matthew Asisgress
-date: "June 2025"
+date: "October 2025"
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{An Introduction to cpfa}
@@ -25,7 +25,9 @@ knitr::opts_chunk$set(
 
 > Installation
 
-> Example: Four-way Array with Multiclass Response
+> Example 1: Four-way Array with Multiclass Response
+
+> Example 2: Three-way Array with Binary Response
 
 > Concluding Thoughts
 
@@ -57,10 +59,11 @@ command in an R console:
 `install.packages("cpfa", repos = "https://cran.r-project.org/")`. The argument 
 `repos` can be modified according to user preferences. For more options and 
 details, see `help(install.packages)`. In this case, the package **cpfa** has 
-been downloaded and installed to the default directories. Users can download the package source at <https://cran.r-project.org/package=cpfa> and use Unix 
+been downloaded and installed to the default directories. Users can download the 
+package source at <https://cran.r-project.org/package=cpfa> and use Unix 
 commands for installation.
 
-## Example: Four-way Array with Multiclass Response
+## Example 1: Four-way Array with Multiclass Response
 
 We start by using the simulation function `simcpfa` and examining basic
 operations and outputs related to this function.
@@ -182,9 +185,9 @@ and for a three-component model. The classification problem is multiclass, which
 is specified by setting `multinomial` for input `family`. In this demonstration, 
 we allow for three train-test splits by setting `nrep <- 3` with a split ratio
 of `ratio <- 0.9`. We also specify pre-determined fold IDs for k-fold
-cross-validation using `foldid`. Finally, when fitting Parafac2 models, we set 
-a constraint: the fourth mode must have non-negative weights. We use `const` to 
-set this constraint. In R:
+cross-validation using `foldid`. Finally, we set a Parafac2 model constraint: 
+the fourth mode must have non-negative weights. We use `const` to set this 
+constraint. In R:
 
 ```{r}
 # set seed
@@ -249,7 +252,7 @@ accuracy) Parafac2 model and to plot the results:
 # set seed
 set.seed(500)
 
-# plot heatmaps of component weights for optimal model
+# plot heat maps of component weights for optimal model
 results <- plotcpfa(output, nstart = 3, ctol = 1e-1, verbose = FALSE)
 ```
 
@@ -265,21 +268,184 @@ components and a meaningful set of constraints for different modes, function
 better understand how different levels of each mode map onto the set of 
 components.
 
+## Example 2: Three-way Array with Binary Response
+
+We now simulate a three-way array. For this array, the third mode is related 
+linearly to a response vector of class labels, which is also simulated. To 
+generate data using function `simcpfa`, we specify the data-generating model as 
+a Parafac model via the `model` argument and specify two components for this 
+model with the `nfac` argument. We specify the number of dimensions for the 
+simulated array using the `arraydim` argument. 
+
+For these simulated data, we specify that the response vector should have two
+classes using `nclass`. Moreover, we set a target correlation matrix, 
+`corrpred`, specifying correlations among the columns of the classification 
+mode's weight matrix (i.e., in this case, the third mode). We also specify 
+correlations, contained in `corresp`, between columns of the classification 
+mode's weight matrix and the response vector. 
+
+```{r, message = FALSE, warning = FALSE}
+# set seed for reproducibility
+set.seed(400)
+
+# specify correlation
+cp <- 0.1
+
+# define target correlation matrix for columns of third mode weight matrix
+corrpred <- matrix(c(1, cp, cp, 1), nrow = 2, ncol = 2)
+
+# define correlations between third mode weight matrix and response vector
+corresp <- rep(.9, 2)
+
+# simulate a three-way array connected to a binary response
+data <- simcpfa(arraydim = c(10, 11, 100), model = "parafac", nfac = 2, 
+                nclass = 2, nreps = 10, onreps = 10, corresp = corresp,
+                modes = 3, corrpred = corrpred, meanpred = c(10, 20))
+
+# define simulated array 'X' and response vector 'y' from the output
+X <- data$X
+y <- data$y
+```
+
+The above creates a three-way array `X` with Parafac structure that is connected
+through its third mode to response vector `y`. We confirm the dimensions of `X` 
+and `y`, confirm their classes, and inspect the possible values of `y`:
+
+```{r}
+# examine data object X
+class(X)
+dim(X)
+
+# examine data object y
+class(y)
+length(y)
+table(y)
+```
+
+As shown, `X` is a three-way array. The dimensions of `X` match those specified 
+in input argument `arraydim`. Likewise, `y` is a vector with length equal to the 
+number of levels of the third mode of `X`. As desired, we can see that `y` 
+contains two classes. As in the last example, we see that the output classes in 
+`y` are imbalanced.
+
+We confirm that the columns of the third mode's weights are linearly associated
+with `y`:
+
+```{r}
+# examine correlations between columns of third mode weights 'Cmat' and 
+# simulated response vector 'y'
+cor(data$Cmat, data$y)
+```
+
+As shown, the classification mode weight matrix `Cmat` contains columns that 
+have a positive correlation with the response vector `y`. The target 
+correlations (i.e., 0.9) were not achieved, especially given that 
+`nreps = 10` and `onreps = 10` were small values. Nevertheless, the
+positive correlations indicate that building a classifier between `X` 
+and `y` through the third mode of a two-component Parafac model could prove 
+useful.
+
+We initialize values for tuning parameter $\alpha$ from PLR implemented through 
+package **glmnet**. We also initialize values for the tuning parameters `ntree` 
+(i.e., number of trees) and `nodesize` (i.e., node size) from random forest
+(RF; Breiman, 2001) implemented through package **randomForest** 
+(Liaw and Wiener, 2002). We specify the classification methods as PLR and RF 
+through `method`, the model of interest as Parafac through `model`, the number 
+of folds in the k-fold cross-validation step as three through `nfolds`, and the 
+number of random starts for fitting the Parafac model as three through `nstart`. 
+Further, we specify `nfac` to be two or three because we wish to explore 
+classification performance for a two-component model and for a three-component 
+model. The classification problem is binary, which is specified by setting 
+`binomial` for input `family`. We allow for three train-test splits by setting 
+`nrep <- 3` with a split ratio of `ratio <- 0.9`. Finally, for this 
+demonstration, we set a Parafac model constraint: the second mode must have 
+orthogonal weights. We use `const` to set this constraint. In R:
+
+```{r}
+# set seed
+set.seed(300)
+
+# initialize tuning parameters and store within a list called 'parameters'
+alpha <- seq(0, 1, length.out = 3)
+ntree <- c(200, 400)
+nodesize <- c(2, 4)
+parameters <- list(alpha = alpha, ntree = ntree, nodesize = nodesize)
+
+# initialize inputs
+method <- c("PLR", "RF")
+model <- "parafac"
+nfolds <- 3
+nstart <- 3
+nfac <- c(2, 3)
+family <- "binomial"
+nrep <- 3
+ratio <- 0.9
+plot.out <- TRUE
+const <- c("uncons", "orthog", "uncons")
+
+# implement train-test splits with inner k-fold CV to optimize classification
+output <- cpfa(x = X, y = as.factor(y), model = model, nfac = nfac, 
+               nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
+               family = family, parameters = parameters, plot.out = plot.out, 
+               parallel = FALSE, const = const, nstart = nstart, 
+               verbose = FALSE)
+```
+
+The function generates box plots of classification accuracy for 
+each number of components and for each classification method. In greater detail, 
+we examine classification performance in the output object:
+
+```{r}
+# examine classification performance measures - median across train-test splits
+output$descriptive$mean[, 1:2]
+```
+
+As shown, classification accuracy is highest for the two-component RF classifer. 
+In this case, the data-generating model with two components worked best for 
+classification purposes (i.e, compared to the three-component model). We also 
+examine, averaged across train-test splits, optimal tuning parameters.
+
+```{r}
+# examine optimal tuning parameters averaged across train-test splits
+output$mean.opt.tune
+```
+
+We can see average tuning values that worked best. For example, PLR favored 
+$\alpha = 0$ for the two-component model (i.e., preferred ridge regression).
+
+We next could use the function `plotcpfa` to fit the best Parafac model and to 
+plot the results. The code looks like this:
+
+```{r, eval = FALSE}
+# set seed
+set.seed(400)
+
+# plot heat maps of component weights for optimal model
+results <- plotcpfa(output, nstart = 3, ctol = 1e-1, verbose = FALSE)
+```
+
+However, as in the previous example, the simulated array contains mode A and 
+mode B weights whose levels do not have a substantive meaning. As such, we
+omit the heat maps for this example. However, if these were real data, such heat 
+maps might reveal relationships between model components and the levels of mode 
+A or B. Interested readers might explore the application of this package to 
+popular, real data sets used in classification research, such as the MNIST data 
+set (LeCun et al., 2002). 
+
 ## Concluding Thoughts
 
-Package **cpfa** implements a k-fold cross-validation procedure, 
-connecting Parafac models fit by **multiway** to classification methods 
-implemented through six popular packages used for classification: 
-**glmnet**; **e1071** (Meyer et al., 2024; Cortes and Vapnik, 
-1995); **randomForest** (Liaw and Wiener, 2002; Breiman, 2001); 
-**nnet** (Ripley, 1994; Venables and Ripley, 2002); **rda** (Guo, 
-Hastie, and Tibshirani, 2007, 2023; Friedman, 1989), and **xgboost**
-(Chen et al., 2025; Friedman, 2001). Parallel computing is implemented through 
-packages **parallel** (R Core Team, 2025) and **doParallel**
+Package **cpfa** implements a k-fold cross-validation procedure, connecting 
+Parafac models fit by **multiway** to classification methods implemented 
+through six popular packages used for classification: **glmnet**; **e1071** 
+(Meyer et al., 2024; Cortes and Vapnik, 1995); **randomForest** (Liaw and 
+Wiener, 2002; Breiman, 2001); **nnet** (Ripley, 1994; Venables and Ripley, 
+2002); **rda** (Guo, Hastie, and Tibshirani, 2007, 2023; Friedman, 1989), and 
+**xgboost** (Chen et al., 2025; Friedman, 2001). Parallel computing is 
+implemented through packages **parallel** (R Core Team, 2025) and **doParallel**
 (Microsoft Corporation and Weston, 2022). The example above highlights the use 
-of **cpfa** and three of its functions. For more information about the 
-package, see https://CRAN.R-project.org/package=cpfa or examine package help 
-files with `help(simcpfa)`, `help(cpfa)`, or `help(plotcpfa)`.
+of **cpfa** and three of its functions. For more information about the package, 
+see https://CRAN.R-project.org/package=cpfa or examine package help files with 
+`help(simcpfa)`, `help(cpfa)`, or `help(plotcpfa)`.
 
 ## References
 
@@ -325,8 +491,12 @@ via Parafac2 with functional and structural constraints. Biometrical Journal,
 Helwig, N. (2025). multiway: Component models for multi-way data. R Package 
 Version 1.0-7.
 
+LeCun, Y., Bottou, L., Bengio, Y., and Haffner, P. (2002). Gradient-based 
+learning applied to document recognition. Proceedings of the IEEE, 86(11), 
+2278-2324.
+
 Liaw, A. and Wiener, M. (2002). Classification and regression by randomForest. 
-R News 2(3), 18--22.
+R News 2(3), 18-22.
 
 Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2024). 
 e1071: Misc functions of the Department of Statistics, Probability Theory 
