@@ -100,6 +100,10 @@ Returns one or more heatmap plots of component weights for the optimal Parafac
 or Parafac2 model. Returns list of estimated component weights from the optimal
 model.
 }
+\note{
+Applications of this function to real datasets can be explored at the following
+repository: \url{https://github.com/matthewasisgress/multiway-classification/}.
+}
 \author{
  Matthew Asisgress <mattgress@protonmail.ch>
 }

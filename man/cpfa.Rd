@@ -84,7 +84,7 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
 \item{cost}{
   Values for support vector machine cost parameter; default is 
   \code{cost = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only 
-  real numbers greater than or equal to 0.
+  real numbers greater than 0.
 }
 \item{gamma}{
   Values for support vector machine gamma parameter; default is 
@@ -323,6 +323,9 @@ because a column of 0s is appended to the single column, but this solution
 does not appear to work for the multiclass case. As such, this combination of 
 arguments is not currently allowed. Future updates are planned to resolve this 
 issue.
+
+Applications of this function to real datasets can be explored at the following
+repository: \url{https://github.com/matthewasisgress/multiway-classification/}.
 }
 \author{
 Matthew A. Asisgress <mattgress@protonmail.ch>

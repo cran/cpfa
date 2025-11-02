@@ -90,22 +90,27 @@ plotcpfa <-
     layout(1)
     for (i in 1:3) {
        if (!(is.null(mapstor[[i]]))) {
-         mat <- mapstor[[i]]
+         mat <- as.matrix(mapstor[[i]])
          mainlab <- plotlabels[i]
          rownames(mat) <- paste0("L", 1:nrow(mat))
          colnames(mat) <- paste0("C", 1:ncol(mat))
          maxabs <- max(abs(mat))
-         image(x = 1:ncol(mat), y = 1:nrow(mat), z = t(mat)[, nrow(mat):1],
-               col = palette_colors, xlab = "Components", ylab = "Levels", 
-               axes = FALSE, zlim = c(-maxabs, maxabs), main = mainlab)
+         if (ncol(mat) == 1) {
+           zarg <- t(as.matrix(t(mat)[, nrow(mat):1]))
+         } else {
+           zarg <- as.matrix(t(mat)[, nrow(mat):1])
+         }
+         image(x = 1:ncol(mat), y = 1:nrow(mat), z = zarg, col = palette_colors, 
+               xlab = "Components", ylab = "Levels", axes = FALSE, 
+               zlim = c(-maxabs, maxabs), main = mainlab)
          axis(1, at = 1:ncol(mat), labels = colnames(mat))
          axis(2, at = 1:nrow(mat), labels = rev(rownames(mat)))
          box()
          if (!(supNum == TRUE)) {
            for (j in 1:nrow(mat)) {
               for (k in 1:ncol(mat)) {
-                 text(x = k, y = (nrow(mat) - j + 1), 
-                      labels = round(mat[j, k], 2), cex = 0.8)
+                 text(x = k, y = (nrow(mat) - j + 1), cex = 0.8,
+                      labels = round(mat[j, k], 2))
               }
            }
          }

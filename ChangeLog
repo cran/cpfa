@@ -1,3 +1,20 @@
+Changes: version 1.2-3  (2025-11-02)
+
+1.) Bug fix in package function 'plotcpfa'
+	- Previously function produced an error when creating plots for one-component models
+	- Now function successfully produces plots for one-component models 
+
+2.) Added link within package vignette
+	- Previously vignette did not contain a URL link to an external project
+	- Now contains a URL to an external project that applies this package to real data
+	- URL: https://github.com/matthewasisgress/multiway-classification
+
+3.) Help file cleanup
+	- Previously help file for function cpfa stated that the SVM cost parameter can be zero
+	- Now the help file correctly states that the SVM cost parameter must be greater than zero
+
+----------------
+
 Changes: version 1.2-2  (2025-10-19)
 
 1.) Bug fix in package function 'plotcpfa'

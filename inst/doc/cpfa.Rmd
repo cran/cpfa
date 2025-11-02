@@ -429,8 +429,7 @@ mode B weights whose levels do not have a substantive meaning. As such, we
 omit the heat maps for this example. However, if these were real data, such heat 
 maps might reveal relationships between model components and the levels of mode 
 A or B. Interested readers might explore the application of this package to 
-popular, real data sets used in classification research, such as the MNIST data 
-set (LeCun et al., 2002). 
+several real datasets. See here for more information: <https://github.com/matthewasisgress/multiway-classification/>.
 
 ## Concluding Thoughts
 
@@ -490,10 +489,6 @@ via Parafac2 with functional and structural constraints. Biometrical Journal,
 
 Helwig, N. (2025). multiway: Component models for multi-way data. R Package 
 Version 1.0-7.
-
-LeCun, Y., Bottou, L., Bengio, Y., and Haffner, P. (2002). Gradient-based 
-learning applied to document recognition. Proceedings of the IEEE, 86(11), 
-2278-2324.
 
 Liaw, A. and Wiener, M. (2002). Classification and regression by randomForest. 
 R News 2(3), 18-22.
