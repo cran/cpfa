@@ -9,9 +9,9 @@ kcv.nn <-
     weights <- as.matrix(weights)                                               
     grid.row <- nrow(nn.grid)
     cv.nn <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
-    if (parallel == T) {
+    if (parallel == TRUE) {
       cv.nn <- foreach (gg = 1:nfolds, .combine = cbind, 
-                        .packages = 'nnet') %dopar% {
+                        .packages = 'nnet') %dorng% {
                         x.train <- as.matrix(x[which(foldid != gg), ])
                         y.train <- y[which(foldid != gg)]
                         x.test <- as.matrix(x[which(foldid == gg), ])

@@ -115,10 +115,15 @@ See help file for function \code{cpfa} for a list of references.
 \dontrun{
 # set seed and simulate a four-way ragged array related to a multiclass response
 set.seed(5)
-cormat <- matrix(c(1, .35, .35, .35, 1, .35, .35, .35, 1), nrow = 3, ncol = 3)
+
+# define target correlation matrix for columns of D mode weights matrix
+cormat <- matrix(c(1, .6, .6, .6, 1, .6, .6, .6, 1), nrow = 3, ncol = 3)
+
+# simulate a four-way ragged array connected to a response
 data <- simcpfa(arraydim = c(10, 11, 12, 100), model = "parafac2", nfac = 3, 
-                nclass = 3, nreps = 1e2, onreps = 10, corresp = rep(.75, 3), 
-                meanpred = rep(2, 3), modes = 4, corrpred = cormat)
+                nclass = 3, nreps = 1e2, onreps = 10, corresp = rep(.6, 3), 
+                meanpred = rep(2, 3), modes = 4, corrpred = cormat,
+                technical = techlist, smethod = "eigende")
 
 # initialize
 alpha <- seq(0, 1, length = 2)

@@ -2,7 +2,7 @@
 title: "An Introduction to cpfa"
 author: 
   - Matthew Asisgress
-date: "October 2025"
+date: "December 2025"
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{An Introduction to cpfa}
@@ -151,10 +151,7 @@ table(y)
 As shown, `X` is a list where each element is a three-way array. The dimensions 
 of `X` match those specified in input arguments `arraydim` and `pf2num`. 
 Likewise, `y` is a vector with length equal to the number of levels of the 
-fourth mode of `X`. As desired, we can see that `y` contains three classes. 
-However, note that no control currently exists to specify the proportions of 
-output classes in `y`, which is a limitation of `simcpfa`. Future enhancements
-are planned to address this limitation.
+fourth mode of `X`. As desired, we can see that `y` contains three classes.
 
 We confirm that the columns of the fourth mode's weights are linearly associated
 with `y`:

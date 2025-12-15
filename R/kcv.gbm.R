@@ -17,9 +17,9 @@ kcv.gbm <-
     num_classes <- length(unique(y))
     grid.row <- nrow(gbm.grid)
     cv.gbm <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
-    if (parallel == T) {
+    if (parallel == TRUE) {
       cv.gbm <- foreach(gg = 1:nfolds, .combine = cbind, 
-                        .packages = 'xgboost') %dopar% {
+                        .packages = 'xgboost') %dorng% {
                         x.train <- as.matrix(x[which(foldid != gg), ])
                         y.train <- y[which(foldid != gg)]
                         trweights <- as.matrix(weights[which(foldid != gg)])
@@ -40,9 +40,10 @@ kcv.gbm <-
                            if (family == "multinomial") {
                              params$num_class <- num_classes
                            }                                                    
-                           gbm.fit <- xgboost(params = params, data = xgtrain,
-                                              nrounds = gbm.grid[yy, 4], 
-                                              verbose = 0)
+                           gbm.fit <- xgboost::xgb.train(params = params, 
+                                                      data = xgtrain,
+                                                      nrounds = gbm.grid[yy, 4], 
+                                                      verbose = 0)
                            if (family == "binomial") {
                              gbm.pred <- predict(gbm.fit, xgtest)
                              gbm.class <- as.numeric(gbm.pred > threshold)
@@ -74,8 +75,9 @@ kcv.gbm <-
                            subsample = gbm.grid[yy, 3],
                            colsample_bytree = colsample_bytree)
             if (family == "multinomial") {params$num_class <- num_classes}
-            gbm.fit <- xgboost(params = params, data = xgtrain,
-                               nrounds = gbm.grid[yy, 4], verbose = 0)
+            gbm.fit <- xgboost::xgb.train(params = params, data = xgtrain,
+                                          nrounds = gbm.grid[yy, 4], 
+                                          verbose = 0)
             if (family == "binomial") {
               gbm.pred <- predict(gbm.fit, xgtest)
               gbm.class <- as.numeric(gbm.pred > threshold)
@@ -98,8 +100,9 @@ kcv.gbm <-
                    colsample_bytree = colsample_bytree)
     if (family == "multinomial") {params$num_class <- num_classes}
     xgdata <- xgb.DMatrix(data = x, label = y, weight = weights)
-    gbm.fit.best <- xgboost(params = params, data = xgdata,
-                            nrounds = gbm.grid[minid, 4], verbose = 0)
+    gbm.fit.best <- xgboost::xgb.train(params = params, data = xgdata, 
+                                       nrounds = gbm.grid[minid, 4], 
+                                       verbose = 0)
     return(list(gbm.grid.id = minid, gbm.fit = gbm.fit.best, 
                 error = gbm.mean[minid]))
 }

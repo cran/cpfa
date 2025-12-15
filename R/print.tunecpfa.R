@@ -27,13 +27,14 @@ print.tunecpfa <-
        cat(paste0("\n", toupper(model), " with ", cnfac, " factors:"), "\n")
        for (hh in 1:length(nus)) {
           if (nus[hh] %in% method) {
-            error <- round(eval(parse(text = paste0("cerror$error.", 
-                                                    tolower(mname[hh])))), 4)
-            time <- round(eval(parse(text = paste0("ctime$time.", 
-                                                   tolower(mname[hh])))), 4)
+            colzname <- paste0("error.", tolower(mname[hh]))
+            error <- round(cerror[[colzname]], 4)
+            colznametime <- paste0("time.", tolower(mname[hh]))
+            time <- round(ctime[[colznametime]], 4)
             cat(paste0("  ", mname[hh], ":"))
             cat(paste0("  ", "Error = ", error, " (", time, ")\n"))
           }
        }
     }
+    invisible(x)
 }

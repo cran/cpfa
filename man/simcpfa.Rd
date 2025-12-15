@@ -11,8 +11,9 @@ for mode weight matrices can be drawn from 12 common probability
 distributions. Alternatively, custom weights can be provided for any mode.
 }
 \usage{
-simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100, 
-        onreps = 10, corresp = c(0.3, -0.3), meanpred = c(0, 0), modes = 3, 
+simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, 
+        smethod = "logistic", nreps = 100, onreps = 10, props = NULL, 
+        corresp = c(0.3, -0.3), meanpred = c(0, 0), modes = 3, 
         corrpred = matrix(c(1, 0.2, 0.2, 1), nrow = 2), pf2num = NULL, 
         Amat = NULL, Bmat = NULL, Cmat = NULL, Dmat = NULL, Gmat = NULL, 
         Emat = NULL, technical = list())
@@ -34,6 +35,14 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
   Number of classes in simulated class labels. Must be an integer greater than 
   or equal to 2.
 }
+\item{smethod}{
+  Simulation method, either "logistic" or "eigende". The former implements an 
+  iterative Monte Carlo rejection sampling technique based on the generalized
+  linear model (slower). The latter uses a multivariate normal
+  distribution and constructs a joint covariance matrix, employing a 
+  Eigendecomposition and assuming class labels arise from discretizing 
+  continuous latent variables (faster).
+}
 \item{nreps}{
   Number of replications for simulating class labels for a given set of 
   classification mode component weights. 
@@ -41,6 +50,9 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
 \item{onreps}{
   Number of replications for simulating a set of classification mode component 
   weights. 
+}
+\item{props}{
+  Target proportions for simulated class labels in output 'y'.
 }
 \item{corresp}{
   Numeric vector of target correlations between simulated class labels and 
@@ -132,10 +144,10 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
   information on acceptable arguments.
 }
 \item{distC}{
-  For when \code{modes = '4'}, list containing arguments specifying the distribution from which deviates 
-  are drawn for C mode weights contained in \code{Cmat}. Defaults to standard 
-  normal distribution when not specified. See Details section for additional 
-  information on acceptable arguments.
+  For when \code{modes = '4'}, list containing arguments specifying the 
+  distribution from which deviates are drawn for C mode weights contained in 
+  \code{Cmat}. Defaults to standard normal distribution when not specified. 
+  See Details section for additional information on acceptable arguments.
 }
 \item{distG}{
   For when \code{model = 'parafac2'}, list containing arguments specifying the 
@@ -153,19 +165,19 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
 }
 }
 \details{
-  Data array simulation consists of two steps. First, a Monte Carlo simulation
-  is conducted to simulate class labels using a binomial logistic (i.e., 
-  in the binary case) or multinomial logistic (i.e., in the multiclass case) 
-  regression model. Specifically, columns of the classification mode weights 
-  matrix (e.g., \code{Cmat} when \code{modes = 3}) are generated from a 
-  multivariate normal distribution with mean vector \code{meanpred} and with 
-  covariance matrix \code{corrpred}. Values are then drawn randomly from a 
-  uniform or a normal distribution and serve as beta coefficients. A linear 
-  combination of these beta coefficients and the generated classification 
-  weights produces a linear systematic part, which is passed through the 
-  logistic function (i.e., the sigmoid) in the binary case or through the 
-  softmax function in the multiclass case. Resulting probabilities are used 
-  to assign class labels. The simulation repeats classification weights 
+  By selecting \code{smethod = "logistic"}, the data array simulation consists 
+  of two steps. First, a Monte Carlo simulation is conducted to simulate class 
+  labels using a binomial logistic (i.e., in the binary case) or multinomial 
+  logistic (i.e., in the multiclass case) regression model. Specifically, 
+  columns of the classification mode weights matrix (e.g., \code{Cmat} when 
+  \code{modes = 3}) are generated from a multivariate normal distribution with 
+  mean vector \code{meanpred} and with covariance matrix \code{corrpred}. Values 
+  are then drawn randomly from a uniform or a normal distribution and serve as 
+  beta coefficients. A linear combination of these beta coefficients and the 
+  generated classification weights produces a linear systematic part, which is 
+  passed through the logistic function (i.e., the sigmoid) in the binary case or 
+  through the softmax function in the multiclass case. Resulting probabilities 
+  are used to assign class labels. The simulation repeats classification weights 
   generation \code{onreps} times and repeats class label generation, within 
   each \code{onreps} iteration, a total of \code{nreps} times. The generated 
   class labels that correlate best with the generated classification weights 
@@ -194,6 +206,17 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
   The resulting output is a synthetic multiway data array 
   paired, through one mode of the array, with a simulated binary or multiclass 
   response.
+  
+  Alternatively, by selecting \code{smethod = "eigende"}, the function 
+  simulates component weights and a latent response variable simultaneously 
+  from a joint multivariate normal distribution using an eigendecomposition. 
+  The covariance structure is defined by \code{corrpred} and a corrected 
+  version of \code{corresp} that accounts for the attenuation in correlation 
+  caused by discretizing the latent response. This continuous latent response 
+  vector is then discretized into class labels using quantile cuts defined by 
+  the cumulative sum of \code{props}. This method offers an efficient, 
+  non-iterative alternative that satisfies the target covariance structure 
+  without rejection sampling.
   
   The \code{technical} argument controls the probability distributions used to 
   simulate weights for different modes. Currently, \code{technical} is highly 
@@ -307,23 +330,6 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, nreps = 100,
     When \code{model = 'parafac2'}, \code{Emat} is an object of class 'list'. 
   }
 }
-\note{
-This simulation implementation contains at least two limitations. First, there 
-is currently no argument to control the proportions of generated class labels. 
-Second, the covariance matrix parameterizing the multivariate normal 
-distribution generating classification mode weights is restricted to a 
-correlation matrix. Future updates are planned to address these limitations.
-
-In addition, the simulation could be expanded in at least two ways. First, 
-the Monte Carlo simulation, as a brute-force strategy, is simple but 
-not optimal and could be replaced with a more efficient approach. Note that 
-the correlations between simulated class labels and classification mode 
-weights, while ideally close to \code{corresp}, represent a best-case 
-scenario---given values for \code{onreps}, \code{nreps}, and \code{corrpred}. 
-Second, class labels are currently connected to the data array through only one 
-mode but could be simulated such that they are connected through two or more 
-modes. Future updates are planned to implement these enhancements.
-}
 \author{
  Matthew Asisgress <mattgress@protonmail.ch>
 }
@@ -343,13 +349,13 @@ techlist <- list(distA = list(dname = "poisson",
                               scale = 4))                  # for G weights
 
 # define target correlation matrix for columns of D mode weights matrix
-cormat <- matrix(c(1, .35, .35, .35, 1, .35, .35, .35, 1), nrow = 3, ncol = 3)
+cormat <- matrix(c(1, .6, .6, .6, 1, .6, .6, .6, 1), nrow = 3, ncol = 3)
 
 # simulate a four-way ragged array connected to a response
 data <- simcpfa(arraydim = c(10, 11, 12, 100), model = "parafac2", nfac = 3, 
-                nclass = 3, nreps = 1e2, onreps = 10, corresp = rep(.75, 3), 
+                nclass = 3, nreps = 1e2, onreps = 10, corresp = rep(.6, 3), 
                 meanpred = rep(2, 3), modes = 4, corrpred = cormat,
-                technical = techlist)
+                technical = techlist, smethod = "eigende")
                 
 # examine correlations among columns of classification mode matrix Dmat
 cor(data$Dmat)

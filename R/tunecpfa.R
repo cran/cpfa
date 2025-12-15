@@ -38,17 +38,11 @@ tunecpfa <-
       }
       parainput <- paranames[which(paralogical)]
       paranull <- paranames[-which(paralogical)]
-      for (j in 1:length(parainput)) {
-         inputparam <- paste0(parainput[j], " = ", "parameters$", parainput[j])
-         eval(parse(text = inputparam))
+      if (length(parainput) > 0) {
+        list2env(parameters[parainput], envir = environment())
       }
       iparam <- paranull
-      if (length(iparam) != 0) {
-        for (j in 1:length(iparam)) {
-           inputparam <- paste0(iparam[j], " = ", "NULL")
-           eval(parse(text = inputparam))
-        }
-      } 
+      if (length(iparam) > 0) {for (p in iparam) assign(p, NULL)} 
     }
     models <- c("parafac", "parafac2")
     model0 <- sum(tolower(model) %in% models)
@@ -362,16 +356,13 @@ tunecpfa <-
       family <- "multinomial"
     }
     if (is.null(prior)) {
-      frac <- table(y) / length(y)
+      numclasses <- length(levels(y))
+      frac <- rep(1 / numclasses, numclasses)
+      names(frac) <- levels(y)
       prior <- as.numeric(frac)
-      if (family == "binomial") {
-        names(frac) <- c(0, 1)
-        weight <- as.numeric(frac[y])
-      }
-      if (family == "multinomial") {
-        names(frac) <- seq_along(levels(y)) - 1
-        weight <- as.numeric(frac[y])
-      }
+      obscounts <- table(y)
+      classweights <- length(y) / (numclasses * obscounts)
+      weight <- as.numeric(classweights[y])
     } else {
       if (!(abs(sum(prior) - 1) < .Machine$double.eps^0.5)) {
         stop("Values within input 'prior' must sum to one.")
@@ -380,32 +371,38 @@ tunecpfa <-
       if (family == "binomial") {
         if (!(length(prior) == 2L))
           stop("Input 'prior' must contain two values for family of \n
-               'binomial'.")
+                'binomial'.")
       }
       if (family == "multinomial") {
         if (!(length(prior) >= 3L))
           stop("Input 'prior' must contain three or more values for family \n
-               of 'multinomial'.")
+                of 'multinomial'.")
       }
-      frac <- as.table(prior)                                                  
+      frac <- as.table(prior)                                                 
       if (family == "binomial") {
         names(frac) <- c(0, 1)
-        weight <- as.numeric(frac[y])
+        wtemp <- as.numeric(frac[y])
+        weight <- wtemp * (length(y) / sum(wtemp))
       }
       if (family == "multinomial") {
         names(frac) <- seq_along(levels(y)) - 1
-        weight <- as.numeric(frac[y])
+        wtemp <- as.numeric(frac[y])
+        weight <- wtemp * (length(y) / sum(wtemp))
       }
     }
-    if ('1' %in% method) {plr.weights <- as.numeric((table(y)[y] / length(y)))}
+    if ('1' %in% method) {plr.weights <- weight}
     Aweights <- Bweights <- Cweights <- Phi <- vector("list", lnfac)
     train.weights <- opt.model <- Aweights                                         
     opt.param <- est.time <- kcv.error <- NULL
     logicheck(parallel)
-    if (parallel) {
-      if (is.null(cl)) {cl <- makeCluster(detectCores())}
+    ccluster <- FALSE
+    if (parallel == TRUE) {
+      if (is.null(cl)) {
+        cl <- makeCluster(detectCores())
         ce <- clusterEvalQ(cl, library(multiway))
-        registerDoParallel(cl)
+        ccluster <- TRUE
+      }
+      registerDoParallel(cl)
     }
     for (w in 1:lnfac) {
        optmodel.new <- vector("list", 6)                                        
@@ -597,7 +594,7 @@ tunecpfa <-
        est.time <- rbind(est.time, esttime.new)
        kcv.error <- rbind(kcv.error, kcv.error.new)
     }                                                                      
-    if (parallel == TRUE) {stopCluster(cl)}
+    if ((parallel == TRUE) && (ccluster == TRUE)) {stopCluster(cl)}
     levels(y) <- names(frac)
     if (lxdim == 3L) {
       tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 

@@ -163,10 +163,15 @@ Matthew Asisgress <mattgress@protonmail.ch>
 \dontrun{
 # set seed and simulate a three-way array related to a binary response
 set.seed(5)
-cormat <- matrix(c(1, .35, .35, .35, 1, .35, .35, .35, 1), nrow = 3, ncol = 3)
-data <- simcpfa(arraydim = c(10, 11, 100), model = "parafac", nfac = 3, 
-                nclass = 2, nreps = 1e2, onreps = 10, corresp = rep(.75, 3), 
-                meanpred = rep(2, 3), modes = 3, corrpred = cormat)
+
+# define target correlation matrix for columns of C mode weights matrix
+cormat <- matrix(c(1, .6, .6, .6, 1, .6, .6, .6, 1), nrow = 3, ncol = 3)
+
+# simulate a three-way array connected to a response
+data <- simcpfa(arraydim = c(11, 12, 100), model = "parafac", nfac = 3, 
+                nclass = 2, nreps = 1e2, onreps = 10, corresp = rep(.6, 3), 
+                meanpred = rep(2, 3), modes = 3, corrpred = cormat,
+                technical = techlist, smethod = "eigende")
 
 # initialize
 alpha <- seq(0, 1, length = 2)

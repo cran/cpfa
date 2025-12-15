@@ -1,3 +1,35 @@
+Changes: version 1.2-4  (2025-12-15)
+
+1.) Efficiency enhancement to package functions 'tunecpfa' and 'cpfa'
+	- Previously functions created and stopped clusters inefficiently for parallel computing
+	- Now functions create and stop clusters more efficiently for parallel computing
+
+2.) Update to internal package function 'kcv.gbm' to be compatible with recent changes to package 'xgboost'
+	- Previously function 'xgboost' was used to train gradient boosting machine models for cross-validation
+	- Now function function 'xgb.train' is used to train models
+
+3.) Code management enhancement to package function 'tunecpfa'
+	- Previously function used 'eval(parse())' logic to read text as code
+	- Now function replaces this logic to improve code maintenance and transparency
+
+4.) Bug fix in package function 'tunecpfa'
+	- Previously input argument 'prior' was overwritten with observed class label frequencies for method 'PLR'
+	- Now function correctly handles argument 'prior' for method 'PLR'
+
+5.) Included package 'doRNG' to make parallel computing reproducible
+	- Previously sole reliance on package 'doParallel' for parallel computing prevented reproducibility
+	- Now inclusion of package 'doRNG' allows for reproducible parallel computing when using functions 'cpfa' or 'tunecpfa'
+
+6.) Modified argument 'prior' in function 'tunecpfa' to handle class imbalances as typically expected
+	- Previously, if 'prior = NULL', default was to use observed proportions of class labels in argument 'y'
+	- Now, if 'prior = NULL', default is to use the inverse of observed proportions of class labels in argument 'y'
+
+7.) Added additional simulation method in function 'simcpfa"
+	- Previously only an iterative Monte Carlo rejection sampling technique was available for simulating a data array and class labels
+	- Now an additional method is available that efficiently simulates latent data via the eigendecomposition
+
+----------------
+
 Changes: version 1.2-3  (2025-11-02)
 
 1.) Bug fix in package function 'plotcpfa'

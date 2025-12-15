@@ -272,7 +272,7 @@ predict.tunecpfa <-
                lambda.min <- opt.param[which(
                                        opt.param$nfac == nfac[w]), ]$lambda
              }
-             if (dim(C.pred)[2] == 1) {C.pred.plr <- cbind(0, C.pred)} 
+             if (dim(C.pred)[2] == 1) {C.pred.plr <- cbind(C.pred, 0)} 
              if (dim(C.pred)[2] > 1) {C.pred.plr <- C.pred}
              if (type == "response") {
                type.plr <- "response" 

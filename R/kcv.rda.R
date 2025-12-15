@@ -7,9 +7,9 @@ kcv.rda <-
     if (is.null(prior)) {prior <- (table(y) / length(y))}
     grid.row <- nrow(rda.grid)
     cv.rda <- matrix(rep(0, grid.row * nfolds), ncol = nfolds)
-    if (parallel == T) {
+    if (parallel == TRUE) {
       cv.rda <- foreach(gg = 1:nfolds, .combine = cbind, 
-                        .packages = 'rda') %dopar% {
+                        .packages = 'rda') %dorng% {
                         x.train <- as.matrix(x[which(foldid != gg), ])
                         y.train <- y[which(foldid != gg)]
                         x.test <- as.matrix(x[which(foldid == gg), ])
@@ -39,7 +39,7 @@ kcv.rda <-
          y.test <- y[which(foldid == gg)]
          stortune <- matrix(rep(0, grid.row), ncol = 1)
          for (yy in 1:grid.row) {
-            rda.fit <- rda(x = t(unlist(x.train)), y = unlist(y.train), 
+            rda.fit <- rda(x = t(x.train), y = y.train, 
                            prior = prior, alpha = rda.grid[yy, 1], 
                            delta = rda.grid[yy, 2], 
                            regularization = regularization, genelist = genelist, 

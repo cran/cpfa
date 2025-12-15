@@ -155,7 +155,7 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
   provided, fold IDs are generated randomly for number of folds \code{nfolds}.
 }
 \item{prior}{
-  Prior probabilities of class membership. If unspecified, the class 
+  Prior probabilities of class membership. If unspecified, the inverse of class 
   proportions for input \code{y} are used. If specified, the probabilities 
   should be in the order of the factor levels of input \code{y}.
 }
@@ -397,16 +397,17 @@ Methodology), 67(2), 301-320.
 # set seed
 set.seed(5)
 
-# define correlation matrix for columns of classification mode weight matrix
-cormat <- matrix(c(1, .35, .35, .35, 1, .35, .35, .35, 1), nrow = 3, ncol = 3)
+# define target correlation matrix for columns of D mode weights matrix
+cormat <- matrix(c(1, .6, .6, .6, 1, .6, .6, .6, 1), nrow = 3, ncol = 3)
 
-# simulate a four-way ragged array connected to a multiclass response
+# simulate a four-way ragged array connected to a response
 data <- simcpfa(arraydim = c(10, 11, 12, 100), model = "parafac2", nfac = 3, 
-                nclass = 3, nreps = 1e2, onreps = 10, corresp = rep(.75, 3), 
-                meanpred = rep(2, 3), modes = 4, corrpred = cormat)
+                nclass = 3, nreps = 1e2, onreps = 10, corresp = rep(.6, 3), 
+                meanpred = rep(2, 3), modes = 4, corrpred = cormat,
+                technical = techlist, smethod = "eigende")
 
 # initialize
-alpha <- seq(0, 1, length = 2)
+alpha <- seq(0, 1, length = 20)
 gamma <- c(0, 1)
 cost <- c(0.1, 5)
 ntree <- c(200, 300)
@@ -427,8 +428,8 @@ parameters <- list(alpha = alpha, gamma = gamma, cost = cost, ntree = ntree,
                    max.depth = max.depth, subsample = subsample,
                    nrounds = nrounds)
 model <- "parafac2"
-nfolds <- 3
-nstart <- 3
+nfolds <- 10
+nstart <- 10
 
 # constrain first mode weights to be orthogonal, fourth mode to be nonnegative
 const <- c("orthog", "uncons", "uncons", "nonneg")
@@ -437,7 +438,7 @@ const <- c("orthog", "uncons", "uncons", "nonneg")
 # methods, to predict class labels, and to return classification 
 # performance measures pooled across multiple train-test splits
 output <- cpfa(x = data$X, y = as.factor(data$y), model = model, nfac = 3, 
-               nrep = 5, ratio = 0.8, nfolds = nfolds, method = method, 
+               nrep = 5, ratio = 0.9, nfolds = nfolds, method = method, 
                family = family, parameters = parameters, 
                type.out = "descriptives", seeds = NULL, plot.out = TRUE, 
                parallel = FALSE, const = const, nstart = nstart)

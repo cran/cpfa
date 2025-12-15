@@ -1,9 +1,6 @@
 cpm <- 
   function(x, y, level = NULL, fbeta = NULL, prior = NULL) 
 {   
-    if (class(x) != class(y)) {
-      stop("Class of input 'x' must match class of input 'y'.")
-    }
     if (!(class(x) %in% c("numeric", "factor", "integer"))) {
       stop("Input 'x' must be of class 'numeric', 'factor', or 'integer'.")
     }

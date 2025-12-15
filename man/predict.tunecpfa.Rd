@@ -68,17 +68,15 @@ multiclass case, class with highest probability is chosen.
 \value{
 Returns one of the following, depending on the choice for argument \code{type}:
 
-\item{type = "response"}{A data frame containing predicted class labels or 
-probabilities (binary case) for each Parafac model and classification method 
-selected (see argument \code{type}). Number of columns is equal to number of 
-methods times number of Parafac models. Number of rows is equal to number of 
-predicted observations.
+\item{type = "response"}{A data frame containing predicted class labels for each 
+Parafac model and classification method selected (see argument \code{type}). 
+Number of columns is equal to number of methods times number of Parafac models. 
+Number of rows is equal to number of predicted observations.
 }
 \item{type = "prob"}{A list containing predicted probabilities for each Parafac 
-model and classification method selected (see argument \code{type}). Only 
-returned if original response is multiclass (i.e., contained three or more 
-class labels). The number of list elements is equal to the number of methods 
-times the number of Parafac models.
+model and classification method selected (see argument \code{type}). The number 
+of list elements is equal to the number of methods times the number of Parafac 
+models.
 }
 \item{type = "classify.weights"}{List containing predicted component weights 
 for each Parafac or Parafac2 model. Length is equal to number of Parafac models 
@@ -96,10 +94,15 @@ See help file for function \code{tunecpfa} for a list of references.
 \dontrun{
 # set seed and simulate a three-way array related to a binary response
 set.seed(5)
-cormat <- matrix(c(1, .35, .35, .35, 1, .35, .35, .35, 1), nrow = 3, ncol = 3)
-data <- simcpfa(arraydim = c(10, 11, 100), model = "parafac", nfac = 3, 
-                nclass = 2, nreps = 1e2, onreps = 10, corresp = rep(.75, 3), 
-                meanpred = rep(2, 3), modes = 3, corrpred = cormat)
+
+# define target correlation matrix for columns of C mode weights matrix
+cormat <- matrix(c(1, .6, .6, .6, 1, .6, .6, .6, 1), nrow = 3, ncol = 3)
+
+# simulate a three-way array connected to a response
+data <- simcpfa(arraydim = c(11, 12, 100), model = "parafac", nfac = 3, 
+                nclass = 2, nreps = 1e2, onreps = 10, corresp = rep(.6, 3), 
+                meanpred = rep(2, 3), modes = 3, corrpred = cormat,
+                technical = techlist, smethod = "eigende")
 
 # initialize
 alpha <- seq(0, 1, length = 2)

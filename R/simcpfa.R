@@ -1,9 +1,10 @@
 simcpfa <- 
   function(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, 
-           nreps = 100, onreps = 10, corresp = c(0.3, -0.3), meanpred = c(0, 0), 
-           modes = 3, corrpred = matrix(c(1, 0.2, 0.2, 1), nrow = 2), 
-           pf2num = NULL, Amat = NULL, Bmat = NULL, Cmat = NULL, Dmat = NULL, 
-           Gmat = NULL, Emat = NULL, technical = list())
+           smethod = "logistic", nreps = 100, onreps = 10, props = NULL,
+           corresp = c(0.3, -0.3), meanpred = c(0, 0), modes = 3, 
+           corrpred = matrix(c(1, 0.2, 0.2, 1), nrow = 2), pf2num = NULL, 
+           Amat = NULL, Bmat = NULL, Cmat = NULL, Dmat = NULL, Gmat = NULL, 
+           Emat = NULL, technical = list())
 {
 if (is.null(nfac)) {
   warning("Input 'nfac' was NULL. 'nfac' was set to 2."); nfac <- 2
@@ -16,7 +17,18 @@ if (is.null(modes)) {
   warning("Input 'modes' was NULL. 'modes' was set to 3.")
   modes <- 3
 }
+if (!(smethod %in% c("logistic", "eigende"))) {
+  stop("Input 'smethod' must be either 'logistic' or 'eigende'.")
+}
 numcheck(modes)
+if (is.null(props)) {props <- rep(1 / nclass, nclass)}
+if ((length(props) != nclass) || (!is.numeric(props))) {
+  stop("Input 'props' must be a numeric vector of length equal to 'nclass'.")
+}
+if (abs(sum(props) - 1) > 1e-6) {stop("Input 'props' must sum to 1.")}
+if (any(props <= 0) || any(props >= 1)) {
+  stop("Input 'props' must contain values strictly between 0 and 1.")
+}
 if ((!(modes %in% c(3, 4))) || (modes != floor(modes))) { 
   stop("Input 'modes' must be an integer value of either 3 or 4.") 
 }
@@ -521,81 +533,108 @@ if (!(is.null(finlets))) {
   distnam <- finnam; disttech <- fintech; distmodes <- finlets
 } 
 storXout <- storYout <- NULL; stordatout <- Inf; warnflag <- FALSE; sdfact <- 1
-Sigma.sqrt <- evc$vectors %*% diag(sqrt(evc$values)) %*% t(evc$vectors) 
-mum <- as.matrix(meanpred)
-if (cmodesup == TRUE) {
-  if (onreps != 1) {
-    if (modes == 3) {
-      warning("Input 'onreps' was reduced to 1 because a classification mode \n
-              weights matrix 'Cmat' was provided.")
-    } else {
-      warning("Input 'onreps' was reduced to 1 because a classification mode \n
-              weights matrix 'Dmat' was provided.")
+if (smethod == "logistic") {
+  Sigma.sqrt <- evc$vectors %*% diag(sqrt(evc$values)) %*% t(evc$vectors) 
+  mum <- as.matrix(meanpred)
+  if (cmodesup == TRUE) {
+    if (onreps != 1) {
+      if (modes == 3) {
+        warning("Input 'onreps' was reduced to 1 because a classification \n
+                mode weights matrix 'Cmat' was provided.")
+      } else {
+        warning("Input 'onreps' was reduced to 1 because a classification \n
+                mode weights matrix 'Dmat' was provided.")
+      }
+      onreps <- 1
     }
-    onreps <- 1
   }
-}
-for (j in 1:onreps) {
-   storY <- storX <- bbest <- NULL; stordat <- Inf
-   if (cmodesup == FALSE) {
-     Z <- matrix(rnorm(n * nfac), nrow = n, ncol = nfac)
-     Xq <- matrix(1, n, 1) %*% t(mum) + Z %*% Sigma.sqrt
-   } else {if (modes == 3) {Xq <- Cmat} else {Xq <- Dmat}}
-   for (i in 1:nreps) {
-      if (nclass == 2) {
-        if (is.null(bbest)) {
-          beta <- matrix(runif(nfac, -1, 1), nrow = nfac)
-        } else {
-          if (runif(1) < 0.05) {
+  for (j in 1:onreps) {
+     storY <- storX <- bbest <- NULL; stordat <- Inf
+     if (cmodesup == FALSE) {
+       Z <- matrix(rnorm(n * nfac), nrow = n, ncol = nfac)
+       Xq <- matrix(1, n, 1) %*% t(mum) + Z %*% Sigma.sqrt
+     } else {if (modes == 3) {Xq <- Cmat} else {Xq <- Dmat}}
+     for (i in 1:nreps) {
+        if (nclass == 2) {
+          if (is.null(bbest)) {
             beta <- matrix(runif(nfac, -1, 1), nrow = nfac)
           } else {
-            beta <- matrix(rnorm(nfac, mean = bbest, sd = sdfact), nrow = nfac)
+            if (runif(1) < 0.05) {
+              beta <- matrix(runif(nfac, -1, 1), nrow = nfac)
+            } else {
+              beta <- matrix(rnorm(nfac, mean = bbest, sd = sdfact), 
+                             nrow = nfac)
+            }
           }
-        }
-        linpred <- scale(Xq %*% beta); pro <- 1 / (1 + exp(-linpred))
-        Y <- rbinom(n, 1, pro)
-      } else {
-        if (is.null(bbest)) {
-          beta <- matrix(runif((nfac * nclass), -1, 1), nrow = nfac)
+          linpred <- scale(Xq %*% beta) + qlogis(props[2])
+          pro <- 1 / (1 + exp(-linpred))
+          Y <- rbinom(n, 1, pro)
         } else {
-          if (runif(1) < 0.05) {
+          if (is.null(bbest)) {
             beta <- matrix(runif((nfac * nclass), -1, 1), nrow = nfac)
           } else {
-            beta <- matrix(rnorm((nfac * nclass), mean = as.vector(bbest), 
-                                 sd = sdfact), nrow = nfac)
+            if (runif(1) < 0.05) {
+              beta <- matrix(runif((nfac * nclass), -1, 1), nrow = nfac)
+            } else {
+              beta <- matrix(rnorm((nfac * nclass), mean = as.vector(bbest), 
+                                   sd = sdfact), nrow = nfac)
+            }
           }
+          linpred <- scale(Xq %*% beta)
+          linpred <- sweep(linpred, 2, log(props), "+")
+          pro <- t(apply(linpred, 1, function(x) exp(x) / sum(exp(x))))
+          Y <- apply(pro, 1, function(p) sample(1:nclass, 
+                                                size = 1, prob = p)) - 1
         }
-        linpred <- scale(Xq %*% beta) 
-        pro <- t(apply(linpred, 1, function(x) exp(x) / sum(exp(x))))
-        Y <- apply(pro, 1, function(p) sample(1:nclass, size = 1, prob = p)) - 1
-      }
-      if (length(unique(Y)) == 1) {warnflag <- TRUE; next}
-      outcome <- sum(abs(corresp - cor(Xq, Y)))
-      simdat <- list(outcome = outcome, Y = Y, Xq = Xq)
-      outdat <- simdat$outcome
-      if (outdat < stordat) {
-        stordat <- outdat; storY <- simdat$Y; storX <- simdat$Xq; bbest <- beta
-      }
-   }
-   sdfact <- sdfact * 0.95
-   if (stordat < stordatout) {
-     stordatout <- stordat; storYout <- as.matrix(storY); storXout <- storX
-   }
+        if (length(unique(Y)) == 1) {warnflag <- TRUE; next}
+        outcome <- sum(abs(corresp - cor(Xq, Y)))
+        simdat <- list(outcome = outcome, Y = Y, Xq = Xq)
+        outdat <- simdat$outcome
+        if (outdat < stordat) {
+          stordat <- outdat; storY <- simdat$Y; storX <- simdat$Xq
+          bbest <- beta
+        }
+     }
+     sdfact <- sdfact * 0.95
+     if (stordat < stordatout) {
+       stordatout <- stordat; storYout <- as.matrix(storY); storXout <- storX
+     }
+  }
+} else {
+  cumprobs <- c(0, cumsum(props))
+  if (cmodesup == TRUE) {
+    if (modes == 3) {storXout <- Cmat} else {storXout <- Dmat}
+    betasim <- matrix(corresp, ncol = 1) 
+    linpred <- scale(storXout %*% betasim)
+    breaks <- quantile(linpred, probs = cumprobs)
+    if (any(duplicated(breaks))) {breaks <- unique(breaks)} 
+    storYout <- matrix(as.integer(cut(linpred, breaks = breaks, 
+                                      include.lowest = TRUE)) - 1, ncol = 1)
+  } else {
+    pcut <- props[1] 
+    zcrit <- qnorm(pcut)
+    correction <- sqrt(pcut * (1 - pcut)) / dnorm(zcrit)
+    correspadj <- pmin(pmax(corresp * correction, -0.99), 0.99)
+    Sigjoint <- diag(nfac + 1)
+    Sigjoint[1:nfac, 1:nfac] <- corrpred
+    Sigjoint[1:nfac, nfac + 1] <- correspadj
+    Sigjoint[nfac + 1, 1:nfac] <- correspadj
+    evja <- eigen(Sigjoint, symmetric = TRUE)
+    if (any(evja$values < 0)) {stop("Requested correlations are impossible.")}
+    L <- evja$vectors %*% diag(sqrt(pmax(evja$values, 0))) %*% t(evja$vectors)
+    rawdats <- matrix(rnorm(n * (nfac + 1)), nrow = n) %*% L
+    storXout <- sweep(rawdats[, 1:nfac, drop = FALSE], 2, 
+                      as.matrix(meanpred), "+")
+    ylat <- rawdats[, nfac + 1]
+    breaks <- quantile(ylat, probs = cumprobs)
+    storYout <- matrix(as.integer(cut(ylat, breaks = breaks, 
+                                      include.lowest = TRUE)) - 1, ncol = 1)
+  }
 }
-if (warnflag == TRUE) {
-  warning("At least one simulation had zero variance in the outcome variable.")
-}
-if (is.null(storXout)) {
-  stop("Component weights for classification mode were not simulated. \n
-       Consider modifying 'corresp' or 'corrpred'. Alternatively, consider \n
-       increasing the number of levels of the classification mode in \n
-       input 'arraydim'.")
-}
-if (is.null(storYout)) {
-  stop("Class labels were not simulated. Consider modifying 'corresp' \n
-       or 'corrpred'. Alternatively, consider increasing the number of \n
-       levels of the classification mode in input 'arraydim'.")
-}
+if (warnflag == TRUE) warning("At least one simulation had zero variance \n
+                              in outcome.")
+if (is.null(storXout)) stop("Component weights were not simulated.")
+if (is.null(storYout)) stop("Class labels were not simulated.")
 y <- storYout
 if (is.null(Bmat)) {
   if ("B" %in% distmodes) {
@@ -701,7 +740,7 @@ if ((modes == 3) && (model == "parafac")) {
      }
   }
   X <- mapply("+", Xmat, Emat, SIMPLIFY = FALSE)
-  dataout <- list(X = X, y = y, model = model, Gmat = Gmat, Amat = Amat0, 
+  dataout <- list(X = X, y = y, model = model, Gmat = Gmat, Amat = Amat, 
                   Bmat = Bmat, Cmat = Cmat, Emat = Emat)
 } else if ((modes == 4) && (model == "parafac")) { 
   if (is.null(Amat)) {
@@ -825,7 +864,7 @@ if ((modes == 3) && (model == "parafac")) {
      }
      X[[Dd]] <- Xmat[[Dd]] + Emat[[Dd]]
   }
-  dataout <- list(X = X, y = y, model = model, Gmat = Gmat, Amat = Amat0, 
+  dataout <- list(X = X, y = y, model = model, Gmat = Gmat, Amat = Amat, 
                   Bmat = Bmat, Cmat = Cmat, Dmat = Dmat, Emat = Emat)
 }
 return(dataout)

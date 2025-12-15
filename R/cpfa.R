@@ -187,6 +187,13 @@ cpfa <-
     cmode0 <- cmode
     if (cmode == lxdim) {cmode <- NULL}
     logicheck(verbose)
+    ccreated <- FALSE
+    if ((parallel == TRUE) && (is.null(cl))) {
+      cl <- makeCluster(detectCores())
+      ccreated <- TRUE
+      registerDoParallel(cl)
+      clusterEvalQ(cl, library(multiway)) 
+    }
     for (i in 1:nrep) {
        if (verbose == TRUE) {cat("nrep =", i, " \n")}
        set.seed(seed = seeds[i])
@@ -258,6 +265,7 @@ cpfa <-
                  ylab = toupper(toplot[j]), main = "Performance Measure")
       }
     }
+    if (ccreated == TRUE) {stopCluster(cl)}
     if (type.out == "measures") {
       cpfalist <- list(measure = stor, predweights = predstor,
                        train.weights = train.weights, opt.tune = opara,

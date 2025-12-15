@@ -138,7 +138,7 @@ tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
   observations using 1 through the number of folds \code{nfolds}.
 }
 \item{prior}{
-  Prior probabilities of class membership. If unspecified, the class 
+  Prior probabilities of class membership. If unspecified, the inverse of class 
   proportions for input \code{y} are used. If specified, the probabilities 
   should be in the order of the factor levels of input \code{y}.
 }
@@ -380,11 +380,16 @@ Methodology), 67(2), 301-320.
 \dontrun{
 # set seed and simulate a three-way array connected to a binary response
 set.seed(5)
-cormat <- matrix(c(1, .35, .35, .35, 1, .35, .35, .35, 1), nrow = 3, ncol = 3)
-data <- simcpfa(arraydim = c(10, 11, 80), model = "parafac", nfac = 3, 
-                nclass = 2, nreps = 1e2, onreps = 10, corresp = rep(.75, 3), 
-                meanpred = rep(2, 3), modes = 3, corrpred = cormat)
 
+# define target correlation matrix for columns of C mode weights matrix
+cormat <- matrix(c(1, .6, .6, .6, 1, .6, .6, .6, 1), nrow = 3, ncol = 3)
+
+# simulate a three-way array connected to a response
+data <- simcpfa(arraydim = c(11, 12, 100), model = "parafac", nfac = 3, 
+                nclass = 2, nreps = 1e2, onreps = 10, corresp = rep(.6, 3), 
+                meanpred = rep(2, 3), modes = 3, corrpred = cormat,
+                technical = techlist, smethod = "eigende")
+                
 # initialize
 alpha <- seq(0, 1, length = 2)
 gamma <- c(0, 0.01)
