@@ -2,7 +2,7 @@
 title: "An Introduction to cpfa"
 author: 
   - Matthew Asisgress
-date: "December 2025"
+date: "January 2026"
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{An Introduction to cpfa}
@@ -224,13 +224,12 @@ we examine classification performance in the output object:
 output$descriptive$median[, 1:2]
 ```
 
-As shown, classification accuracy (i.e., 'acc') is relatively good and certainly
-above baseline (for more details on classification performance measures, see
-help file for package function `cpm` via `help(cpm)`). In this case, the 
-data-generating model with three components worked for classification 
-purposes. We also examine, averaged across train-test splits, optimal tuning 
-parameters. Note that **glmnet** optimized tuning parameter $\lambda$ 
-internally.
+As shown, classification accuracy (i.e., 'acc') is relatively fair (for more 
+details on classification performance measures, see help file for package 
+function `cpm` via `help(cpm)`). In this case, the data-generating model with 
+three components worked for classification purposes. We also examine, averaged 
+across train-test splits, optimal tuning parameters. Note that **glmnet** 
+optimized tuning parameter $\lambda$ internally.
 
 ```{r}
 # examine optimal tuning parameters averaged across train-test splits
@@ -263,7 +262,9 @@ function `cpfa` can serve as a guide to identify a meaningful number of
 components and a meaningful set of constraints for different modes, function 
 `plotcpfa` can be used to visualize component weights of the best model to 
 better understand how different levels of each mode map onto the set of 
-components.
+components. Interested readers might explore the application of this package to 
+several real datasets. See here for more information: 
+<https://github.com/matthewasisgress/multiway-classification/>.
 
 ## Example 2: Three-way Array with Binary Response
 
@@ -397,10 +398,10 @@ we examine classification performance in the output object:
 output$descriptive$mean[, 1:2]
 ```
 
-As shown, classification accuracy is highest for the two-component RF classifer. 
-In this case, the data-generating model with two components worked best for 
-classification purposes (i.e, compared to the three-component model). We also 
-examine, averaged across train-test splits, optimal tuning parameters.
+As shown, classification accuracy is highest for the three-component RF 
+classifier. In this case, the data-generating model with three components worked 
+best for classification purposes (i.e, compared to the two-component model). 
+We also examine, averaged across train-test splits, optimal tuning parameters.
 
 ```{r}
 # examine optimal tuning parameters averaged across train-test splits
@@ -425,8 +426,9 @@ However, as in the previous example, the simulated array contains mode A and
 mode B weights whose levels do not have a substantive meaning. As such, we
 omit the heat maps for this example. However, if these were real data, such heat 
 maps might reveal relationships between model components and the levels of mode 
-A or B. Interested readers might explore the application of this package to 
-several real datasets. See here for more information: <https://github.com/matthewasisgress/multiway-classification/>.
+A or B. As previously described, interested readers might explore the 
+application of this package to several real datasets. See here for more 
+information: <https://github.com/matthewasisgress/multiway-classification/>.
 
 ## Concluding Thoughts
 
@@ -437,11 +439,12 @@ through six popular packages used for classification: **glmnet**; **e1071**
 Wiener, 2002; Breiman, 2001); **nnet** (Ripley, 1994; Venables and Ripley, 
 2002); **rda** (Guo, Hastie, and Tibshirani, 2007, 2023; Friedman, 1989), and 
 **xgboost** (Chen et al., 2025; Friedman, 2001). Parallel computing is 
-implemented through packages **parallel** (R Core Team, 2025) and **doParallel**
-(Microsoft Corporation and Weston, 2022). The example above highlights the use 
-of **cpfa** and three of its functions. For more information about the package, 
-see https://CRAN.R-project.org/package=cpfa or examine package help files with 
-`help(simcpfa)`, `help(cpfa)`, or `help(plotcpfa)`.
+implemented through packages **parallel** (R Core Team, 2025); **doParallel**
+(Microsoft Corporation and Weston, 2022); and **doRNG** (Gaujoux, 2025). The 
+example above highlights the use of **cpfa** and three of its functions. For 
+more information about the package, see https://CRAN.R-project.org/package=cpfa 
+or examine package help files with `help(simcpfa)`, `help(cpfa)`, or 
+`help(plotcpfa)`.
 
 ## References
 
@@ -463,6 +466,9 @@ American Statistical Association, 84(405), 165-175.
 Friedman, J., Hastie, T., and Tibshirani, R. (2010). Regularization paths for 
 generalized linear models via coordinate descent. Journal of Statistical 
 Software, 33(1), 1-22.
+
+Gaujoux, R. (2025). doRNG: Generic reproducible parallel backend for 'foreach' 
+loops. R Package Version 1.8.6.2.
 
 Guo, Y., Hastie, T., and Tibshirani, R. (2007). Regularized linear discriminant 
 analysis and its application in microarrays. Biostatistics, 8(1), 86-100.

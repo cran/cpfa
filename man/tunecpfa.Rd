@@ -138,9 +138,12 @@ tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
   observations using 1 through the number of folds \code{nfolds}.
 }
 \item{prior}{
-  Prior probabilities of class membership. If unspecified, the inverse of class 
-  proportions for input \code{y} are used. If specified, the probabilities 
-  should be in the order of the factor levels of input \code{y}.
+  Prior probabilities of class membership. If specified, the probabilities 
+  should be in the order of the factor levels of input \code{y}. If unspecified, 
+  the observed class proportions for input \code{y} are used. Based on 
+  \code{prior}, inverse probability weights are calculated to account for class 
+  imbalance. Note that RF and RDA ignore \code{prior} and use uniform priors 
+  to handle imbalance.
 }
 \item{cmode}{
   Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying 
@@ -287,6 +290,13 @@ Returns an object of class \code{tunecpfa} with the following elements:
   Parafac2 model, for possibly different numbers of components. The weights 
   used to train classifiers.
 }
+\item{priorweights}{
+  List containing three elements based on input \code{prior}: (1) \code{weight}, 
+  inverse probability weights per observation, used to balance classes for PLR, 
+  NN, and GBM; (2) \code{frac}, inverse probability weights per class, used to 
+  balance classes for SVM; and (3) \code{pricorrect}, uniform priors used to 
+  balance classes for RF and RDA. 
+}
 }
 \note{
 For fitting the Parafac model, if argument \code{cmode} is not NULL, input 
@@ -309,6 +319,9 @@ because a column of 0s is appended to the single column, but this solution
 does not appear to work for the multiclass case. As such, this combination of 
 arguments is not currently allowed. This issue will be resolved in a future 
 update.
+
+Applications of this function to real datasets can be explored at the following
+repository: \url{https://github.com/matthewasisgress/multiway-classification/}.
 }
 \author{
 Matthew A. Asisgress <mattgress@protonmail.ch>
@@ -332,6 +345,9 @@ American Statistical Association, 84(405), 165-175.
 Friedman, J., Hastie, T., and Tibshirani, R. (2010). Regularization paths for 
 generalized linear models via coordinate descent. Journal of Statistical 
 Software, 33(1), 1-22.
+
+Gaujoux, R. (2025). doRNG: Generic reproducible parallel backend for 'foreach' 
+loops. R Package Version 1.8.6.2.
 
 Guo, Y., Hastie, T., and Tibshirani, R. (2007). Regularized linear discriminant 
 analysis and its application in microarrays. Biostatistics, 8(1), 86-100.
@@ -380,6 +396,12 @@ Methodology), 67(2), 301-320.
 \dontrun{
 # set seed and simulate a three-way array connected to a binary response
 set.seed(5)
+
+# define list of arguments specifying distributions for A and G weights
+techlist <- list(distA = list(dname = "poisson", 
+                              lambda = 3),                 # for A weights
+                 distG = list(dname = "gamma", shape = 2, 
+                              scale = 4))                  # for G weights
 
 # define target correlation matrix for columns of C mode weights matrix
 cormat <- matrix(c(1, .6, .6, .6, 1, .6, .6, .6, 1), nrow = 3, ncol = 3)

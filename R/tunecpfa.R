@@ -356,13 +356,13 @@ tunecpfa <-
       family <- "multinomial"
     }
     if (is.null(prior)) {
-      numclasses <- length(levels(y))
-      frac <- rep(1 / numclasses, numclasses)
-      names(frac) <- levels(y)
-      prior <- as.numeric(frac)
-      obscounts <- table(y)
-      classweights <- length(y) / (numclasses * obscounts)
-      weight <- as.numeric(classweights[y])
+      prior <- as.numeric(table(y) / length(y))
+      frac <- as.table(prior)
+      names(frac) <- seq_along(levels(y)) - 1
+      wtemp <- as.numeric(frac[y])
+      weight <- 1 / (wtemp * (length(y) / sum(wtemp)))
+      frac <- tapply(weight, y, unique)
+      pricorrect <- rep(1 / length(frac), length(frac))
     } else {
       if (!(abs(sum(prior) - 1) < .Machine$double.eps^0.5)) {
         stop("Values within input 'prior' must sum to one.")
@@ -378,18 +378,21 @@ tunecpfa <-
           stop("Input 'prior' must contain three or more values for family \n
                 of 'multinomial'.")
       }
-      frac <- as.table(prior)                                                 
+      frac <- as.table(prior)
+      pricorrect <- rep(1 / length(frac), length(frac))
       if (family == "binomial") {
         names(frac) <- c(0, 1)
         wtemp <- as.numeric(frac[y])
-        weight <- wtemp * (length(y) / sum(wtemp))
+        weight <- 1 / (wtemp * (length(y) / sum(wtemp)))
       }
       if (family == "multinomial") {
         names(frac) <- seq_along(levels(y)) - 1
         wtemp <- as.numeric(frac[y])
-        weight <- wtemp * (length(y) / sum(wtemp))
+        weight <- 1 / (wtemp * (length(y) / sum(wtemp)))
       }
+      frac <- tapply(weight, y, unique)
     }
+    priorweights <- list(weight = weight, frac = frac, pricorrect = pricorrect)
     if ('1' %in% method) {plr.weights <- weight}
     Aweights <- Bweights <- Cweights <- Phi <- vector("list", lnfac)
     train.weights <- opt.model <- Aweights                                         
@@ -402,6 +405,7 @@ tunecpfa <-
         ce <- clusterEvalQ(cl, library(multiway))
         ccluster <- TRUE
       }
+      clusterSetRNGStream(cl, iseed = sample.int(.Machine$integer.max, 1)) 
       registerDoParallel(cl)
     }
     for (w in 1:lnfac) {
@@ -500,7 +504,7 @@ tunecpfa <-
          tic <- proc.time()
          rf.results <- kcv.rf(x = train, y = y, nfolds = nfolds,
                               foldid = foldid, rf.grid = rf.grid, 
-                              classwt = prior, parallel = parallel)
+                              classwt = pricorrect, parallel = parallel)
          toc <- proc.time()
          time.rf <- toc[3] - tic[3]
          error.rf <- rf.results$error
@@ -538,7 +542,7 @@ tunecpfa <-
          tic <- proc.time()
          rda.results <- kcv.rda(x = train, y = as.numeric(y) - 1, 
                                 nfolds = nfolds, foldid = foldid, 
-                                rda.grid = rda.grid, prior = frac, 
+                                rda.grid = rda.grid, prior = pricorrect, 
                                 parallel = parallel)
          toc <- proc.time()
          time.rda <- toc[3] - tic[3]
@@ -558,7 +562,7 @@ tunecpfa <-
          tic <- proc.time()
          gbm.results <- kcv.gbm(x = train, y = y, nfolds = nfolds, 
                                 foldid = foldid, family = family, 
-                                gbm.grid = gbm.grid, prior = frac, 
+                                gbm.grid = gbm.grid, weights = weight, 
                                 parallel = parallel)
          toc <- proc.time()
          time.gbm <- toc[3] - tic[3]
@@ -603,7 +607,8 @@ tunecpfa <-
                         Aweights = Aweights, Bweights = Bweights, 
                         Cweights = NULL, Phi = Phi, const = const,
                         cmode = cmode, family = family, xdim = xdim, 
-                        lxdim = lxdim, train.weights = train.weights)
+                        lxdim = lxdim, train.weights = train.weights, 
+                        priorweights = priorweights)
     }
     if (lxdim == 4L) {
       tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
@@ -612,7 +617,8 @@ tunecpfa <-
                         Aweights = Aweights, Bweights = Bweights, 
                         Cweights = Cweights, Phi = Phi, const = const, 
                         cmode = cmode, family = family, xdim = xdim, 
-                        lxdim = lxdim, train.weights = train.weights)
+                        lxdim = lxdim, train.weights = train.weights,
+                        priorweights = priorweights)
     }
     class(tcpfalist) <- "tunecpfa"
     return(tcpfalist)

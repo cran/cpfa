@@ -48,7 +48,7 @@ kcv.rf <-
          for (yy in 1:grid.row) {
             rf.fit <- randomForest(x.train, y.train, ntree = rf.grid[yy, 1],
                                    nodesize = rf.grid[yy, 2], xtest = xtest, 
-                                   ytest = ytest, classwt = classwt, 
+                                   ytest = ytest, classwt = classwt,
                                    maxnodes = maxnodes, importance = importance, 
                                    localImp = localImp, nPerm = nPerm, 
                                    norm.votes = norm.votes, do.trace = do.trace, 

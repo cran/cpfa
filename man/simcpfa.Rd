@@ -40,7 +40,7 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2,
   iterative Monte Carlo rejection sampling technique based on the generalized
   linear model (slower). The latter uses a multivariate normal
   distribution and constructs a joint covariance matrix, employing a 
-  Eigendecomposition and assuming class labels arise from discretizing 
+  eigendecomposition and assuming class labels arise from discretizing 
   continuous latent variables (faster).
 }
 \item{nreps}{

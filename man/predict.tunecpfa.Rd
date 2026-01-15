@@ -83,6 +83,10 @@ for each Parafac or Parafac2 model. Length is equal to number of Parafac models
 that were fit.
 }
 }
+\note{
+Applications of this function to real datasets can be explored at the following
+repository: \url{https://github.com/matthewasisgress/multiway-classification/}.
+}
 \author{
  Matthew Asisgress <mattgress@protonmail.ch>
 }
@@ -94,6 +98,12 @@ See help file for function \code{tunecpfa} for a list of references.
 \dontrun{
 # set seed and simulate a three-way array related to a binary response
 set.seed(5)
+
+# define list of arguments specifying distributions for A and G weights
+techlist <- list(distA = list(dname = "poisson", 
+                              lambda = 3),                 # for A weights
+                 distG = list(dname = "gamma", shape = 2, 
+                              scale = 4))                  # for G weights
 
 # define target correlation matrix for columns of C mode weights matrix
 cormat <- matrix(c(1, .6, .6, .6, 1, .6, .6, .6, 1), nrow = 3, ncol = 3)

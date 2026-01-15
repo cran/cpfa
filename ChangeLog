@@ -1,3 +1,19 @@
+Changes: version 1.2-5  (2026-01-15)
+
+1.) Bug fix in help file examples
+	- Previously help file examples using function 'simcpfa' did not include code for argument 'techlist'
+	- Now help file examples include code for argument 'techlist'
+
+2.) Bug fix to ensure 'doRNG' functionality works with functions 'cpfa' and 'tunecpfa'
+	- Previously 'doRNG' inclusion did not ensure reproducible results with parallel computing
+	- Now a fix ensures reproducible results with parallel computing
+
+3.) Modified procedures for handling class imbalance
+	- Previously functions 'tunecpfa' and 'cpfa' handled class imbalance inconsistently across methods
+	- Now both functions handle imbalance consistently and with proper documentation
+
+----------------
+
 Changes: version 1.2-4  (2025-12-15)
 
 1.) Efficiency enhancement to package functions 'tunecpfa' and 'cpfa'
@@ -6,7 +22,7 @@ Changes: version 1.2-4  (2025-12-15)
 
 2.) Update to internal package function 'kcv.gbm' to be compatible with recent changes to package 'xgboost'
 	- Previously function 'xgboost' was used to train gradient boosting machine models for cross-validation
-	- Now function function 'xgb.train' is used to train models
+	- Now function 'xgb.train' is used to train models
 
 3.) Code management enhancement to package function 'tunecpfa'
 	- Previously function used 'eval(parse())' logic to read text as code

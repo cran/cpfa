@@ -10,11 +10,12 @@ kcv.plr <-
     if (ncol(x) == 1) {x <- cbind(0, x)}
     if (nfolds == 2) {
       if (is.null(weights)) {
-        weights <- as.numeric((table(y)[y] / length(y)))
-        if (family == "binomial") {threshold <- (table(y) / length(y))[1]}
-      } else {
-        if (family == "binomial") {threshold <- (table(y) / length(y))[1]}
+        frac <- table(y) / length(y)
+        names(frac) <- seq_along(levels(as.factor(y))) - 1
+        wtemp <- as.numeric(frac[y])
+        weights <- 1 / (wtemp * (length(y) / sum(wtemp)))
       }
+      if (family == "binomial") {threshold <- 0.5}
       stor.cvm <- rep(NA, lalpha)
       stor.minlam <- rep(NA, lalpha)
       for (h in 1:lalpha) {

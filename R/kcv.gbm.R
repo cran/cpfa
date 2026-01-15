@@ -1,18 +1,11 @@
 kcv.gbm <-
-  function(x, y, foldid = NULL, gbm.grid, nfolds = NULL, prior = NULL,          
+  function(x, y, foldid = NULL, gbm.grid, nfolds = NULL, weights = NULL,          
            family = c("binomial", "multinomial"), min_child_weight = 1,
            colsample_bytree = 1, booster = "gbtree", parallel = FALSE) 
 {
     kcvcheck(y = y, nfolds = nfolds, parallel = parallel, foldid = foldid)
-    if (family == "binomial") {objective <- "binary:logistic"}
+    if (family == "binomial") {objective <- "binary:logistic"; threshold <- 0.5}
     if (family == "multinomial") {objective <- "multi:softprob"}
-    if (is.null(prior)) {
-      weights <- as.numeric((table(y)[y] / length(y)))
-      if (family == "binomial") {threshold <- (table(y) / length(y))[1]}
-    } else {
-      weights <- as.numeric((prior * length(y))[y] / length(y))
-      if (family == "binomial") {threshold <- prior[1]}
-    }
     y <- as.numeric(y) - 1
     num_classes <- length(unique(y))
     grid.row <- nrow(gbm.grid)

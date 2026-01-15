@@ -4,7 +4,12 @@ kcv.nn <-
            parallel = FALSE) 
 {
     kcvcheck(y = y, nfolds = nfolds, parallel = parallel, foldid = foldid)
-    if (is.null(weights)) {weights <- as.numeric((table(y)[y] / length(y)))}
+    if (is.null(weights)) {
+      frac <- table(y) / length(y)
+      names(frac) <- seq_along(levels(as.factor(y))) - 1
+      wtemp <- as.numeric(frac[y])
+      weights <- 1 / (wtemp * (length(y) / sum(wtemp)))
+    }
     x <- as.matrix(x)
     weights <- as.matrix(weights)                                               
     grid.row <- nrow(nn.grid)

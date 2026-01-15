@@ -178,12 +178,9 @@ predict.tunecpfa <-
               inclusive, for binary classification.")
         }
       }
-      if ((is.null(threshold)) && (type == "response")) {
-        yt <- object$y
-        fraction <- table(yt) / length(yt)
-        threshold <- fraction[which(names(fraction) == "0")]
+      if ((is.null(threshold)) && (type != "classify.weights")) {
+        threshold <- 0.5
       }
-      if ((is.null(threshold)) && (type == "prob")) {threshold <- 0.5}
     }
     if (family == "multinomial") {
       if (!(is.null(threshold))) {

@@ -8,6 +8,7 @@ cpfa <-
            plot.measures = NULL, parallel = FALSE, cl = NULL, 
            verbose = TRUE, ...) 
 {
+    permflag <- FALSE
     models <- c("parafac", "parafac2")
     model0 <- sum(tolower(model) %in% models)
     if ((model0 == 0) || (model0 > 1L)) {
@@ -33,6 +34,7 @@ cpfa <-
         modeval <- 1:lxdim 
         mode.re <- c(modeval[-cmode], cmode)
         x <- aperm(x, mode.re)
+        permflag <- TRUE
       } else {
         cmode <- lxdim
       }
@@ -123,8 +125,8 @@ cpfa <-
       stop("Input 'nrep' must be an integer greater than 0.")
     }
     numcheck(ratio)
-    if ((ratio > 1) || (ratio < 0)) {
-      stop("Input 'ratio' must be a number between 0 and 1, inclusive.")
+    if ((ratio >= 1) || (ratio <= 0)) {
+      stop("Input 'ratio' must be a number between 0 and 1, exclusive.")
     }
     if (is.null(seeds)) {
       seeds <- 1:nrep
@@ -266,12 +268,13 @@ cpfa <-
       }
     }
     if (ccreated == TRUE) {stopCluster(cl)}
+    if (permflag == TRUE) {x <- aperm(x, perm = order(mode.re))}
     if (type.out == "measures") {
       cpfalist <- list(measure = stor, predweights = predstor,
                        train.weights = train.weights, opt.tune = opara,
                        mean.opt.tune = mean.tune.param, X = x, y = y, 
                        nfac = nfac, model = model, method = method, 
-                       const = mconst, cmode = cmode0)
+                       const = mconst, cmode = cmode0, family = family)
       class(cpfalist) <- "wrapcpfa"
       return(cpfalist)                                                              
     } else {
@@ -289,7 +292,7 @@ cpfa <-
                        train.weights = train.weights, opt.tune = opara,
                        mean.opt.tune = mean.tune.param, X = x, y = y, 
                        nfac = nfac, model = model, method = method, 
-                       const = mconst, cmode = cmode0)
+                       const = mconst, cmode = cmode0, family = family)
       class(cpfalist) <- "wrapcpfa"
       return(cpfalist)
     }

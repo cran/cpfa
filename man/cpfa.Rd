@@ -155,9 +155,12 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
   provided, fold IDs are generated randomly for number of folds \code{nfolds}.
 }
 \item{prior}{
-  Prior probabilities of class membership. If unspecified, the inverse of class 
-  proportions for input \code{y} are used. If specified, the probabilities 
-  should be in the order of the factor levels of input \code{y}.
+  Prior probabilities of class membership. If specified, the probabilities 
+  should be in the order of the factor levels of input \code{y}. If unspecified, 
+  the observed class proportions for input \code{y} are used. Based on 
+  \code{prior}, inverse probability weights are calculated to account for class 
+  imbalance. Note that RF and RDA ignore \code{prior} and use uniform priors 
+  to handle imbalance.
 }
 \item{cmode}{
   Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying 
@@ -300,7 +303,12 @@ replication.
   \item{cmode}{
     Integer value used to specify the mode whose component weights were 
     predictors for classification. 
-}
+  }
+  \item{family}{
+    Character value used to specify binary classification 
+    (\code{family = "binomial"}) or multiclass classification 
+    (\code{family = "multinomial"}).
+  }
 }
 \note{
 If argument \code{cmode} is not null, input array \code{x} is reshaped with 
@@ -350,6 +358,9 @@ Friedman, J., Hastie, T., and Tibshirani, R. (2010). Regularization paths for
 generalized linear models via coordinate descent. Journal of Statistical 
 Software, 33(1), 1-22.
 
+Gaujoux, R. (2025). doRNG: Generic reproducible parallel backend for 'foreach' 
+loops. R Package Version 1.8.6.2.
+
 Guo, Y., Hastie, T., and Tibshirani, R. (2007). Regularized linear discriminant 
 analysis and its application in microarrays. Biostatistics, 8(1), 86-100.
 
@@ -396,6 +407,12 @@ Methodology), 67(2), 301-320.
 \dontrun{
 # set seed
 set.seed(5)
+
+# define list of arguments specifying distributions for A and G weights
+techlist <- list(distA = list(dname = "poisson", 
+                              lambda = 3),                 # for A weights
+                 distG = list(dname = "gamma", shape = 2, 
+                              scale = 4))                  # for G weights
 
 # define target correlation matrix for columns of D mode weights matrix
 cormat <- matrix(c(1, .6, .6, .6, 1, .6, .6, .6, 1), nrow = 3, ncol = 3)

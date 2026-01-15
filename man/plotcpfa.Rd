@@ -116,6 +116,12 @@ See help file for function \code{cpfa} for a list of references.
 # set seed and simulate a four-way ragged array related to a multiclass response
 set.seed(5)
 
+# define list of arguments specifying distributions for A and G weights
+techlist <- list(distA = list(dname = "poisson", 
+                              lambda = 3),                 # for A weights
+                 distG = list(dname = "gamma", shape = 2, 
+                              scale = 4))                  # for G weights
+
 # define target correlation matrix for columns of D mode weights matrix
 cormat <- matrix(c(1, .6, .6, .6, 1, .6, .6, .6, 1), nrow = 3, ncol = 3)
 
