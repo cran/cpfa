@@ -16,7 +16,7 @@ tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
          method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"), 
          family = c("binomial", "multinomial"), parameters = list(), 
          foldid = NULL, prior = NULL, cmode = NULL, parallel = FALSE, 
-         cl = NULL, verbose = TRUE, ...)
+         cl = NULL, verbose = TRUE, compscale = TRUE, ...)
 }
 \arguments{
 \item{x}{
@@ -167,6 +167,12 @@ tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
 \item{verbose}{
   If TRUE, progress is printed.
 }
+\item{compscale}{
+  Logical indicating whether to scale each column of the estimated 
+  classification component weights matrix (i.e., the features/predictors). If
+  \code{TRUE}, each column is scaled to have mean zero and unit variance. If 
+  \code{FALSE}, no scaling is performed.
+}
 \item{...}{
   Additional arguments to be passed to function \code{parafac} for fitting a 
   Parafac model or function \code{parafac2} for fitting a Parafac2 model. 
@@ -297,6 +303,20 @@ Returns an object of class \code{tunecpfa} with the following elements:
   balance classes for SVM; and (3) \code{pricorrect}, uniform priors used to 
   balance classes for RF and RDA. 
 }
+\item{scenters}{
+  List containing center of the scale for each Parafac or Parafac2 model that 
+  was fit. Note that, for each component, estimated classification weights are 
+  mean-centered before being passed to classification methods. Returns list of 
+  NULL values if argument \code{compscale = FALSE}.
+}
+\item{sscales}{
+  List containing standard devition of the scale for each Parafac or Parafac2 
+  model that was fit. Note that, for each component, estimated classification 
+  weights are scaled to have a variance of 1 before being passed to 
+  classification methods. Returns list of NULL values if argument 
+  \code{compscale = FALSE}.
+}
+
 }
 \note{
 For fitting the Parafac model, if argument \code{cmode} is not NULL, input 

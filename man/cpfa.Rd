@@ -20,7 +20,8 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
      family = c("binomial", "multinomial"), parameters = list(), 
      type.out = c("measures", "descriptives"), foldid = NULL, 
      prior = NULL, cmode = NULL, seeds = NULL, plot.out = FALSE, 
-     plot.measures = NULL, parallel = FALSE, cl = NULL, verbose = TRUE, ...)
+     plot.measures = NULL, parallel = FALSE, cl = NULL, verbose = TRUE, 
+     compscale = TRUE, ...)
 }
 \arguments{
 \item{x}{
@@ -204,6 +205,12 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
 }
 \item{verbose}{
   If TRUE, progress is printed.
+}
+\item{compscale}{
+  Logical indicating whether to scale each column of the estimated 
+  classification component weights matrix (i.e., the features/predictors). If
+  \code{TRUE}, each column is scaled to have mean zero and unit variance. If 
+  \code{FALSE}, no scaling is performed.
 }
 \item{...}{
   Additional arguments to be passed to function \code{parafac} for fitting a 

@@ -2,7 +2,7 @@
 title: "An Introduction to cpfa"
 author: 
   - Matthew Asisgress
-date: "January 2026"
+date: "February 2026"
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{An Introduction to cpfa}
@@ -227,9 +227,9 @@ output$descriptive$median[, 1:2]
 As shown, classification accuracy (i.e., 'acc') is relatively fair (for more 
 details on classification performance measures, see help file for package 
 function `cpm` via `help(cpm)`). In this case, the data-generating model with 
-three components worked for classification purposes. We also examine, averaged 
-across train-test splits, optimal tuning parameters. Note that **glmnet** 
-optimized tuning parameter $\lambda$ internally.
+three components worked best for classification purposes. We also examine, 
+averaged across train-test splits, optimal tuning parameters. Note that 
+**glmnet** optimized tuning parameter $\lambda$ internally.
 
 ```{r}
 # examine optimal tuning parameters averaged across train-test splits
@@ -263,7 +263,7 @@ components and a meaningful set of constraints for different modes, function
 `plotcpfa` can be used to visualize component weights of the best model to 
 better understand how different levels of each mode map onto the set of 
 components. Interested readers might explore the application of this package to 
-several real datasets. See here for more information: 
+several real datasets. See here for examples: 
 <https://github.com/matthewasisgress/multiway-classification/>.
 
 ## Example 2: Three-way Array with Binary Response
@@ -398,9 +398,9 @@ we examine classification performance in the output object:
 output$descriptive$mean[, 1:2]
 ```
 
-As shown, classification accuracy is highest for the three-component RF 
-classifier. In this case, the data-generating model with three components worked 
-best for classification purposes (i.e, compared to the two-component model). 
+As shown, classification accuracy is highest for the two-component RF 
+classifier. In this case, the data-generating model with two components worked 
+best for classification purposes (i.e, compared to the three-component model). 
 We also examine, averaged across train-test splits, optimal tuning parameters.
 
 ```{r}
@@ -422,13 +422,13 @@ set.seed(400)
 results <- plotcpfa(output, nstart = 3, ctol = 1e-1, verbose = FALSE)
 ```
 
-However, as in the previous example, the simulated array contains mode A and 
+As in the previous example, the simulated array contains mode A and 
 mode B weights whose levels do not have a substantive meaning. As such, we
 omit the heat maps for this example. However, if these were real data, such heat 
-maps might reveal relationships between model components and the levels of mode 
+maps could reveal relationships between model components and the levels of mode 
 A or B. As previously described, interested readers might explore the 
 application of this package to several real datasets. See here for more 
-information: <https://github.com/matthewasisgress/multiway-classification/>.
+examples: <https://github.com/matthewasisgress/multiway-classification/>.
 
 ## Concluding Thoughts
 

@@ -41,8 +41,8 @@ kcv.gbm <-
                              gbm.pred <- predict(gbm.fit, xgtest)
                              gbm.class <- as.numeric(gbm.pred > threshold)
                            } else {
-                             gbm.pred <- t(matrix(predict(gbm.fit, xgtest), 
-                                                  nrow = num_classes))
+                             gbm.pred <- matrix(predict(gbm.fit, xgtest), 
+                                                ncol = num_classes)
                              gbm.class <- as.numeric((apply(gbm.pred, 1, 
                                                             which.max))) - 1
                            }
@@ -75,8 +75,7 @@ kcv.gbm <-
               gbm.pred <- predict(gbm.fit, xgtest)
               gbm.class <- as.numeric(gbm.pred > threshold)
             } else {
-              gbm.pred <- t(matrix(predict(gbm.fit, xgtest), 
-                                   nrow = num_classes))
+              gbm.pred <- matrix(predict(gbm.fit, xgtest), ncol = num_classes)
               gbm.class <- as.numeric((apply(gbm.pred, 1, which.max))) - 1
             }
             stortune[yy, 1] <- 1 - mean(gbm.class == y.test) 

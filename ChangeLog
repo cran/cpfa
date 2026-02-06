@@ -1,3 +1,27 @@
+Changes: version 1.2-6  (2026-02-06)
+
+1.) Bug fix in package function 'plotcpfa'
+	- Previously function 'plotcpfa' did not have an argument to identify the classification mode
+	- Now argument 'cmode' is included to identify the classification mode to permute it to be the last mode
+
+2.) Bug fix in package function 'tunecpfa'
+	- Previously function 'tunecpfa' did not scale features consistently across classification methods
+	- Now 'tunecpfa' scales features consistently across classification methods
+
+3.) Bug fix in package function 'cpfa'
+	- Previous updates included an bug that prevented function 'cpfa' from passing additional arguments to function 'tunecpfa' 
+	- Now additional arguments (e.g., 'const') are passed to 'tunecpfa' successfully
+
+4.) Bug fix in package function 'predict.tunecpfa' and internal function 'kcv.gbm'
+	- Previously incorrect use of 't()' to obtain a matrix transpose rendered performance measures incorrect for method GBM
+	- Now 't()' is removed, giving correct dimensions and returning correct performance measures for GBM
+
+5.) Modified function 'tunecpfa' to include a scaling argument
+	- Previously function 'tunecpfa' did not include an option for scaling predictors
+	- Now 'tunecpfa' includes logical argument 'compscale' to allow an option for scaling
+
+----------------
+
 Changes: version 1.2-5  (2026-01-15)
 
 1.) Bug fix in help file examples

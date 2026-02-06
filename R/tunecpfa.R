@@ -3,7 +3,7 @@ tunecpfa <-
            method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"),
            family = c("binomial", "multinomial"), parameters = list(), 
            foldid = NULL, prior = NULL, cmode = NULL, parallel = FALSE, 
-           cl = NULL, verbose = TRUE, ...)
+           cl = NULL, verbose = TRUE, compscale = TRUE, ...)
 {   
     if (!(is.list(parameters))) {
       stop("Input 'parameters' must be of class 'list'.")
@@ -395,9 +395,10 @@ tunecpfa <-
     priorweights <- list(weight = weight, frac = frac, pricorrect = pricorrect)
     if ('1' %in% method) {plr.weights <- weight}
     Aweights <- Bweights <- Cweights <- Phi <- vector("list", lnfac)
+    scenters <- sscales <- Aweights
     train.weights <- opt.model <- Aweights                                         
     opt.param <- est.time <- kcv.error <- NULL
-    logicheck(parallel)
+    logicheck(parallel); logicheck(compscale)
     ccluster <- FALSE
     if (parallel == TRUE) {
       if (is.null(cl)) {
@@ -421,11 +422,27 @@ tunecpfa <-
          if (w == 1) {const <- pfac$control$const}
          time.pfac <- toc[3] - tic[3]
          Aweights[[w]] <- pfac$A
-         Bweights[[w]] <- pfac$B                                               
-         train <- train.weights[[w]] <- as.matrix(pfac$C)
+         Bweights[[w]] <- pfac$B   
+         rtrain <- as.matrix(pfac$C)
+         if (compscale == TRUE) {
+           strain <- scale(rtrain)
+           scenters[[w]] <- scenter <- attr(strain, "scaled:center") 
+           sscales[[w]] <- sscale <- attr(strain, "scaled:scale")  
+           train <- train.weights[[w]] <- strain
+         } else {
+           train <- train.weights[[w]] <- rtrain
+         }
          if (lxdim == 4L) {
            Cweights[[w]] <- pfac$C                                               
-           train <- train.weights[[w]] <- as.matrix(pfac$D)
+           rtrain <- as.matrix(pfac$D)
+           if (compscale == TRUE) {
+             strain <- scale(rtrain)
+             scenters[[w]] <- scenter <- attr(strain, "scaled:center") 
+             sscales[[w]] <- sscale <- attr(strain, "scaled:scale")  
+             train <- train.weights[[w]] <- strain
+           } else {
+             train <- train.weights[[w]] <- rtrain
+           }
          }
        } else {
          if (verbose == TRUE) {
@@ -439,10 +456,26 @@ tunecpfa <-
          time.pfac <- toc[3] - tic[3]
          Aweights[[w]] <- pfac$A
          Bweights[[w]] <- pfac$B                                                  
-         train <- train.weights[[w]] <- as.matrix(pfac$C)
+         rtrain <- as.matrix(pfac$C)
+         if (compscale == TRUE) {
+           strain <- scale(rtrain)
+           scenters[[w]] <- scenter <- attr(strain, "scaled:center") 
+           sscales[[w]] <- sscale <- attr(strain, "scaled:scale")
+           train <- train.weights[[w]] <- strain
+         } else {
+           train <- train.weights[[w]] <- rtrain
+         }
          if (lxdim == 4L) {
-           Cweights[[w]] <- pfac$C                                              
-           train <- train.weights[[w]] <- as.matrix(pfac$D)
+           Cweights[[w]] <- pfac$C
+           rtrain <- as.matrix(pfac$D)
+           if (compscale == TRUE) {
+             strain <- scale(rtrain)
+             scenters[[w]] <- scenter <- attr(strain, "scaled:center") 
+             sscales[[w]] <- sscale <- attr(strain, "scaled:scale")  
+             train <- train.weights[[w]] <- strain
+           } else {
+             train <- train.weights[[w]] <- rtrain
+           }
          }
          Phi[[w]] <- pfac$Phi
        }
@@ -485,7 +518,8 @@ tunecpfa <-
          tic <- proc.time()
          svm.results <- kcv.svm(x = train, y = y, nfolds = nfolds,
                                 foldid = foldid, svm.grid = svm.grid, 
-                                class.weights = frac, parallel = parallel)
+                                class.weights = frac, parallel = parallel,
+                                scale = FALSE)
          toc <- proc.time()
          time.svm <- toc[3] - tic[3]
          error.svm <- svm.results$error
@@ -608,7 +642,8 @@ tunecpfa <-
                         Cweights = NULL, Phi = Phi, const = const,
                         cmode = cmode, family = family, xdim = xdim, 
                         lxdim = lxdim, train.weights = train.weights, 
-                        priorweights = priorweights)
+                        priorweights = priorweights, scenters = scenters,
+                        sscales = sscales)
     }
     if (lxdim == 4L) {
       tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
@@ -618,7 +653,8 @@ tunecpfa <-
                         Cweights = Cweights, Phi = Phi, const = const, 
                         cmode = cmode, family = family, xdim = xdim, 
                         lxdim = lxdim, train.weights = train.weights,
-                        priorweights = priorweights)
+                        priorweights = priorweights, scenters = scenters,
+                        sscales = sscales)
     }
     class(tcpfalist) <- "tunecpfa"
     return(tcpfalist)

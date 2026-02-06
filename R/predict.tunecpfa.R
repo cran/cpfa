@@ -159,6 +159,8 @@ predict.tunecpfa <-
     Bweights <- object$Bweights   
     Cweights <- object$Cweights
     Phi <- object$Phi
+    scenters <- object$scenters
+    sscales <- object$sscales
     const <- object$const
     classify.weights <- vector("list", lnfac)
     names(classify.weights) <- nfac.names
@@ -222,7 +224,10 @@ predict.tunecpfa <-
            ppfac <- parafac(X = newdata, nfac = nfac[w], nstart = 1, 
                             ctol = sqrt(.Machine$double.eps), verbose = FALSE, 
                             const = const, Afixed = Afixed, Bfixed = Bfixed)                
-           classify.weights[[w]] <- C.pred <- ppfac$C
+           C.pred0 <- ppfac$C
+           C.pred <- scale(C.pred0, center = scenters[[w]], 
+                           scale = sscales[[w]])
+           classify.weights[[w]] <- C.pred
          }
          if (lxdim == 4L) {
            Cfixed <- Cweights[[w]]
@@ -230,7 +235,10 @@ predict.tunecpfa <-
                             ctol = sqrt(.Machine$double.eps), verbose = FALSE, 
                             const = const, Afixed = Afixed, Bfixed = Bfixed,
                             Cfixed = Cfixed)                                
-           classify.weights[[w]] <- C.pred <- ppfac$D
+           C.pred0 <- ppfac$D
+           C.pred <- scale(C.pred0, center = scenters[[w]], 
+                           scale = sscales[[w]])
+           classify.weights[[w]] <- C.pred
          }
        } else {
          Phifixed <- Phi[[w]]
@@ -245,7 +253,10 @@ predict.tunecpfa <-
            ppfac <- parafac2(X = newdata, nfac = nfac[w], nstart = 1, 
                              ctol = sqrt(.Machine$double.eps), verbose = FALSE, 
                              const = const, Gfixed = Gfixed, Bfixed = Bfixed)                
-           classify.weights[[w]] <- C.pred <- ppfac$C
+           C.pred0 <- ppfac$C
+           C.pred <- scale(C.pred0, center = scenters[[w]], 
+                           scale = sscales[[w]])
+           classify.weights[[w]] <- C.pred
          }
          if (lxdim == 4L) {
            Cfixed <- Cweights[[w]]
@@ -253,7 +264,10 @@ predict.tunecpfa <-
                              ctol = sqrt(.Machine$double.eps), verbose = FALSE, 
                              const = const, Gfixed = Gfixed, Bfixed = Bfixed,
                              Cfixed = Cfixed)                                
-           classify.weights[[w]] <- C.pred <- ppfac$D
+           C.pred0 <- ppfac$D
+           C.pred <- scale(C.pred0, center = scenters[[w]], 
+                           scale = sscales[[w]])
+           classify.weights[[w]] <- C.pred
          }
        }
        if (type != "classify.weights") {
@@ -461,8 +475,8 @@ predict.tunecpfa <-
                  storfac[, colcount] <- as.numeric(gbm.pred > threshold)       
                }
                if (family == "multinomial") {
-                 gbm.pred <- t(matrix(predict(gbm.fit, xgdata), 
-                                      nrow = num_classes))
+                 gbm.pred <- matrix(predict(gbm.fit, xgdata), 
+                                    ncol = num_classes)
                  storfac[, colcount] <- as.numeric((apply(gbm.pred, 1, 
                                                           which.max))) - 1
                }
@@ -472,8 +486,8 @@ predict.tunecpfa <-
                  storprob[[colcount]] <- predict(gbm.fit, xgdata)
                }
                if (family == "multinomial") {
-                 storprob[[colcount]] <- t(matrix(predict(gbm.fit, xgdata), 
-                                                  nrow = num_classes))
+                 storprob[[colcount]] <- matrix(predict(gbm.fit, xgdata), 
+                                                ncol = num_classes)
                }
              }
            } 

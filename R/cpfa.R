@@ -6,7 +6,7 @@ cpfa <-
            type.out = c("measures", "descriptives"), foldid = NULL, 
            prior = NULL, cmode = NULL, seeds = NULL, plot.out = FALSE, 
            plot.measures = NULL, parallel = FALSE, cl = NULL, 
-           verbose = TRUE, ...) 
+           verbose = TRUE, compscale = TRUE, ...) 
 {
     permflag <- FALSE
     models <- c("parafac", "parafac2")
@@ -214,11 +214,12 @@ cpfa <-
          X.train <- x[train.id]
          X.test <- x[-train.id]
        }
-       tcpfalist <- tunecpfa(x = X.train, y = y.train, nfac = nfac,            
-                             nfolds = nfolds, method = method, foldid = foldid, 
-                             prior = prior, model = model, family = family,
-                             parameters = parameters, parallel = parallel, 
-                             cl = cl, verbose = verbose, cmode = NULL)
+       tcpfalist <- tunecpfa(x = X.train, y = y.train, model = model, 
+                             nfac = nfac, nfolds = nfolds, method = method, 
+                             family = family, parameters = parameters, 
+                             foldid = foldid, prior = prior, cmode = NULL, 
+                             parallel = parallel, cl = cl, verbose = verbose, 
+                             compscale = compscale, ...)
        Aw[[i]] <- tcpfalist$Aweights
        Bw[[i]] <- tcpfalist$Bweights
        Cw[[i]] <- tcpfalist$Cweights

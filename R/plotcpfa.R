@@ -1,7 +1,7 @@
 plotcpfa <- 
   function(object, cmeasure = "acc", meanvalue = TRUE, supNum = FALSE, 
-           parallel = FALSE, cl = NULL, scale.remode = NULL, newscales = 1, 
-           scale.abmode = NULL, sign.remode = NULL, newsigns = 1, 
+           cmode = NULL, parallel = FALSE, cl = NULL, scale.remode = NULL, 
+           newscales = 1, scale.abmode = NULL, sign.remode = NULL, newsigns = 1, 
            sign.abmode = NULL, ...) 
 {
     if (!(inherits(object, "wrapcpfa"))) {
@@ -19,6 +19,21 @@ plotcpfa <-
     model <- object$model; method <- object$method; const <- object$const
     X <- object$X
     lxdim <- length(const)
+    if (!(is.null(cmode))) {
+      if (!(cmode %in% (1:lxdim))) {
+        stop("Input 'cmode' must be 1, 2, or 3 (or 4 if 'x' is four-way).")
+      }
+      modeval <- 1:lxdim
+      mode.re <- c(modeval[-cmode], cmode)
+      X <- aperm(X, mode.re)
+    } else {
+      if (model == "parafac") {
+        cmode <- object$cmode
+        modeval <- 1:lxdim
+        mode.re <- c(modeval[-cmode], cmode)
+        X <- aperm(X, mode.re)
+      }
+    }
     values <- object$descriptive
     if (meanvalue == TRUE) {
       finalvalues <- values$mean

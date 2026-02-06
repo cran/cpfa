@@ -9,8 +9,8 @@ function \code{cpfa}.
 }
 \usage{
 plotcpfa(object, cmeasure = "acc", meanvalue = TRUE, supNum = FALSE, 
-         parallel = FALSE, cl = NULL, scale.remode = NULL, newscales = 1, 
-         scale.abmode = NULL, sign.remode = NULL, newsigns = 1, 
+         cmode = NULL, parallel = FALSE, cl = NULL, scale.remode = NULL, 
+         newscales = 1, scale.abmode = NULL, sign.remode = NULL, newsigns = 1, 
          sign.abmode = NULL, ...)
 }
 \arguments{
@@ -33,6 +33,11 @@ plotcpfa(object, cmeasure = "acc", meanvalue = TRUE, supNum = FALSE,
 \item{supNum}{
   Logical indicating whether to suppress text displaying component weight values 
   within plot cells. If TRUE, values are not displayed.
+}
+\item{cmode}{
+  Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying 
+  the mode whose component weights were predictors for classification when
+  generating the 'wrapcpfa' object using function \code{cpfa}.
 }
 \item{parallel}{
   Logical indicating whether parallel computing should be used. If TRUE, 
