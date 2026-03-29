@@ -6,23 +6,28 @@ Tuning for Classification with Parallel Factor Analysis
 \description{
 Fits Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or 
 Parallel Factor Analysis-2 (Parafac2) model to a three-way or four-way data 
-array. Allows for multiple constraint options on tensor modes. Uses component 
+array. Also fits a principal component analysis model (PCA) to a two-way matrix.
+Allows for different constraint options on multiple tensor modes. For PCA, 
+allows for either an unrotated or varimax rotated solution. Uses component 
 weights from a single mode of the model as predictors to tune parameters for 
 one or more classification methods via a k-fold cross-validation procedure. 
 Supports binary and multiclass classification.
 }
 \usage{
-tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
+tunecpfa(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1, nfolds = 10,
          method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"), 
          family = c("binomial", "multinomial"), parameters = list(), 
          foldid = NULL, prior = NULL, cmode = NULL, parallel = FALSE, 
-         cl = NULL, verbose = TRUE, compscale = TRUE, ...)
+         cl = NULL, verbose = TRUE, compscale = TRUE, 
+         pcarot = c("unrotated", "varimax"), ...)
 }
 \arguments{
 \item{x}{
-  For Parafac or Parafac2, a three-way or four-way data array. For Parafac2, 
-  can be a list where each element is a matrix or three-way array. Array or 
-  list must contain real numbers. See note below.
+  A three-way or four-way data array. For Parafac2, can be a list where each 
+  element is a matrix or three-way array. Array or list must contain only real 
+  numbers. See note below. For PCA, can be a two-way matrix, a three-way array,
+  or a four-way array. If a three-way or four-way array for PCA, array is 
+  unfolded across all modes except the classification mode.
 } 
 \item{y}{
   A vector containing at least two unique class labels. Should be a factor that 
@@ -31,13 +36,13 @@ tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
   class is second.
 }
 \item{model}{
-  Character designating the Parafac model to use, either 
-  \code{model = "parafac"} to fit the Parafac model or \code{model = "parafac2"} 
-  to fit the Parafac2 model.
+  Character designating the component model to use, including: 
+  \code{model = "parafac"} to fit the Parafac model, \code{model = "parafac2"} 
+  to fit the Parafac2 model, or \code{model = "pca"} to fit the PCA model.
 }
 \item{nfac}{
-  Number of components for each Parafac or Parafac2 model to fit. Default is 
-  \code{nfac = 1}.
+  Vector containing integers that specify the number of components for each 
+  component model to fit. Default is \code{nfac = 1}.
 }
 \item{nfolds}{
   Numeric value specifying the number of folds for k-fold cross-validation. 
@@ -149,8 +154,9 @@ tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
   Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying 
   the mode whose component weights will be predictors for classification. 
   Defaults to the last mode of the input array (i.e., defaults to 3 for 
-  three-way array, and to 4 for four-way array). If \code{model = "parafac2"}, 
-  last mode will be used.
+  a three-way array, and to 4 for a four-way array). 
+  If \code{model = "parafac2"}, last mode will be used. If \code{model = "pca"},
+  cmode is set to the first mode. 
 }
 \item{parallel}{
   Logical indicating whether to use parallel computing. If TRUE, the package 
@@ -173,6 +179,11 @@ tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
   \code{TRUE}, each column is scaled to have mean zero and unit variance. If 
   \code{FALSE}, no scaling is performed.
 }
+\item{pcarot}{
+  Character indicating whether to apply a varimax rotation or leave PCA loadings
+  unrotated when \code{model} is set to \code{pca}. Ignored when \code{model} is
+  not \code{pca}. Defaults to \code{"unrotated"} if not specified.
+}
 \item{...}{
   Additional arguments to be passed to function \code{parafac} for fitting a 
   Parafac model or function \code{parafac2} for fitting a Parafac2 model. 
@@ -182,11 +193,12 @@ tunecpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
 }
 }
 \details{
-After fitting a Parafac or Parafac2 model using package \bold{multiway} 
-(see \code{parafac} or \code{parafac2} in \bold{multiway} for details), 
+After fitting a Parafac or Parafac2 model with the training set using package 
+\bold{multiway} (see \code{parafac} or \code{parafac2} in \bold{multiway} for 
+details), or after fitting a PCA model using the singular value decomposition, 
 the estimated classification mode weight matrix is passed to one or more 
-classification methods--including penalized logistic regression (PLR); 
-support vector machine (SVM); random forest (RF); feed-forward neural 
+classification methods. The methods include: penalized logistic regression 
+(PLR); support vector machine (SVM); random forest (RF); feed-forward neural 
 network (NN); regularized discriminant analysis (RDA); and gradient boosting 
 machine (GBM).
 
@@ -222,7 +234,7 @@ Returns an object of class \code{tunecpfa} with the following elements:
   
 \item{opt.model}{
   List containing optimal model for tuned classification methods for each 
-  Parafac or Parafac2 model that was fit.
+  component model that was fit.
 }
 \item{opt.param}{
   Data frame containing optimal parameters for tuned classification methods.
@@ -232,8 +244,13 @@ Returns an object of class \code{tunecpfa} with the following elements:
   tuned classification methods.
 }
 \item{est.time}{
-  Data frame containing times for fitting Parafac or Parafac2 model and for 
+  Data frame containing times for fitting the component model and for 
   tuning classification methods.
+}
+\item{model}{
+  Character designating the component model that was used, including:
+  \code{model = "parafac"} for the Parafac model, \code{model = "parafac2"} 
+  for the Parafac2 model, or \code{model = "pca"} for the PCA model.
 }
 \item{method}{
   Numeric indicating classification methods used. Value of '1' indicates 
@@ -242,8 +259,9 @@ Returns an object of class \code{tunecpfa} with the following elements:
   'GBM'.
 }
 \item{x}{
-  Three-way or four-way array used. If a list was used with 
-  \code{model = "parafac2"}, returns list of matrices or three-way arrays used.
+  Two-way matrix, or three-way or four-way data array or list used in argument 
+  \code{x}. If \code{x} was a three-way or four-way array, and if \code{model}
+  was \code{pca}, returns the flattened two-way matrix.
 }
 \item{y}{
   Factor containing class labels used. Note that output \code{y} is recoded 
@@ -252,27 +270,29 @@ Returns an object of class \code{tunecpfa} with the following elements:
   output \code{y}. 
 }
 \item{Aweights}{
-  List containing estimated A weights for each Parafac or Parafac2 model that 
-  was fit.
+  List containing estimated A weights for each component model that was fit. For
+  PCA, contains the loadings.
 }
 \item{Bweights}{
-  List containing estimated B weights for each Parafac or Parafac2 model that 
-  was fit.
+  List containing estimated B weights for each component model that was fit. 
+  Null if \code{model} was \code{pca}.
 }
 \item{Cweights}{
   List containing estimated C weights for each Parafac or Parafac2 model that 
-  was fit. Null if input argument \code{x} was a three-way array.
+  was fit. Null if input argument \code{x} was a three-way array or if 
+  \code{model} was \code{pca}.
 }
 \item{Phi}{
   If \code{model = "parafac2"}, a list containing estimated \code{Phi} from 
   the Parafac2 model. \code{Phi} is the common cross product matrix shared by 
   all levels of the last mode (see help file for function \code{parafac2} in 
   package \bold{multiway} for additional details). NULL if 
-  \code{model = "parafac"}.
+  \code{model = "parafac"} or if \code{model = "pca"}.
 }
 \item{const}{
-  Constraints used in fitting Parafac or Parafac2 models. If argument 
-  \code{const} was not provided, no constraints will be used.
+  Constraints used in fitting the Parafac, Parafac2, or PCA model. When 
+  \code{model} was \code{pca}, contains the value used in input \code{pcarot}
+  to indicate whether a rotation was applied to the solution.
 }
 \item{cmode}{
   Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying 
@@ -284,12 +304,17 @@ Returns an object of class \code{tunecpfa} with the following elements:
 }
 \item{xdim}{
   Numeric value specifying number of levels for each mode of input \code{x}. 
-  If \code{model = "parafac2"}, number of levels for first mode is designated 
-  as \code{NA} because the number of levels can differ across levels of the 
-  last mode.
+  If \code{model = "parafac2"}, the number of levels for the first mode is 
+  designated as \code{NA} because the number of levels can differ across levels 
+  of the last mode. If \code{model = "pca"} and if input \code{x} was a 3-way or 
+  4-way array, \code{xdim} contains the number of levels of the matrix that is 
+  the unfolded version of the input array.
 }
 \item{lxdim}{
-  Numeric value specifying number of modes of input \code{x}.
+  Integer specifying the number of modes of the output \code{x}. Identical to 
+  the number of modes of input \code{x}, except when input \code{x} was a 
+  3-way or 4-way array and when \code{model} was \code{pca}. In this case,
+  \code{lxdim} is 2.
 }
 \item{train.weights}{
   List containing classification component weights for each fit Parafac or 
@@ -316,7 +341,10 @@ Returns an object of class \code{tunecpfa} with the following elements:
   classification methods. Returns list of NULL values if argument 
   \code{compscale = FALSE}.
 }
-
+\item{pcacenter}{
+  Numeric vector containing centers for each feature used in PCA. NULL if 
+  \code{model} is not \code{pca}.
+}
 }
 \note{
 For fitting the Parafac model, if argument \code{cmode} is not NULL, input 
@@ -329,7 +357,13 @@ modes 1, 2, 3, and 4 will correspond to output modes 1, 3, 4, 2. Here,
 output A = input 1; B = 3, and C = 4 (i.e., the second mode specified by 
 \code{cmode} has been moved to the D mode/last mode). For 
 \code{model = "parafac2"}, classification mode is assumed to be the last mode 
-(i.e., mode C for three-way array and mode D for four-way array).
+(i.e., mode C for three-way array and mode D for four-way array). For PCA, if 
+argument \code{cmode} is not NULL, and if \code{x} is a 3-way or 4-way array, 
+the array is reshaped with \code{aperm} such that the \code{cmode} dimension
+of \code{x} is ordered first. Then, the array is unfolded into a two-way matrix.
+If \code{x} is already input as a two-way matrix, the matrix is reshaped if 
+\code{cmode} is 2, such that the matrix is transposed. Note that for PCA, 
+\code{Aweights} contains the PCA model loadings.
 
 In addition, note that the following combination of arguments will give an 
 error: \code{nfac = 1, family = "multinomial", method = "PLR"}. The issue 
@@ -461,7 +495,7 @@ nstart <- 3
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
-tune.object <- tunecpfa(x = data$X, y = as.factor(data$y), model = model, 
+tune.object <- tunecpfa(x = data$X, y = data$y, model = model, 
                         nfac = 3, nfolds = nfolds, method = method, 
                         family = family, parameters = parameters, 
                         parallel = FALSE, const = const, nstart = nstart)

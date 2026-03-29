@@ -6,43 +6,51 @@ Classification with Parallel Factor Analysis
 \description{
 Fits Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or 
 Parallel Factor Analysis-2 (Parafac2) model to a three-way or four-way data 
-array. Allows for different constraint options on multiple tensor modes. Uses 
-Parafac component weights from a single mode of this model as predictors to 
-tune parameters for one or more classification methods via a k-fold 
-cross-validation procedure. Predicts class labels and calculates multiple 
-performance measures for binary or multiclass classification across multiple 
-replications with different train-test splits. Provides descriptive statistics 
-to pool output across replications.
+array. Also fits a principal component analysis model (PCA) to a two-way matrix.
+Allows for different constraint options on multiple tensor modes. For PCA, 
+allows for either an unrotated or varimax rotated solution. Uses component 
+weights from a single mode of the selected component model as predictors to tune 
+parameters for one or more classification methods via a k-fold cross-validation 
+procedure. Predicts class labels and calculates multiple performance measures 
+for binary or multiclass classification across multiple replications with 
+different train-test splits. Provides descriptive statistics to pool output 
+across replications.
 }
 \usage{
-cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
-     nfolds = 10, method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"), 
+cpfa(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1, nrep = 5, 
+     ratio = 0.8, nfolds = 10, 
+     method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"), 
      family = c("binomial", "multinomial"), parameters = list(), 
-     type.out = c("measures", "descriptives"), foldid = NULL, 
-     prior = NULL, cmode = NULL, seeds = NULL, plot.out = FALSE, 
-     plot.measures = NULL, parallel = FALSE, cl = NULL, verbose = TRUE, 
-     compscale = TRUE, ...)
+     type.out = c("measures", "descriptives"), foldid = NULL, prior = NULL, 
+     cmode = NULL, seeds = NULL, plot.out = FALSE, plot.measures = NULL, 
+     parallel = FALSE, cl = NULL, verbose = TRUE, compscale = TRUE, 
+     pcarot = c("unrotated", "varimax"), ...)
 }
 \arguments{
 \item{x}{
   A three-way or four-way data array. For Parafac2, can be a list where each 
   element is a matrix or three-way array. Array or list must contain only real 
-  numbers. See note below.
+  numbers. See note below. For PCA, can be a two-way matrix, a three-way array,
+  or a four-way array. If a three-way or four-way array for PCA, array is 
+  unfolded across all modes except the classification mode. Note that if 
+  three-way or four-way array for PCA, classification mode must be the last 
+  mode.
 } 
 \item{y}{
   A vector containing at least two unique class labels. Should be a factor that 
   contains two or more levels. For binary case, ensure the order of factor 
   levels (left to right) is such that negative class is first and positive 
-  class is second.
+  class is second. Levels should be sequential integers starting from 0, 1, ...,
+  etc.
 }
 \item{model}{
-  Character designating the Parafac model to use, either 
-  \code{model = "parafac"} to fit the Parafac model or \code{model = "parafac2"} 
-  to fit the Parafac2 model.
+  Character designating the component model to use, including: 
+  \code{model = "parafac"} to fit the Parafac model, \code{model = "parafac2"} 
+  to fit the Parafac2 model, or \code{model = "pca"} to fit the PCA model.
 }
 \item{nfac}{
-  Number of components for each Parafac or Parafac2 model to fit. Default is 
-  \code{nfac = 1}.
+  Vector containing integers that specify the number of components for each 
+  component model to fit. Default is \code{nfac = 1}.
 }
 \item{nrep}{
   Number of replications to repeat the procedure. Default is \code{nrep = 5}.
@@ -144,16 +152,18 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
 }
 }
 \item{type.out}{
-  Type of output desired: \code{type.out = "measures"} gives array containing 
-  classification performance measures for all replications while 
-  \code{type.out = "descriptives"} gives list of descriptive statistics 
+  Type of output desired: \code{type.out = "measures"} returns an array 
+  containing classification performance measures for all replications while 
+  \code{type.out = "descriptives"} returns the list of descriptive statistics 
   calculated across all replications for each performance measure. Both 
   options also provide the estimated training weights and classification 
   weights. Defaults to \code{type.out = "descriptives"}.
 }
 \item{foldid}{
-  Integer vector containing fold IDs for k-fold cross-validation. If not 
-  provided, fold IDs are generated randomly for number of folds \code{nfolds}.
+  List containing, for each replication, an integer vector. Should have length 
+  equal to 'nrep'. Each list element contains fold IDs for k-fold 
+  cross-validation. If not provided, fold IDs are generated randomly for the 
+  number of folds \code{nfolds}.
 }
 \item{prior}{
   Prior probabilities of class membership. If specified, the probabilities 
@@ -167,8 +177,12 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
   Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying 
   the mode whose component weights will be predictors for classification. 
   Defaults to the last mode of the input array (i.e., defaults to 3 for 
-  three-way array, and to 4 for four-way array). If \code{model = "parafac2"}, 
-  last mode will be used.
+  a three-way array, and to 4 for a four-way array). 
+  If \code{model = "parafac2"}, the last mode will be used. 
+  If \code{model = "pca"}, and if input \code{x} is a matrix, cmode can be 1 or
+  2; if not provided, defaults to 1. However, if \code{model = "pca"}, and if 
+  input \code{x} is a 3-way or 4-way array, \code{cmode} must be the last mode 
+  when supplied.
 }
 \item{seeds}{
   Random seeds to be associated with each replication. Default is 
@@ -187,9 +201,7 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
   "fdr", "fom", "fs")}. A box plot will be created for each measure that is 
   specified, summarizing output across replications. Note that additional 
   information about each label is available in the Details section of the help 
-  file for function \code{cpm}. Note also that there are a few cases where 
-  the x-axis tick labels for a plot might not appear. A future update is planned
-  to fix this issue.
+  file for function \code{cpm}. If NULL, defaults to classification accuracy.
 }
 \item{parallel}{
   Logical indicating if parallel computing should be implemented. If TRUE, the 
@@ -212,6 +224,11 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
   \code{TRUE}, each column is scaled to have mean zero and unit variance. If 
   \code{FALSE}, no scaling is performed.
 }
+\item{pcarot}{
+  Character indicating whether to apply a varimax rotation or leave PCA loadings
+  unrotated when \code{model} is set to \code{pca}. Ignored when \code{model} is
+  not \code{pca}. Defaults to \code{"unrotated"} if not specified.
+}
 \item{...}{
   Additional arguments to be passed to function \code{parafac} for fitting a 
   Parafac model or function \code{parafac2} for fitting a Parafac2 model. 
@@ -221,9 +238,10 @@ cpfa(x, y, model = c("parafac", "parafac2"), nfac = 1, nrep = 5, ratio = 0.8,
 }
 }
 \details{
-Data are split into a training set and a testing set. After fitting a Parafac 
-or Parafac2 model with the training set using package \bold{multiway} 
-(see \code{parafac} or \code{parafac2} in \bold{multiway} for details), the 
+Data are split into a training set and a testing set. After fitting a Parafac or 
+Parafac2 model with the training set using package \bold{multiway} (see 
+\code{parafac} or \code{parafac2} in \bold{multiway} for details), or after
+fitting a PCA model using the singular value decomposition, the 
 estimated classification mode weight matrix is passed to one or more 
 classification methods. The methods include: penalized logistic regression 
 (PLR); support vector machine (SVM); random forest (RF); feed-forward neural 
@@ -254,30 +272,30 @@ tree; and (4) nrounds, the number of boosting trees to build.
 
 For all six methods, k-fold cross-validation is implemented to tune 
 classification parameters where the number of folds is set by argument 
-\code{nfolds}. Separately, the trained Parafac or Parafac2 model is used to 
-predict the classification mode's component weights using the testing set data. 
-The predicted component weights and the optimized classification method are 
-then used to predict class labels. Finally, classification performance measures 
-are calculated. The process is repeated over a number of replications with 
-different random splits of the input array and of the class labels at each 
+\code{nfolds}. Separately, the trained Parafac, Parafac2, or PCA model is used
+to predict the classification mode's component weights using the testing set 
+data. The predicted component weights and the optimized classification method 
+are then used to predict class labels. Finally, classification performance 
+measures are calculated. The process is repeated over a number of replications 
+with different random splits of the input array and of the class labels at each 
 replication.
 }
 \value{
-  Returns an object of class \code{wrapcpfa} either with a three-way array 
-  with classification performance measures for each model and for each 
-  replication, or with a list containing matrices with descriptive statistics 
-  for performance measures calculated across all replications. Specify 
-  \code{type.out = "measures"} to output the array of performance measures. 
-  Specify \code{type.out = "descriptives"} to output descriptive statistics 
-  across replications. In addition, for both options, the following are also 
-  provided:
+  Returns an object of class \code{wrapcpfa} that either \code{(1)} contains a 
+  three-way array with classification performance measures for each model and 
+  for each replication, or \code{(2)} contains a list with matrices with 
+  descriptive statistics for performance measures calculated across all 
+  replications. Specify \code{type.out = "measures"} to output the array of 
+  performance measures. Specify \code{type.out = "descriptives"} to output 
+  descriptive statistics across replications. In addition, for either option, 
+  the returned list object includes the following:
   \item{predweights}{
-    List of predicted classification weights for each Parafac or Parafac2 model 
-    and for each replication.
+    List of predicted classification weights for each Parafac, Parafac2, or PCA
+    model and for each replication.
   }
   \item{train.weights}{
-    List of lists of training weights for each Parafac or Parafac2 model and 
-    for each replication.
+    List of lists of training weights for each Parafac, Parafac2, or PCA model 
+    and for each replication.
   }
   \item{opt.tune}{
     List of optimal tuning parameters for classification methods for each 
@@ -288,24 +306,28 @@ replication.
     classification methods for each Parafac or Parafac2 model. 
   }
   \item{X}{
-    Three-way or four-way data array or list used in argument \code{x}.
+    Two-way matrix, or three-way or four-way data array or list used in argument 
+    \code{x}. If \code{x} was a three-way or four-way array, and if \code{model}
+    was \code{pca}, returns the flattened two-way matrix.
   }
   \item{y}{
     Vector of class labels used in input argument \code{y}.
   }
   \item{nfac}{
-    Number of components used to fit each Parafac or Parafac2 model.
+    Number of components used to fit each Parafac, Parafac2, or PCA model.
   }
   \item{model}{
-    Character designating the Parafac model that was used, either 
-    \code{model = "parafac"} for the Parafac model or \code{model = "parafac2"} 
-    for the Parafac2 model.
+    Character designating the component model that was used, including:
+    \code{model = "parafac"} for the Parafac model, \code{model = "parafac2"} 
+    for the Parafac2 model, or \code{model = "pca"} for the PCA model.
   }
   \item{method}{
     Classification methods used.
   }
   \item{const}{
-    Constraints used in fitting Parafac or Parafac2 models.
+    Constraints used in fitting the Parafac, Parafac2, or PCA model. When 
+    \code{model} was \code{pca}, contains the value used in input \code{pcarot}
+    to indicate whether a rotation was applied to the solution.
   }
   \item{cmode}{
     Integer value used to specify the mode whose component weights were 
@@ -316,19 +338,45 @@ replication.
     (\code{family = "binomial"}) or multiclass classification 
     (\code{family = "multinomial"}).
   }
+  \item{lxdim}{
+    Integer specifying the number of modes of the output \code{x}. Identical to 
+    the number of modes of input \code{x}, except when input \code{x} was a 
+    3-way or 4-way array and when \code{model} was \code{pca}. In this case,
+    \code{lxdim} is 2.
+  }
+  \item{trainIDs}{
+    List where each element contains the vector of integer IDs that specify the 
+    rows/observations of the classification mode assigned to the train set for a
+    given replication.
+  }
+  \item{testIDs}{
+    List where each element contains the vector of integer IDs that specify the 
+    rows/observations of the classification mode assigned to the test set for a
+    given replication.
+  }
+  \item{flattened}{
+    Logical indicating whether input \code{x} was flattened into a two-way 
+    matrix. Only TRUE when \code{model} was \code{pca} and input \code{x} was
+    a 3-way or 4-way array.
+  }
 }
 \note{
-If argument \code{cmode} is not null, input array \code{x} is reshaped with 
-function \code{aperm} such that the \code{cmode} dimension of \code{x} is 
-ordered last. Estimated mode A and B (and mode C for a four-way array) weights 
-that are outputted as \code{Aweights} and \code{Bweights} (and \code{Cweights}) 
-reflect this permutation. For example, if \code{x} is a four-way array 
-and \code{cmode = 2}, the original input modes 1, 2, 3, and 4 will correspond 
-to output modes 1, 3, 4, 2. Here, output A = input 1; B = 3, and C = 4 
-(i.e., the second mode specified by \code{cmode} has been moved to the D 
-mode/last mode). For \code{model = "parafac2"}, classification mode is 
-assumed to be the last mode (i.e., mode C for three-way array and mode D for 
-four-way array). 
+For Parafac and Parafac2, if argument \code{cmode} is not null, input array 
+\code{x} is reshaped with function \code{aperm} such that the \code{cmode} 
+dimension of \code{x} is ordered last. Estimated mode A and B (and mode C for a 
+four-way array) weights that are outputted as \code{Aweights} and 
+\code{Bweights} (and \code{Cweights}) reflect this permutation. For example, if 
+\code{x} is a four-way array and \code{cmode = 2}, the original input modes 1, 
+2, 3, and 4 will correspond to output modes 1, 3, 4, 2. Here, output A = input 
+1; B = 3, and C = 4 (i.e., the second mode specified by \code{cmode} has been 
+moved to the D mode/last mode). For \code{model = "parafac2"}, classification 
+mode is assumed to be the last mode (i.e., mode C for three-way array and mode D 
+for four-way array).  For PCA, if argument \code{cmode} is not NULL, and if 
+\code{x} is a 3-way or 4-way array, the array is reshaped with \code{aperm} such 
+that the \code{cmode} dimension of \code{x} is ordered first. Then, the array is 
+unfolded into a two-way matrix. If \code{x} is already input as a two-way 
+matrix, the matrix is reshaped if \code{cmode} is 2, such that the matrix is 
+transposed. Note that for PCA, \code{Aweights} contains the PCA model loadings. 
 
 In addition, note that the following combination of arguments will give an 
 error: \code{nfac = 1, family = "multinomial", method = "PLR"}. The issue 
@@ -461,7 +509,7 @@ const <- c("orthog", "uncons", "uncons", "nonneg")
 # fit Parafac2 model and use fourth mode weights to tune classification
 # methods, to predict class labels, and to return classification 
 # performance measures pooled across multiple train-test splits
-output <- cpfa(x = data$X, y = as.factor(data$y), model = model, nfac = 3, 
+output <- cpfa(x = data$X, y = data$y, model = model, nfac = 3, 
                nrep = 5, ratio = 0.9, nfolds = nfolds, method = method, 
                family = family, parameters = parameters, 
                type.out = "descriptives", seeds = NULL, plot.out = TRUE, 

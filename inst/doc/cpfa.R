@@ -29,7 +29,7 @@ pf2num <- rep(c(7, 8, 9), length.out = 100)
 data <- simcpfa(arraydim = c(10, 11, 12, 100), model = "parafac2", nfac = 3, 
                 nclass = 3, nreps = 10, onreps = 10, corresp = corresp,
                 pf2num = pf2num, modes = 4, corrpred = corrpred, 
-                meanpred = c(10, 20, 30))
+                meanpred = c(10, 20, 30), smethod = "logistic")
 
 # define simulated array 'X' and response vector 'y' from the output
 X <- data$X
@@ -50,7 +50,7 @@ table(y)
 ## -----------------------------------------------------------------------------
 # examine correlations between columns of fourth mode weights 'Dmat' and 
 # simulated response vector 'y'
-cor(data$Dmat, data$y)
+cor(data$Dmat, (as.numeric(data$y) - 1))
 
 ## -----------------------------------------------------------------------------
 # set seed
@@ -71,14 +71,13 @@ nrep <- 3
 ratio <- 0.9
 plot.out <- TRUE
 const <- c("uncons", "uncons", "uncons", "nonneg")
-foldid <- rep(1:nfolds, length.out = ratio * length(y))
 
 # implement train-test splits with inner k-fold CV to optimize classification
-output <- cpfa(x = X, y = as.factor(y), model = model, nfac = nfac, 
+output <- cpfa(x = X, y = y, model = model, nfac = nfac, 
                nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
                family = family, parameters = parameters, plot.out = plot.out, 
-               parallel = FALSE, const = const, foldid = foldid, 
-               nstart = nstart, verbose = FALSE)
+               parallel = FALSE, const = const, nstart = nstart, 
+               verbose = FALSE)
 
 ## -----------------------------------------------------------------------------
 # examine classification performance measures - median across train-test splits
@@ -111,7 +110,8 @@ corresp <- rep(.9, 2)
 # simulate a three-way array connected to a binary response
 data <- simcpfa(arraydim = c(10, 11, 100), model = "parafac", nfac = 2, 
                 nclass = 2, nreps = 10, onreps = 10, corresp = corresp,
-                modes = 3, corrpred = corrpred, meanpred = c(10, 20))
+                modes = 3, corrpred = corrpred, meanpred = c(10, 20), 
+                smethod = "logistic")
 
 # define simulated array 'X' and response vector 'y' from the output
 X <- data$X
@@ -130,7 +130,7 @@ table(y)
 ## -----------------------------------------------------------------------------
 # examine correlations between columns of third mode weights 'Cmat' and 
 # simulated response vector 'y'
-cor(data$Cmat, data$y)
+cor(data$Cmat, (as.numeric(data$y) - 1))
 
 ## -----------------------------------------------------------------------------
 # set seed
@@ -155,7 +155,7 @@ plot.out <- TRUE
 const <- c("uncons", "orthog", "uncons")
 
 # implement train-test splits with inner k-fold CV to optimize classification
-output <- cpfa(x = X, y = as.factor(y), model = model, nfac = nfac, 
+output <- cpfa(x = X, y = y, model = "parafac", nfac = nfac, 
                nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
                family = family, parameters = parameters, plot.out = plot.out, 
                parallel = FALSE, const = const, nstart = nstart, 
@@ -175,4 +175,80 @@ output$mean.opt.tune
 # 
 # # plot heat maps of component weights for optimal model
 # results <- plotcpfa(output, nstart = 3, ctol = 1e-1, verbose = FALSE)
+
+## ----message = FALSE, warning = FALSE-----------------------------------------
+# set seed for reproducibility
+set.seed(400)
+
+# specify correlation
+cp <- 0.1
+
+# define target correlation matrix for columns of first mode weight matrix
+a <- matrix(cp, nrow = 3, ncol = 3); diag(a) <- 1; corrpred <- a
+
+# define correlations between first mode weight matrix and response vector
+corresp <- rep(.5, 3)
+
+# simulate a two-way matrix connected to a multiclass response
+data <- simcpfa(arraydim = c(200, 10), model = "pca", nfac = 3, 
+                nclass = 3, corresp = corresp, modes = 2, corrpred = corrpred, 
+                smethod = "eigende")
+
+# define simulated matrix 'X' and response vector 'y' from the output
+X <- data$X
+y <- data$y
+
+## -----------------------------------------------------------------------------
+# examine data object X
+class(X)
+dim(X)
+
+# examine data object y
+class(y)
+length(y)
+table(y)
+
+## -----------------------------------------------------------------------------
+# examine correlations between columns of first mode weights 'Bmat' and 
+# simulated response vector 'y'
+cor(data$Bmat, (as.numeric(data$y) - 1))
+
+## -----------------------------------------------------------------------------
+# set seed
+set.seed(300)
+
+# initialize tuning parameters and store within a list called 'parameters'
+alpha <- seq(0, 1, length.out = 5)
+parameters <- list(alpha = alpha)
+
+# initialize inputs
+method <- c("PLR")
+model <- "pca"
+nfolds <- 3
+nfac <- c(2, 3)
+family <- "multinomial"
+nrep <- 3
+ratio <- 0.9
+plot.out <- TRUE
+
+# implement train-test splits with inner k-fold CV to optimize classification
+output <- cpfa(x = X, y = y, model = model, nfac = nfac, 
+               nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
+               family = family, parameters = parameters, plot.out = plot.out, 
+               parallel = FALSE, verbose = FALSE, pcarot = "varimax")
+
+## -----------------------------------------------------------------------------
+# examine classification performance measures - median across train-test splits
+output$descriptive$mean[, 1:2]
+
+## -----------------------------------------------------------------------------
+# examine optimal tuning parameters averaged across train-test splits
+output$mean.opt.tune
+
+## ----eval = FALSE-------------------------------------------------------------
+# # set seed
+# set.seed(400)
+# 
+# # plot heat maps of component weights for optimal model
+# results <- plotcpfa(output)
 

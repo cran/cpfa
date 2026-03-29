@@ -18,20 +18,43 @@ plotcpfa <-
     logicheck(meanvalue); logicheck(supNum); logicheck(parallel)
     model <- object$model; method <- object$method; const <- object$const
     X <- object$X
-    lxdim <- length(const)
+    lxdim <- object$lxdim
+    flattened <- object$flattened
     if (!(is.null(cmode))) {
-      if (!(cmode %in% (1:lxdim))) {
-        stop("Input 'cmode' must be 1, 2, or 3 (or 4 if 'x' is four-way).")
+      if (model == "parafac") {
+        if (!(cmode %in% (1:lxdim))) {
+          stop("Input 'cmode' must be 1, 2, or 3 (or 4 if 'x' is four-way).")
+        }
+        modeval <- 1:lxdim
+        mode.re <- c(modeval[-cmode], cmode)
+        X <- aperm(X, mode.re)
+      } 
+      if (model == "pca") {
+        if ((flattened == TRUE) && (cmode > 2L)) {
+          warning("New input 'cmode' is greater than 2, but original input \n
+                  'x' in function 'cpfa' was a 3-way or 4-way array. Because \n 
+                  'x' was an array, it was flattened to a 2-way matrix. Thus, \n 
+                  new 'cmode' is ignored.")
+        } else {
+          if (!(cmode %in% (1:lxdim))) {
+            stop("Input 'cmode' must be 1 or 2 when model was 'pca'.")
+          } else if (cmode == 1L) {
+            X <- X
+          } else {
+            X <- t(X)
+          }
+        }
       }
-      modeval <- 1:lxdim
-      mode.re <- c(modeval[-cmode], cmode)
-      X <- aperm(X, mode.re)
     } else {
       if (model == "parafac") {
         cmode <- object$cmode
         modeval <- 1:lxdim
         mode.re <- c(modeval[-cmode], cmode)
         X <- aperm(X, mode.re)
+      }
+      if ((model == "pca") && (flattened == FALSE)) {
+        cmode <- object$cmode
+        if (cmode == 2L) {X <- t(X)}
       }
     }
     values <- object$descriptive
@@ -47,9 +70,17 @@ plotcpfa <-
     }
     lowisbest <- c("err", "fpr", "fnr", "fdr", "fom")
     if (cmeasure %in% lowisbest) {
-      methodnfac <- names(which(vals == min(vals, na.rm = TRUE)))
+      if (nrow(finalvalues) == 1L) {
+        methodnfac <- rownames(finalvalues)
+      } else {
+        methodnfac <- names(which(vals == min(vals, na.rm = TRUE)))
+      }
     } else {
-      methodnfac <- names(which(vals == max(vals, na.rm = TRUE)))
+      if (nrow(finalvalues) == 1L) {
+        methodnfac <- rownames(finalvalues)
+      } else {
+        methodnfac <- names(which(vals == max(vals, na.rm = TRUE)))
+      }
     }
     nfac.opt0 <- as.numeric(gsub("[^0-9]", "", methodnfac))
     nfac.opt <- min(nfac.opt0)
@@ -78,7 +109,7 @@ plotcpfa <-
         mapstor[[3]] <- pfac$C
         outstor[[4]] <- pfac$D
       }
-    } else {
+    } else if (model == "parafac2") {
       pfac <- parafac2(X = X, nfac = nfac.opt, const = const, cl = cl, 
                        parallel = parallel, ...)
       if ((!(is.null(scale.remode))) && (!(is.null(scale.abmode)))) {
@@ -96,13 +127,31 @@ plotcpfa <-
         mapstor[[3]] <- pfac$C
         outstor[[4]] <- pfac$D
       }
+    } else {
+      xcent <- scale(X, center = TRUE, scale = FALSE)
+      pcacenter <- attr(xcent, "scaled:center")
+      USV <- svd(xcent)
+      weights <- USV$v[, 1:nfac.opt, drop = FALSE]
+      leftsing <- USV$u[, 1:nfac.opt, drop = FALSE]
+      scores <- sweep(leftsing, 2, USV$d[1:nfac.opt], "*")
+      if (const == "varimax") {
+        if (nfac.opt != 1L) {
+          varires <- varimax(weights)
+          rotmat <- varires$rotmat
+          weights <- unclass(as.matrix(varires$loadings))
+          scores <- scores %*% rotmat
+        }
+      }
+      mapstor[[1]] <- outstor[[1]] <- weights
+      outstor[[2]] <- scores
     }
     if (parallel == TRUE) {stopCluster(cl)}
     plotlabels <- c("A Weights", "B Weights", "C Weights")
     plotlabels2 <- c(plotlabels, "D Weights")
     palette_colors <- colorRampPalette(c("red", "white", "green"))(50)
+    oldask <- devAskNewPage(ask = TRUE)
+    on.exit(devAskNewPage(oldask))
     par(mfrow = c(1, 1))
-    layout(1)
     for (i in 1:3) {
        if (!(is.null(mapstor[[i]]))) {
          mat <- as.matrix(mapstor[[i]])
@@ -131,6 +180,6 @@ plotcpfa <-
          }
        }
     }
-    names(outstor) <- plotlabels2
+    names(outstor) <- c("Aweights", "Bweights", "Cweights", "Dweights")
     return(outstor)
 }

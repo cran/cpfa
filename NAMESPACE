@@ -13,7 +13,7 @@ import(doRNG)
 S3method(print, tunecpfa)
 S3method(predict, tunecpfa)
 
-importFrom(stats, "na.omit", "predict", "model.matrix", "var", "formula", "cor")
+importFrom(stats, "na.omit", "predict", "model.matrix", "var", "formula", "cor", "varimax")
 importFrom(stats, "rbinom", "rexp", "rgamma", "rbeta", "rnorm", "rpois")
 importFrom(stats, "runif", "rgeom", "rnbinom", "rhyper", "rlnorm", "rcauchy")
 importFrom(stats, "dnorm", "qlogis", "qnorm", "quantile", "median")
@@ -21,5 +21,4 @@ importFrom("graphics", "axis", "image", "layout", "mtext", "par", "boxplot", "bo
 importFrom(parallel, "makeCluster", "detectCores", "clusterEvalQ", "stopCluster", "clusterSetRNGStream")
 importFrom(doParallel, "registerDoParallel")
 importFrom(foreach, "%do%", "%dopar%", "foreach")
-importFrom("grDevices", "colorRampPalette")
-
+importFrom("grDevices", "colorRampPalette", "devAskNewPage")

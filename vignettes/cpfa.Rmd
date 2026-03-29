@@ -2,7 +2,7 @@
 title: "An Introduction to cpfa"
 author: 
   - Matthew Asisgress
-date: "February 2026"
+date: "March 2026"
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{An Introduction to cpfa}
@@ -29,6 +29,8 @@ knitr::opts_chunk$set(
 
 > Example 2: Three-way Array with Binary Response
 
+> Example 3: Two-way Matrix with Multiclass Response
+
 > Concluding Thoughts
 
 > References
@@ -39,16 +41,18 @@ Package **cpfa** implements a k-fold cross-validation procedure to
 predict class labels using component weights from a single mode of a
 Parallel Factor Analysis model-1 (Parafac; Harshman, 1970) or a 
 Parallel Factor Analysis model-2 (Parafac2; Harshman, 1972), 
-which is fit to a three-way or four-way data array. After
-fitting a Parafac or Parafac2 model with package **multiway** via an
-alternating least squares algorithm (Helwig, 2025), estimated component
-weights from one mode of this model are passed to one or more
+which is fit to a three-way or four-way data array. The package also 
+supports principal component analysis (PCA) applied to a two-way data matrix. 
+After fitting a Parafac or Parafac2 model with package **multiway** via an
+alternating least squares algorithm (Helwig, 2025), or after fitting a PCA 
+model using the singular value decomposition, estimated component
+weights from one mode of the selected component model are passed to one or more
 classification methods. For each method, a k-fold cross-validation is
-conducted to tune classification parameters using estimated Parafac
-component weights, optimizing class label prediction. This process is repeated 
-over multiple train-test splits in order to improve the generalizability of 
-results. Multiple constraint options are available to impose on any mode of the 
-Parafac model during the estimation step (see Helwig, 2017). Multiple numbers
+conducted to tune classification parameters using estimated component weights, 
+optimizing class label prediction. This process is repeated over multiple 
+train-test splits in order to improve the generalizability of results. Multiple 
+constraint options are available to impose on any mode of the Parafac or 
+Parafac2 model during the estimation step (see Helwig, 2017). Multiple numbers
 of components can be considered in the primary package function `cpfa`. This 
 vignette describes how to use the **cpfa** package.
 
@@ -101,7 +105,9 @@ modes in the array; and we use `meanpred` to specify the target means for the
 columns of the classification mode weight matrix. Finally, `onreps` specifies 
 the number of classification mode weight matrices to generate while `nreps` 
 specifies, for any one classification mode weight matrix, the number of response 
-vectors to generate (see `help(simcpfa)` for additional details of the 
+vectors to generate. Both of these arguments work when `smethod = logistic`, 
+which implements an iterative Monte Carlo rejection sampling procedure based on 
+the generalized linear model (see `help(simcpfa)` for additional details of the 
 simulation procedure). Then, in R we have the following:
 
 ```{r, message = FALSE, warning = FALSE}
@@ -124,7 +130,7 @@ pf2num <- rep(c(7, 8, 9), length.out = 100)
 data <- simcpfa(arraydim = c(10, 11, 12, 100), model = "parafac2", nfac = 3, 
                 nclass = 3, nreps = 10, onreps = 10, corresp = corresp,
                 pf2num = pf2num, modes = 4, corrpred = corrpred, 
-                meanpred = c(10, 20, 30))
+                meanpred = c(10, 20, 30), smethod = "logistic")
 
 # define simulated array 'X' and response vector 'y' from the output
 X <- data$X
@@ -150,7 +156,7 @@ table(y)
 
 As shown, `X` is a list where each element is a three-way array. The dimensions 
 of `X` match those specified in input arguments `arraydim` and `pf2num`. 
-Likewise, `y` is a vector with length equal to the number of levels of the 
+Likewise, `y` is a factor with length equal to the number of levels of the 
 fourth mode of `X`. As desired, we can see that `y` contains three classes.
 
 We confirm that the columns of the fourth mode's weights are linearly associated
@@ -159,7 +165,7 @@ with `y`:
 ```{r}
 # examine correlations between columns of fourth mode weights 'Dmat' and 
 # simulated response vector 'y'
-cor(data$Dmat, data$y)
+cor(data$Dmat, (as.numeric(data$y) - 1))
 ```
 
 As shown, the classification mode weight matrix `Dmat` contains columns that 
@@ -181,10 +187,8 @@ because we wish to explore classification performance for a two-component model
 and for a three-component model. The classification problem is multiclass, which 
 is specified by setting `multinomial` for input `family`. In this demonstration, 
 we allow for three train-test splits by setting `nrep <- 3` with a split ratio
-of `ratio <- 0.9`. We also specify pre-determined fold IDs for k-fold
-cross-validation using `foldid`. Finally, we set a Parafac2 model constraint: 
-the fourth mode must have non-negative weights. We use `const` to set this 
-constraint. In R:
+of `ratio <- 0.9`. Finally, we set a Parafac2 model constraint: the fourth mode 
+must have non-negative weights. We use `const` to set this constraint. In R:
 
 ```{r}
 # set seed
@@ -205,14 +209,13 @@ nrep <- 3
 ratio <- 0.9
 plot.out <- TRUE
 const <- c("uncons", "uncons", "uncons", "nonneg")
-foldid <- rep(1:nfolds, length.out = ratio * length(y))
 
 # implement train-test splits with inner k-fold CV to optimize classification
-output <- cpfa(x = X, y = as.factor(y), model = model, nfac = nfac, 
+output <- cpfa(x = X, y = y, model = model, nfac = nfac, 
                nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
                family = family, parameters = parameters, plot.out = plot.out, 
-               parallel = FALSE, const = const, foldid = foldid, 
-               nstart = nstart, verbose = FALSE)
+               parallel = FALSE, const = const, nstart = nstart, 
+               verbose = FALSE)
 ```
 
 The function generates box plots of classification accuracy for 
@@ -298,7 +301,8 @@ corresp <- rep(.9, 2)
 # simulate a three-way array connected to a binary response
 data <- simcpfa(arraydim = c(10, 11, 100), model = "parafac", nfac = 2, 
                 nclass = 2, nreps = 10, onreps = 10, corresp = corresp,
-                modes = 3, corrpred = corrpred, meanpred = c(10, 20))
+                modes = 3, corrpred = corrpred, meanpred = c(10, 20), 
+                smethod = "logistic")
 
 # define simulated array 'X' and response vector 'y' from the output
 X <- data$X
@@ -321,7 +325,7 @@ table(y)
 ```
 
 As shown, `X` is a three-way array. The dimensions of `X` match those specified 
-in input argument `arraydim`. Likewise, `y` is a vector with length equal to the 
+in input argument `arraydim`. Likewise, `y` is a factor with length equal to the 
 number of levels of the third mode of `X`. As desired, we can see that `y` 
 contains two classes. As in the last example, we see that the output classes in 
 `y` are imbalanced.
@@ -332,7 +336,7 @@ with `y`:
 ```{r}
 # examine correlations between columns of third mode weights 'Cmat' and 
 # simulated response vector 'y'
-cor(data$Cmat, data$y)
+cor(data$Cmat, (as.numeric(data$y) - 1))
 ```
 
 As shown, the classification mode weight matrix `Cmat` contains columns that 
@@ -382,7 +386,7 @@ plot.out <- TRUE
 const <- c("uncons", "orthog", "uncons")
 
 # implement train-test splits with inner k-fold CV to optimize classification
-output <- cpfa(x = X, y = as.factor(y), model = model, nfac = nfac, 
+output <- cpfa(x = X, y = y, model = "parafac", nfac = nfac, 
                nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
                family = family, parameters = parameters, plot.out = plot.out, 
                parallel = FALSE, const = const, nstart = nstart, 
@@ -430,19 +434,173 @@ A or B. As previously described, interested readers might explore the
 application of this package to several real datasets. See here for more 
 examples: <https://github.com/matthewasisgress/multiway-classification/>.
 
+## Example 3: Two-way Matrix with Multiclass Response
+
+We now simulate a two-way matrix. For this matrix, the second mode is related 
+linearly to a response vector of class labels, which is also simulated. To 
+generate data using function `simcpfa`, we specify the data-generating model as 
+a PCA model via the `model` argument and specify three components for this 
+model with the `nfac` argument. We specify the number of dimensions for the 
+simulated matrix using the `arraydim` argument. For a matrix only, the 
+classification mode is assumed to be the first mode while the mode containing
+variables/predictors is assumed to be the second mode.
+
+For these simulated data, we specify that the response vector should have three
+classes using `nclass`. Moreover, we set a target correlation matrix, 
+`corrpred`, specifying correlations among the columns of the classification 
+mode's weight matrix (i.e., in this case, the first mode). We also specify 
+correlations, contained in `corresp`, between columns of the classification 
+mode's weight matrix and the response vector. For this example, we use the
+second simulation method `eigende`, which simulates component weights and a 
+latent response variable simultaneously from a joint multivariate normal 
+distribution using an eigendecomposition, discretizing the response into class 
+labels using quantile cuts defined by the cumulative sum of `props`. Without specifying `props`, this argument defaults to equal class proportions. We ensure 
+that argument `modes` is set to 2.
+
+```{r, message = FALSE, warning = FALSE}
+# set seed for reproducibility
+set.seed(400)
+
+# specify correlation
+cp <- 0.1
+
+# define target correlation matrix for columns of first mode weight matrix
+a <- matrix(cp, nrow = 3, ncol = 3); diag(a) <- 1; corrpred <- a
+
+# define correlations between first mode weight matrix and response vector
+corresp <- rep(.5, 3)
+
+# simulate a two-way matrix connected to a multiclass response
+data <- simcpfa(arraydim = c(200, 10), model = "pca", nfac = 3, 
+                nclass = 3, corresp = corresp, modes = 2, corrpred = corrpred, 
+                smethod = "eigende")
+
+# define simulated matrix 'X' and response vector 'y' from the output
+X <- data$X
+y <- data$y
+```
+
+The above creates a two-way matrix `X` with PCA structure that is connected
+through its second mode to response vector `y`. We confirm the dimensions of `X` 
+and `y`, confirm their classes, and inspect the possible values of `y`:
+
+```{r}
+# examine data object X
+class(X)
+dim(X)
+
+# examine data object y
+class(y)
+length(y)
+table(y)
+```
+
+As shown, `X` is a two-way matrix. The dimensions of `X` match those specified 
+in input argument `arraydim`. Likewise, `y` is a factor with length equal to the 
+number of levels of the first mode of `X`. As desired, we can see that `y` 
+contains two classes. We see that the output classes in `y` are balanced.
+
+We confirm that the columns of the first mode's weights are linearly associated
+with `y` (note: while `Bmat` is associated with the second mode in Parafac and 
+Parafac2 models, it is associated with the _first_ mode in PCA for the `simcpfa` 
+function):
+
+```{r}
+# examine correlations between columns of first mode weights 'Bmat' and 
+# simulated response vector 'y'
+cor(data$Bmat, (as.numeric(data$y) - 1))
+```
+
+As shown, the classification mode weight matrix `Bmat` contains columns that 
+have a positive correlation with the response vector `y`. The target 
+correlations (i.e., 0.5) were nearly achieved. The positive correlations 
+indicate that building a classifier between `X` and `y` through the first mode 
+of a three-component PCA model could prove useful. Again, for emphasis, 
+while `Bmat` is associated with the second mode in Parafac and Parafac2 models, 
+it is associated with the _first_ mode in PCA for this function.
+
+As before, we initialize values for tuning parameter $\alpha$ from PLR 
+implemented through package **glmnet**. We specify the model of interest as PCA 
+through `model`.  We specify other arguments in a fashion similar to the 
+previous example (i.e., Example 2). We also specify that we wish to apply a 
+Varimax rotation to the loadings matrix for the PCA solution by setting 
+`pcarot = "varimax"`. In R:
+
+```{r}
+# set seed
+set.seed(300)
+
+# initialize tuning parameters and store within a list called 'parameters'
+alpha <- seq(0, 1, length.out = 5)
+parameters <- list(alpha = alpha)
+
+# initialize inputs
+method <- c("PLR")
+model <- "pca"
+nfolds <- 3
+nfac <- c(2, 3)
+family <- "multinomial"
+nrep <- 3
+ratio <- 0.9
+plot.out <- TRUE
+
+# implement train-test splits with inner k-fold CV to optimize classification
+output <- cpfa(x = X, y = y, model = model, nfac = nfac, 
+               nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
+               family = family, parameters = parameters, plot.out = plot.out, 
+               parallel = FALSE, verbose = FALSE, pcarot = "varimax")
+```
+
+The function generates box plots of classification accuracy for 
+each number of components and for each classification method. In greater detail, 
+we examine classification performance in the output object:
+
+```{r}
+# examine classification performance measures - median across train-test splits
+output$descriptive$mean[, 1:2]
+```
+
+As shown, classification accuracy is highest for the three-component PLR
+classifier. In this case, the data-generating model with three components worked 
+best for classification purposes (i.e, compared to the two-component model). 
+We also examine, averaged across train-test splits, optimal tuning parameters.
+
+```{r}
+# examine optimal tuning parameters averaged across train-test splits
+output$mean.opt.tune
+```
+
+We can see average tuning values that worked best. We next can use the function 
+`plotcpfa` to fit the best PCA model and to plot the results. The R code is
+provided but not evaluated:
+
+```{r, eval = FALSE}
+# set seed
+set.seed(400)
+
+# plot heat maps of component weights for optimal model
+results <- plotcpfa(output)
+```
+
+The simulated matrix contains mode A as the loadings and mode B as the scores.
+As in the previous example, the levels do not have a substantive meaning. 
+As such, we omit the heat maps for this example. However, if these were real 
+data, such heat maps could reveal relationships between model components and 
+the levels of mode A (i.e., for PCA, the loadings).
+
 ## Concluding Thoughts
 
 Package **cpfa** implements a k-fold cross-validation procedure, connecting 
-Parafac models fit by **multiway** to classification methods implemented 
-through six popular packages used for classification: **glmnet**; **e1071** 
-(Meyer et al., 2024; Cortes and Vapnik, 1995); **randomForest** (Liaw and 
-Wiener, 2002; Breiman, 2001); **nnet** (Ripley, 1994; Venables and Ripley, 
+Parafac and Parafac2 models fit by **multiway** to classification methods 
+implemented through six popular packages used for classification: **glmnet**; **e1071** (Meyer et al., 2024; Cortes and Vapnik, 1995); **randomForest** (Liaw 
+and Wiener, 2002; Breiman, 2001); **nnet** (Ripley, 1994; Venables and Ripley, 
 2002); **rda** (Guo, Hastie, and Tibshirani, 2007, 2023; Friedman, 1989), and 
 **xgboost** (Chen et al., 2025; Friedman, 2001). Parallel computing is 
 implemented through packages **parallel** (R Core Team, 2025); **doParallel**
 (Microsoft Corporation and Weston, 2022); and **doRNG** (Gaujoux, 2025). The 
-example above highlights the use of **cpfa** and three of its functions. For 
-more information about the package, see https://CRAN.R-project.org/package=cpfa 
+package also supports principal component analysis applied to a matrix. The 
+examples above highlight the use of **cpfa** and three of its functions. For 
+more information about the package, see https://CRAN.R-project.org/package=cpfa, 
 or examine package help files with `help(simcpfa)`, `help(cpfa)`, or 
 `help(plotcpfa)`.
 

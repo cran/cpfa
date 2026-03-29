@@ -17,27 +17,29 @@ function \code{tunecpfa}.
   A fit object of class 'tunecpfa' produced by function \code{tunecpfa}.
 }
 \item{newdata}{
-  An optional three-way or four-way data array used to predict Parafac or 
-  Parafac2 component weights using estimated Parafac or Parafac2 model 
-  component weights from the input object. For Parafac2, can be a list of 
-  length \code{K} where the \code{k}-th element is a matrix or three-way array 
-  associated with the \code{k}-th element. Array or list must contain only 
-  real numbers. Dimensions must match dimensions of original data for all 
-  modes except the classification mode. If omitted, the original data are used.
+  An optional two-way matrix, three-way array, or four-way data array used to 
+  predict Parafac, Parafac2, or PCA component weights using estimated Parafac, 
+  Parafac2, or PCA model component weights from the input object. For Parafac2, 
+  can be a list of length \code{K} where the \code{k}-th element is a matrix or 
+  three-way array associated with the \code{k}-th observation. Matrix, array, or 
+  list must contain only real numbers. Dimensions must match dimensions of 
+  original data for all modes except the classification mode. If omitted, 
+  the original data are used.
 }
 \item{method}{
   Character vector indicating classification methods to use. Possible methods 
   include penalized logistic regression (PLR); support vector machine (SVM); 
   random forest (RF); feed-forward neural network (NN); regularized 
   discriminant analysis (RDA); and gradient boosting machine (GBM). If none 
-  selected, default is to use all methods.
+  selected, default is to use methods used in original \code{tunecpfa} run.
 }
 \item{type}{
   Character vector indicating type of prediction to return. Possible values 
   include: (1) \code{"response"}, returning predicted class labels; (2) 
   \code{"prob"}, returning predicted class probabilities; or (3) 
   \code{"classify.weights"}, returning predicted component weights used for 
-  classification in the specified Parafac models. Defaults to \code{"response"}.
+  classification in the specified component models. 
+  Defaults to \code{"response"}.
 }
 \item{threshold}{
   For binary classification, value indicating prediction threshold over which 
@@ -53,10 +55,10 @@ function \code{tunecpfa}.
 \details{
 Predicts class labels for a binary or a multiclass outcome. Specifically, 
 predicts component weights for one mode of a Parallel Factor Analysis-1 
-(Parafac) model or a Parallel Factor Analysis-2 (Parafac2) model using new 
-data and previously estimated mode weights from original data. Passes predicted 
-component weights to one or several classification methods as new data for 
-predicting class labels.
+(Parafac) model, one mode of a Parallel Factor Analysis-2 (Parafac2) model, or
+scores from a PCA model, using new data and previously estimated mode weights 
+from original data. Passes predicted component weights (or scores for PCA) to 
+one or several classification methods as new data for predicting class labels.
 
 Tuning parameters optimized by k-fold cross-validation are used for each 
 classification method (see help for \code{tunecpfa}). If not supplied in 
@@ -69,18 +71,18 @@ multiclass case, class with highest probability is chosen.
 Returns one of the following, depending on the choice for argument \code{type}:
 
 \item{type = "response"}{A data frame containing predicted class labels for each 
-Parafac model and classification method selected (see argument \code{type}). 
-Number of columns is equal to number of methods times number of Parafac models. 
-Number of rows is equal to number of predicted observations.
+component model and classification method selected (see argument \code{type}). 
+Number of columns is equal to number of methods times number of 
+component models. Number of rows is equal to number of predicted observations.
 }
-\item{type = "prob"}{A list containing predicted probabilities for each Parafac 
-model and classification method selected (see argument \code{type}). The number 
-of list elements is equal to the number of methods times the number of Parafac 
-models.
+\item{type = "prob"}{A list containing predicted probabilities for each 
+component model and classification method selected (see argument \code{type}). 
+The number of list elements is equal to the number of methods times the number 
+of component models.
 }
 \item{type = "classify.weights"}{List containing predicted component weights 
-for each Parafac or Parafac2 model. Length is equal to number of Parafac models 
-that were fit.
+for each component model. Length is equal to number of component models that 
+were fit.
 }
 }
 \note{
@@ -88,7 +90,7 @@ Applications of this function to real datasets can be explored at the following
 repository: \url{https://github.com/matthewasisgress/multiway-classification/}.
 }
 \author{
- Matthew Asisgress <mattgress@protonmail.ch>
+Matthew Asisgress <mattgress@protonmail.ch>
 }
 \references{
 See help file for function \code{tunecpfa} for a list of references.
@@ -129,7 +131,7 @@ nstart <- 3
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
-tune.object <- tunecpfa(x = data$X[, , 1:80], y = as.factor(data$y[1:80, ]), 
+tune.object <- tunecpfa(x = data$X[, , 1:80], y = data$y[1:80], 
                         model = model, nfac = 3, nfolds = nfolds, 
                         method = method, family = family, 
                         parameters = parameters, parallel = FALSE, 

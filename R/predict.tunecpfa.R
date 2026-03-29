@@ -10,91 +10,146 @@ predict.tunecpfa <-
     xold.dim <- object$xdim
     cmode <- object$cmode
     oyold <- object$y
-    if (is.null(newdata)) {newdata <- object$x}
-    if (is.array(newdata) && (model == "parafac")) {
-      xdim <- dim(newdata)                                                            
-      lxdim <- length(xdim)
-      if (!((lxdim == 3L) || (lxdim == 4L))) {
-        stop("Input 'newdata' must be a 3-way or 4-way array.")
-      }
-      if (any(is.nan(newdata)) || any(is.infinite(newdata))) {
-        stop("Input 'newdata' cannot contain NaN or Inf values.")
-      }
-      if (any(is.na(newdata))) {
-        stop("Input 'newdata' cannot contain missing values.")
-      }
-      if (cmode != length(xold.dim)) {
-        modeval <- 1:lxdim
-        mode.re <- c(modeval[-cmode], cmode)
-        newdata <- aperm(newdata, mode.re)
-        xdim <- dim(newdata)
-      }
-    } else if (is.array(newdata) && (model == "parafac2")) {
-      xdim <- dim(newdata)                                                            
-      lxdim <- length(xdim)
-      if (!((lxdim == 3L) || (lxdim == 4L))) {
-        stop("Input 'newdata' must be a 3-way or 4-way array.")
-      }
-      if (any(is.nan(newdata)) || any(is.infinite(newdata))) {
-        stop("Input 'newdata' cannot contain NaN or Inf values.")
-      }
-      if (any(is.na(newdata))) {
-        stop("Input 'newdata' cannot contain missing values.")
-      }
-      if (lxdim == 3L) {
-        storlist <- vector("list", xdim[3])
-        for (k in 1:xdim[3]) {storlist[[k]] <- newdata[, , k]}
-      } else {
-        storlist <- vector("list", xdim[4])
-        for (k in 1:xdim[4]) {storlist[[k]] <- newdata[, , , k]}
-      }
-      newdata <- storlist
-      rm(storlist)
-    } else if (is.list(newdata) && (model == "parafac2")) {
-      xdim1 <- dim(newdata[[1]])
-      lxdim <- length(xdim1) + 1L
-      if (!((lxdim == 3L) || (lxdim == 4L))) {
-        stop("Input 'newdata' must be a list of matrices or 3-way arrays.")
-      }
-      if (any(as.logical(lapply(newdata, 
-                                function(a){return(any(is.nan(a)))})))) {
-        stop("Input 'newdata' cannot contain NaN values")
-      }
-      if (any(as.logical(lapply(newdata,
-                                function(a){return(any(is.infinite(a)))})))) {
-        stop("Input 'newdata' cannot contain Inf values")
-      }
-      if (any(as.logical(lapply(newdata,function(a){return(any(is.na(a)))})))) {
-        stop("Input 'newdata' cannot contain missing values")
-      }
-      if (lxdim == 3L) {
-        xdim <- rep(NA, 3)
-        xdim[2] <- xdim1[2]
-        xdim[3] <- length(newdata)
-        if (any(unlist(lapply(newdata, ncol)) != xdim[2])) {
-          stop("Input 'newdata' must be list of matrices with same number \n
-               of columns.")
-        }
-      } else {
-        xdim <- rep(NA, 4)
-        xdim[2] <- xdim1[2]
-        xdim[3] <- xdim1[3]
-        xdim[4] <- length(newdata)
-        index2 <- seq(2, (3 * length(newdata) - 1), by = 3)
-        index3 <- seq(3, (3 * length(newdata)), by = 3)
-        if (any(unlist(lapply(newdata, dim))[index2] != xdim[2])) {
-          stop("Input 'newdata' must be list of arrays with same \n
-               number of columns.")
-        }
-        if (any(unlist(lapply(newdata, dim))[index3] != xdim[3])) {
-          stop("Input 'newdata' must be list of arrays with same \n
-               number of slabs.")
-        }
-      }
-    } else if (is.list(newdata) && (model == "parafac")) {
-      stop("Input 'newdata' must be of class 'array' if 'model = parafac'.")
+    if (is.null(newdata)) {
+      newdata <- object$x
+      xdim <- object$xdim
+      lxdim <- object$lxdim
+      skippy <- TRUE
     } else {
-      stop("Input 'newdata' must be of class 'array' or 'list'.")
+      skippy <- FALSE
+    }
+    if (!(skippy)) {
+      if (is.array(newdata) && (!is.matrix(newdata)) && 
+          (model %in% c("parafac", "pca"))) {
+        xdim <- dim(newdata)                                                            
+        lxdim <- length(xdim)
+        if (!((lxdim == 3L) || (lxdim == 4L))) {
+          stop("Input 'newdata' must be a 3-way or 4-way array.")
+        }
+        if (any(is.nan(newdata)) || any(is.infinite(newdata))) {
+          stop("Input 'newdata' cannot contain NaN or Inf values.")
+        }
+        if (any(is.na(newdata))) {
+          stop("Input 'newdata' cannot contain missing values.")
+        }
+        if (model == "parafac") {
+          if (cmode != length(xold.dim)) {
+            modeval <- 1:lxdim
+            mode.re <- c(modeval[-cmode], cmode)
+            newdata <- aperm(newdata, mode.re)
+            xdim <- dim(newdata)
+          }
+        } else {
+          modeval <- 1:lxdim
+          mode.re <- c(cmode, modeval[-cmode])
+          newdata <- matrix(aperm(newdata, mode.re), nrow = xdim[cmode])
+          xdim <- dim(newdata)
+          lxdim <- length(xdim)
+        }
+      } else if (is.array(newdata) && (!is.matrix(newdata)) 
+                 && (model == "parafac2")) {
+        xdim <- dim(newdata)                                                            
+        lxdim <- length(xdim)
+        if (!((lxdim == 3L) || (lxdim == 4L))) {
+          stop("Input 'newdata' must be a 3-way or 4-way array.")
+        }
+        if (any(is.nan(newdata)) || any(is.infinite(newdata))) {
+          stop("Input 'newdata' cannot contain NaN or Inf values.")
+        }
+        if (any(is.na(newdata))) {
+          stop("Input 'newdata' cannot contain missing values.")
+        }
+        if (lxdim == 3L) {
+          storlist <- vector("list", xdim[3])
+          for (k in 1:xdim[3]) {storlist[[k]] <- newdata[, , k]}
+        } else {
+          storlist <- vector("list", xdim[4])
+          for (k in 1:xdim[4]) {storlist[[k]] <- newdata[, , , k]}
+        }
+        newdata <- storlist
+        rm(storlist)
+      } else if (is.list(newdata) && (model == "parafac2")) {
+        xdim1 <- dim(newdata[[1]])
+        lxdim <- length(xdim1) + 1L
+        if (!((lxdim == 3L) || (lxdim == 4L))) {
+          stop("Input 'newdata' must be a list of matrices or 3-way arrays.")
+        }
+        if (any(as.logical(lapply(newdata, 
+                                  function(a){return(any(is.nan(a)))})))) {
+          stop("Input 'newdata' cannot contain NaN values")
+        }
+        if (any(as.logical(lapply(newdata,
+                                  function(a){return(any(is.infinite(a)))})))) {
+          stop("Input 'newdata' cannot contain Inf values")
+        }
+        if (any(as.logical(lapply(newdata, 
+                                  function(a){return(any(is.na(a)))})))) {
+          stop("Input 'newdata' cannot contain missing values")
+        }
+        if (lxdim == 3L) {
+          xdim <- rep(NA, 3)
+          xdim[2] <- xdim1[2]
+          xdim[3] <- length(newdata)
+          if (any(unlist(lapply(newdata, ncol)) != xdim[2])) {
+            stop("Input 'newdata' must be list of matrices with same number \n
+                 of columns.")
+          }
+        } else {
+          xdim <- rep(NA, 4)
+          xdim[2] <- xdim1[2]
+          xdim[3] <- xdim1[3]
+          xdim[4] <- length(newdata)
+          index2 <- seq(2, (3 * length(newdata) - 1), by = 3)
+          index3 <- seq(3, (3 * length(newdata)), by = 3)
+          if (any(unlist(lapply(newdata, dim))[index2] != xdim[2])) {
+            stop("Input 'newdata' must be list of arrays with same \n
+                 number of columns.")
+          }
+          if (any(unlist(lapply(newdata, dim))[index3] != xdim[3])) {
+            stop("Input 'newdata' must be list of arrays with same \n
+                 number of slabs.")
+          }
+        }
+      } else if (is.list(newdata) && (model != "parafac2")) {
+        stop("Input 'newdata' cannot be of class 'list' unless \n
+             'model = parafac2'.")
+      } else if (is.matrix(newdata) && (model != "pca")) {
+        stop("Input 'newdata' cannot be of class 'matrix' if model is \n
+             'parafac' or 'parafac2'.")
+      } else if (is.matrix(newdata) && (model == "pca")) {  
+        xdim <- origdim <- dim(newdata)                                                            
+        lxdim <- length(xdim)
+        if (!((lxdim == 2L))) {
+          stop("If 'newdata' has class 'matrix' and model is 'pca', 'newdata' \n 
+               must be a 2-way matrix.")
+        }
+        if (any(is.nan(newdata)) || any(is.infinite(newdata))) {
+          stop("Input 'newdata' cannot contain NaN or Inf values.")
+        }
+        if (any(is.na(newdata))) {
+          stop("Input 'newdata' cannot contain missing values.")
+        }
+        if (!(is.null(cmode))) {
+          if (!(cmode %in% (1:lxdim))) {
+            stop("Input 'cmode' must be 1 or 2 when model is 'pca' and when \n
+                 'newdata' is of class 'matrix'.")
+          }
+          if (cmode == 1) {
+            newdata <- newdata
+          } else {
+            modeval <- 1:lxdim
+            mode.re <- c(modeval[-cmode], cmode)
+            newdata <- aperm(newdata, mode.re)
+            xdim <- dim(newdata)
+          }
+        } else {
+          cmode <- 1
+        }
+      } else {
+        stop("Input 'newdata' can be of class 'array' for any model, can be \n
+             of class 'list' for 'parafac2', and can be of class 'matrix' for \n
+             'pca'. Else, input 'newdata' cannot be of a different class.")
+      }
     }
     if (model == "parafac") {
       if (xdim[1] != xold.dim[1]) {
@@ -111,7 +166,7 @@ predict.tunecpfa <-
                number of levels for C mode used in 'object'.")
         }
       }
-    } else {
+    } else if (model == "parafac2") {
       if (xdim[2] != xold.dim[2]) {
         stop("Number of levels for B mode of input 'newdata' must match \n 
              number of levels for B mode used in 'object'.")
@@ -121,6 +176,11 @@ predict.tunecpfa <-
           stop("Number of levels for C mode of input 'newdata' must match \n 
                number of levels for C mode used in 'object'.")
         }
+      }
+    } else {
+      if (xdim[2] != xold.dim[2]) {
+        stop("Number of variables of input 'newdata' must match number of \n 
+             variables used in 'object'.")
       }
     }
     nfac <- object$opt.param$nfac
@@ -210,10 +270,13 @@ predict.tunecpfa <-
        stor.name <- c(stor.name, paste0(nfac.names[i], meth.names)) 
     }
     if (model == "parafac") {
-      storfac <- matrix(NA, nrow = dim(newdata)[lxdim], ncol = lmethod * lnfac)
+      storrows <- dim(newdata)[lxdim]
+    } else if (model == "parafac2") {
+      storrows <- length(newdata)
     } else {
-      storfac <- matrix(NA, nrow = length(newdata), ncol = lmethod * lnfac)
+      storrows <- xdim[1]
     }
+    storfac <- matrix(NA, nrow = storrows, ncol = lmethod * lnfac)
     storprob <- vector("list", lmethod * lnfac)
     for (w in 1:lnfac) {
        colcount <- lmethod * (w - 1) + 1
@@ -240,7 +303,7 @@ predict.tunecpfa <-
                            scale = sscales[[w]])
            classify.weights[[w]] <- C.pred
          }
-       } else {
+       } else if (model == "parafac2") {
          Phifixed <- Phi[[w]]
          phi.pfac2 <- eigen(Phifixed, symmetric = TRUE)
          if (nfac[w] == 1) {
@@ -269,6 +332,14 @@ predict.tunecpfa <-
                            scale = sscales[[w]])
            classify.weights[[w]] <- C.pred
          }
+       } else {
+         pcacenter <- object$pcacenter
+         Afixed <- Aweights[[w]]
+         ndcent <- scale(newdata, center = pcacenter, scale = FALSE)
+         C.pred0 <- ndcent %*% Afixed
+         C.pred <- scale(C.pred0, center = scenters[[w]], 
+                         scale = sscales[[w]])
+         classify.weights[[w]] <- C.pred
        }
        if (type != "classify.weights") {
          C.pred <- as.matrix(C.pred)
@@ -497,7 +568,7 @@ predict.tunecpfa <-
     colnames(storfac) <- stor.name
     names(storprob) <- stor.name
     if (type == "classify.weights") {
-      classify.weight.names <- paste(nfac, "-factor(s)", sep ="")
+      classify.weight.names <- paste(nfac, "-component(s)", sep ="")
       names(classify.weights) <- classify.weight.names
       return(classify.weights)
     } 

@@ -37,7 +37,11 @@ plotcpfa(object, cmeasure = "acc", meanvalue = TRUE, supNum = FALSE,
 \item{cmode}{
   Integer value of 1, 2, or 3 (or 4 if \code{x} is a four-way array) specifying 
   the mode whose component weights were predictors for classification when
-  generating the 'wrapcpfa' object using function \code{cpfa}.
+  generating the 'wrapcpfa' object using function \code{cpfa}. If the original 
+  input \code{model} from function \code{cpfa} was \code{pca}, \code{cmode} must 
+  be 1 or 2 when the original input \code{x} was a two-way matrix. If the 
+  original input \code{x} was a three-way or four-way array, \code{cmode} values 
+  greater than 2 are ignored with a warning.
 }
 \item{parallel}{
   Logical indicating whether parallel computing should be used. If TRUE, 
@@ -52,35 +56,43 @@ plotcpfa(object, cmeasure = "acc", meanvalue = TRUE, supNum = FALSE,
   Character that indicates a mode to rescale. Must be one of \code{c("A", "B", 
   "C", "D")}. Sent directly to argument \code{mode} in function \code{rescale} 
   from package \bold{multiway}. See help file for \code{rescale} for additional 
-  details.
+  details. Ignored when function \code{cpfa} argument \code{model = 'pca'}. 
+  If supplied, argument \code{scale.abmode} must also be supplied.
 }
 \item{newscales}{
   The root mean-square for columns of the mode indicated by \code{scale.remode}. 
-  See help file for \code{rescale} for additional details.
+  See help file for \code{rescale} for additional details. Ignored when function 
+  \code{cpfa} argument \code{model = 'pca'}.
 }
 \item{scale.abmode}{
   Character that indicates the mode that absorbs the inverse of rescalings 
   applied to the mode indicated by \code{scale.remode}. Must be one of 
   \code{c("A", "B", "C", "D")}. Sent directly to argument \code{absorb} in 
   function \code{rescale} from package \bold{multiway}. See help file for 
-  \code{rescale} for additional details.
+  \code{rescale} for additional details. Ignored when function \code{cpfa} 
+  argument \code{model = 'pca'}. If supplied, argument \code{scale.remode} must 
+  also be supplied.
 }
 \item{sign.remode}{
   Character that indicates a mode to resign. Must be one of \code{c("A", "B", 
   "C", "D")}. Sent directly to argument \code{mode} in function \code{resign} 
   from package \bold{multiway}. See help file for \code{resign} for additional 
-  details.
+  details. Ignored when function \code{cpfa} argument \code{model = 'pca'}. 
+  If supplied, argument \code{sign.abmode} must also be supplied.
 }
 \item{newsigns}{
   Scalar or vector indicating resignings for columns of the mode indicated by 
-  \code{sign.remode}. See help file for \code{resign} for additional details.
+  \code{sign.remode}. See help file for \code{resign} for additional details. 
+  Ignored when function \code{cpfa} argument \code{model = 'pca'}.
 }
 \item{sign.abmode}{
   Character that indicates the mode that absorbs the negation of the resignings 
   applied to the mode indicated by \code{sign.remode}. Must be one of 
   \code{c("A", "B", "C", "D")}. Sent directly to argument \code{absorb} in 
   function \code{resign} from package \bold{multiway}. See help file for 
-  \code{resign} for additional details.
+  \code{resign} for additional details. Ignored when function \code{cpfa} 
+  argument \code{model = 'pca'}. If supplied, argument \code{sign.remode} must 
+  also be supplied.
 }
 \item{...}{
   Additional arguments to be passed to function \code{parafac} for fitting a 
@@ -92,25 +104,41 @@ plotcpfa(object, cmeasure = "acc", meanvalue = TRUE, supNum = FALSE,
 \details{
 Selects the number of components that optimized a performance measure across 
 all classification methods used by \code{cpfa}. With this optimal number of 
-components, fits the Parafac or Parafac2 model that was used by \code{cpfa} to 
+components, fits the component model that was used by \code{cpfa} to 
 create the input 'wrapcpfa' object. Uses same constraints used in \code{cpfa}. 
 Plots component weights for this optimal model using heatmaps. Darker red 
 indicates component weights that are more negative while darker green indicates 
 component weights that are more positive. For three-way Parafac, plots A and B 
 weights. For four-way Parafac, plots A, B, and C weights. For three-way 
-Parafac2, plots B weights. For four-way Parafac2, plots B and C weights.
+Parafac2, plots B weights. For four-way Parafac2, plots B and C weights. For
+PCA, plots loadings (i.e., A weights).
 }
 \value{
-Returns one or more heatmap plots of component weights for the optimal Parafac 
-or Parafac2 model. Returns list of estimated component weights from the optimal
-model.
+Returns one or more heatmap plots of component weights for the optimal component
+model. Returns list of estimated component weights from the optimal model.
+\item{Aweights}{
+  Estimated A mode weights for optimal Parafac or Parafac2 model. For PCA, 
+  contains the component loadings.
+}
+\item{Bweights}{
+  Estimated B mode weights for optimal Parafac or Parafac2 model. For PCA, 
+  contains the component scores.
+}
+\item{Cweights}{
+  Estimated C mode weights for optimal Parafac or Parafac2 model. For PCA, 
+  returns NULL.
+}
+\item{Dweights}{
+  Estimated D mode weights for optimal Parafac or Parafac2 model. For PCA, 
+  returns NULL.
+}
 }
 \note{
 Applications of this function to real datasets can be explored at the following
 repository: \url{https://github.com/matthewasisgress/multiway-classification/}.
 }
 \author{
- Matthew Asisgress <mattgress@protonmail.ch>
+Matthew Asisgress <mattgress@protonmail.ch>
 }
 \references{
 See help file for function \code{cpfa} for a list of references.
@@ -156,7 +184,7 @@ const <- c("orthog", "uncons", "uncons", "nonneg")
 # fit Parafac2 model and use fourth mode weights to tune classification
 # methods, to predict class labels, and to return classification 
 # performance measures pooled across multiple train-test splits
-output <- cpfa(x = data$X, y = as.factor(data$y), model = model, nfac = 3, 
+output <- cpfa(x = data$X, y = data$y, model = model, nfac = 3, 
                nrep = 2, ratio = 0.8, nfolds = nfolds, method = method, 
                family = family, parameters = parameters, 
                type.out = "descriptives", seeds = NULL, plot.out = TRUE, 

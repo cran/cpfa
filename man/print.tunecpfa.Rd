@@ -27,7 +27,7 @@ seconds.
 Returns a summary of the 'tunecpfa' model object.
 }
 \author{
- Matthew Asisgress <mattgress@protonmail.ch>
+Matthew Asisgress <mattgress@protonmail.ch>
 }
 \references{
 See help file for function \code{tunecpfa} for a list of references.
@@ -68,7 +68,7 @@ nstart <- 3
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
-tune.object <- tunecpfa(x = data$X, y = as.factor(data$y), model = model, 
+tune.object <- tunecpfa(x = data$X, y = data$y, model = model, 
                         nfac = 3, nfolds = nfolds, method = method, 
                         family = family, parameters = parameters, 
                         parallel = FALSE, const = const, nstart = nstart)

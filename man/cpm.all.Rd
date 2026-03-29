@@ -88,7 +88,7 @@ nstart <- 3
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
-tune.object <- tunecpfa(x = data$X[, , 1:80], y = as.factor(data$y[1:80, ]), 
+tune.object <- tunecpfa(x = data$X[, , 1:80], y = data$y[1:80], 
                         model = model, nfac = 3, nfolds = nfolds, 
                         method = method, family = family, 
                         parameters = parameters, parallel = FALSE, 
@@ -99,7 +99,8 @@ predict.labels <- predict(object = tune.object, newdata = data$X[, , 81:100],
                           type = "response")
                         
 # calculate performance measures for predicted class labels
-evalmeasure <- cpm.all(x = predict.labels, y = as.numeric(data$y[81:100, ]))
+yproc <- as.numeric(data$y[81:100]) - 1
+evalmeasure <- cpm.all(x = predict.labels, y = yproc)
 
 # print performance measures
 evalmeasure

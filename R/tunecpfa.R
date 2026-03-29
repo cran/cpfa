@@ -1,13 +1,14 @@
 tunecpfa <- 
-  function(x, y, model = c("parafac", "parafac2"), nfac = 1, nfolds = 10,
+  function(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1, nfolds = 10,
            method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"),
            family = c("binomial", "multinomial"), parameters = list(), 
            foldid = NULL, prior = NULL, cmode = NULL, parallel = FALSE, 
-           cl = NULL, verbose = TRUE, compscale = TRUE, ...)
+           cl = NULL, verbose = TRUE, compscale = TRUE, 
+           pcarot = c("unrotated", "varimax"), ...)
 {   
     if (!(is.list(parameters))) {
       stop("Input 'parameters' must be of class 'list'.")
-    } 
+    }
     if (length(parameters) == 0) {
       size <- nodesize <- ntree <- gamma <- cost <- lambda <- alpha <- NULL 
       subsample <-  max.depth <- eta <- delta <- decay <- rda.alpha <- size
@@ -44,14 +45,14 @@ tunecpfa <-
       iparam <- paranull
       if (length(iparam) > 0) {for (p in iparam) assign(p, NULL)} 
     }
-    models <- c("parafac", "parafac2")
+    models <- c("parafac", "parafac2", "pca")
     model0 <- sum(tolower(model) %in% models)
     if ((model0 == 0L) || (model0 > 1L)) {
       stop("Input 'model' not specified correctly. Input must be one of \n
-           either 'parafac' or 'parafac2'.")
+           either 'parafac', 'parafac2', or 'pca'.")
     }
     model <- tolower(model)
-    if (is.array(x) && (model == "parafac")) {
+    if (is.array(x) && (!(is.matrix(x))) && (model %in% c("parafac", "pca"))) {
       xdim <- origdim <- dim(x)                                                            
       lxdim <- length(xdim)
       if (!((lxdim == 3L) || (lxdim == 4L))) {
@@ -63,16 +64,38 @@ tunecpfa <-
       if (any(is.na(x))) {stop("Input 'x' cannot contain missing values.")}
       if (!(is.null(cmode))) {
         if (!(cmode %in% (1:lxdim))) {
-          stop("Input 'cmode' must be 1, 2, or 3 (or 4 if 'x' is four-way).")
+          stop("Input 'cmode' must be 1, 2, or 3 (or 4 if 'x' is 4-way).")
         }
-        modeval <- 1:lxdim
-        mode.re <- c(modeval[-cmode], cmode)
-        x <- aperm(x, mode.re)
-        xdim <- dim(x)
+        if (model == "parafac") {
+          modeval <- 1:lxdim
+          mode.re <- c(modeval[-cmode], cmode)
+          x <- aperm(x, mode.re)
+          xdim <- dim(x)
+        } else {
+          modeval <- 1:lxdim
+          mode.re <- c(cmode, modeval[-cmode])
+          x <- matrix(aperm(x, mode.re), nrow = xdim[cmode])
+          xdim <- dim(x)
+          lxdim <- length(xdim)
+        }
       } else {
         cmode <- lxdim
+        if (model == "pca") {
+          modeval <- 1:lxdim
+          mode.re <- c(cmode, modeval[-cmode])
+          x <- matrix(aperm(x, mode.re), nrow = xdim[cmode])
+          xdim <- dim(x)
+          lxdim <- length(xdim)
+          if (length(y) != dim(x)[1]) {
+            stop("Input 'x' was a 3-way or 4-way array, and model was 'pca'. \n 
+                 Input 'y' had a length different from the last mode of 'x'. \n 
+                 When 'x' is a 3-way or 4-way array, and when model is 'pca', \n 
+                 the last mode must be the classification mode. Consider \n 
+                 permuting the array.")
+          }
+        }
       }
-    } else if (is.array(x) && (model == "parafac2")) {
+    } else if (is.array(x) && (!(is.matrix(x))) && (model == "parafac2")) {
       xdim <- dim(x)                                                            
       lxdim <- length(xdim)
       if (!((lxdim == 3L) || (lxdim == 4L))) {
@@ -143,14 +166,52 @@ tunecpfa <-
           stop("Input 'x' must be list of arrays with same number of slabs.")
         }
       }
-    } else if (is.list(x) && (model == "parafac")) {
-      stop("Input 'x' must be of class 'array' if 'model = parafac'.")
+    } else if (is.list(x) && (model != "parafac2")) {
+      stop("Input 'x' cannot be of class 'list' if model is 'parafac' or \n 
+           'pca'.")
+    } else if (is.matrix(x) && (model != "pca")) {
+      stop("Input 'x' cannot be of class 'matrix' if model is 'parafac' or \n 
+           'parafac2'.")
+    } else if (is.matrix(x) && (model == "pca")) {  
+      xdim <- origdim <- dim(x)                                                            
+      lxdim <- length(xdim)
+      if (!((lxdim == 2L))) {
+        stop("If 'x' has class 'matrix' and model is 'pca', 'x' must be a \n 
+             2-way matrix.")
+      }
+      if (any(is.nan(x)) || any(is.infinite(x))) {
+        stop("Input 'x' cannot contain NaN or Inf values.")
+      }
+      if (any(is.na(x))) {stop("Input 'x' cannot contain missing values.")}
+      if (!(is.null(cmode))) {
+        if (!(cmode %in% (1:lxdim))) {
+          stop("Input 'cmode' must be 1 or 2 when model is 'pca' and when \n
+               'x' is of class 'matrix'.")
+        }
+        if (cmode == 1) {
+          x <- x
+        } else {
+          modeval <- 1:lxdim
+          mode.re <- c(cmode, modeval[-cmode])
+          x <- aperm(x, mode.re)
+          xdim <- dim(x)
+        }
+      } else {
+        cmode <- 1
+      }
     } else {
-      stop("Input 'x' must be of class 'array' or 'list'.")
+      stop("Input 'x' can be of class 'array' for any model, can be of class \n
+           'list' for 'parafac2', and can be of class 'matrix' for 'pca'. \n
+           Else, input 'x' cannot be of a different class.")
     }
     if (!(is.factor(y))) {stop("Input 'y' must be of class 'factor'.")}
     if (model == "parafac") {
       if (!(length(y) == origdim[cmode])) {
+        stop("Length of 'y' must match number of levels in classification \n 
+             mode of 'x'.")
+      }
+    } else if (model == "pca") {  
+      if (!(length(y) == xdim[1])) {
         stop("Length of 'y' must match number of levels in classification \n 
              mode of 'x'.")
       }
@@ -191,9 +252,16 @@ tunecpfa <-
     if (is.null(foldid)) {
       foldid <- sample(rep(1:nfolds, length.out = length(y)))
     } else {
-      if (length(foldid) != xdim[cmode]) {
-        stop("Input 'foldid' must match number of levels in classification \n
+      if (model != "pca") {
+        if (length(foldid) != xdim[cmode]) {
+          stop("Input 'foldid' must match number of levels in classification \n
              mode.")
+        }
+      } else {
+        if (length(foldid) != xdim[1]) {
+          stop("Input 'foldid' must match number of levels in classification \n
+             mode.")
+        }
       }
       if (!(is.integer(foldid))) {
         stop("Input 'foldid' must be of class integer.")
@@ -215,6 +283,12 @@ tunecpfa <-
       stop("Input 'method' contains at least one value that is not valid.")
     }
     method <- which(omethods %in% toupper(method) == TRUE)
+    if (model == "pca") {
+      pcarots <- c("unrotated", "varimax")
+      pcarot0 <- sum(tolower(pcarot) %in% pcarots)
+      if ((pcarot0 == 0L) || (pcarot0 > 1L)) {pcarot <- "unrotated"}
+      pcarot <- tolower(pcarot)
+    }
     if (length(method) == 0) {method <- 1:6}
     if (!(is.logical(verbose))) {
       stop("Input 'verbose' must be of class logical.")
@@ -431,6 +505,8 @@ tunecpfa <-
            train <- train.weights[[w]] <- strain
          } else {
            train <- train.weights[[w]] <- rtrain
+           scenters[[w]] <- FALSE
+           sscales[[w]] <- FALSE
          }
          if (lxdim == 4L) {
            Cweights[[w]] <- pfac$C                                               
@@ -442,9 +518,11 @@ tunecpfa <-
              train <- train.weights[[w]] <- strain
            } else {
              train <- train.weights[[w]] <- rtrain
+             scenters[[w]] <- FALSE
+             sscales[[w]] <- FALSE
            }
          }
-       } else {
+       } else if (model == "parafac2") {
          if (verbose == TRUE) {
            cat("nfac =", nfac[w], "model = parafac2", fill = TRUE)
          }
@@ -464,6 +542,8 @@ tunecpfa <-
            train <- train.weights[[w]] <- strain
          } else {
            train <- train.weights[[w]] <- rtrain
+           scenters[[w]] <- FALSE
+           sscales[[w]] <- FALSE
          }
          if (lxdim == 4L) {
            Cweights[[w]] <- pfac$C
@@ -475,9 +555,58 @@ tunecpfa <-
              train <- train.weights[[w]] <- strain
            } else {
              train <- train.weights[[w]] <- rtrain
+             scenters[[w]] <- FALSE
+             sscales[[w]] <- FALSE
            }
          }
          Phi[[w]] <- pfac$Phi
+       } else {
+         if (verbose == TRUE) {
+           cat("nfac =", nfac[w], "model = pca", fill = TRUE)
+         }
+         if (w == 1) {
+           tic <- proc.time()
+           xcent <- scale(x, center = TRUE, scale = FALSE)
+           pcacenter <- attr(xcent, "scaled:center")
+           USV <- svd(xcent)
+           weights <- USV$v[, 1:nfac[w], drop = FALSE]
+           leftsing <- USV$u[, 1:nfac[w], drop = FALSE]
+           scores <- sweep(leftsing, 2, USV$d[1:nfac[w]], "*")
+           toc <- proc.time()
+           time.pfac <- toc[3] - tic[3]
+           if (pcarot == "varimax") {
+             if (nfac[w] != 1L) {
+               varires <- varimax(weights)
+               rotmat <- varires$rotmat
+               weights <- unclass(as.matrix(varires$loadings))
+               scores <- scores %*% rotmat
+             }
+           }
+         } else {
+           weights <- USV$v[, 1:nfac[w], drop = FALSE]
+           leftsing <- USV$u[, 1:nfac[w], drop = FALSE]
+           scores <- sweep(leftsing, 2, USV$d[1:nfac[w]], "*")
+           if (pcarot == "varimax") {
+             if (nfac[w] != 1L) {
+               varires <- varimax(weights)
+               rotmat <- varires$rotmat
+               weights <- unclass(as.matrix(varires$loadings))
+               scores <- scores %*% rotmat
+             }
+           }
+         }
+         Aweights[[w]] <- weights
+         rtrain <- as.matrix(scores)
+         if (compscale == TRUE) {
+           strain <- scale(rtrain)
+           scenters[[w]] <- scenter <- attr(strain, "scaled:center") 
+           sscales[[w]] <- sscale <- attr(strain, "scaled:scale")  
+           train <- train.weights[[w]] <- strain
+         } else {
+           train <- train.weights[[w]] <- rtrain
+           scenters[[w]] <- FALSE
+           sscales[[w]] <- FALSE
+         }
        }
        if ('1' %in% method) {
          if (verbose == TRUE) {
@@ -623,17 +752,28 @@ tunecpfa <-
        esttime.new <- data.frame(nfac = nfac[w], time.pfac = time.pfac,
                                  time.plr = time.plr, time.svm = time.svm,
                                  time.rf = time.rf, time.nn = time.nn,
-                                 time.rda = time.rda, time.gbm)
+                                 time.rda = time.rda, time.gbm = time.gbm)
        kcv.error.new <- data.frame(nfac = nfac[w], error.plr = error.plr,
                                    error.svm = error.svm, error.rf = error.rf,
                                    error.nn = error.nn, error.rda = error.rda,
-                                   error.gbm)
+                                   error.gbm = error.gbm)
        opt.param <- rbind(opt.param, optparam.new)
        est.time <- rbind(est.time, esttime.new)
        kcv.error <- rbind(kcv.error, kcv.error.new)
     }                                                                      
     if ((parallel == TRUE) && (ccluster == TRUE)) {stopCluster(cl)}
     levels(y) <- names(frac)
+    if (lxdim == 2L) {
+      tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
+                        kcv.error = kcv.error, est.time = est.time, 
+                        model = model, method = method, x = x, y = y, 
+                        Aweights = Aweights, Bweights = NULL, 
+                        Cweights = NULL, Phi = NULL, const = pcarot,
+                        cmode = cmode, family = family, xdim = xdim, 
+                        lxdim = lxdim, train.weights = train.weights, 
+                        priorweights = priorweights, scenters = scenters,
+                        sscales = sscales, pcacenter = pcacenter)
+    }
     if (lxdim == 3L) {
       tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
                         kcv.error = kcv.error, est.time = est.time, 
@@ -643,7 +783,7 @@ tunecpfa <-
                         cmode = cmode, family = family, xdim = xdim, 
                         lxdim = lxdim, train.weights = train.weights, 
                         priorweights = priorweights, scenters = scenters,
-                        sscales = sscales)
+                        sscales = sscales, pcacenter = NULL)
     }
     if (lxdim == 4L) {
       tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
@@ -654,7 +794,7 @@ tunecpfa <-
                         cmode = cmode, family = family, xdim = xdim, 
                         lxdim = lxdim, train.weights = train.weights,
                         priorweights = priorweights, scenters = scenters,
-                        sscales = sscales)
+                        sscales = sscales, pcacenter = NULL)
     }
     class(tcpfalist) <- "tunecpfa"
     return(tcpfalist)

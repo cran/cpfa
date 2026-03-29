@@ -1,3 +1,31 @@
+Changes: version 1.2-7  (2026-03-29)
+
+1.) Added principal component analysis (PCA) as an additional component model, which works with a two-way matrix
+	- Previously used only Parafac and Parafac2 as component models
+	- Now includes functionality for PCA with an option for a varimax rotation
+
+2.) Bug fix in package function 'plotcpfa' - edge case when a single value is present
+	- Previously did not produce plots correctly when only one method and one number of components had been used
+	- Now produces such plots correctly
+
+3.) Bug fix in package function 'plotcpfa' - plot overwrite
+	- Previously component heatmaps were overwritten if a user did not have GUI with plot history enabled
+	- Now all component heatmaps are produced, regardless of the GUI used
+
+4.) Modification to function 'simcpfa' - class change for output 'y' to align with function 'cpfa'
+	- Previously value 'y' was output as an object of class matrix
+	- Now 'y' is output as an object of class factor, which primary package function 'cpfa' expects
+
+5.) Enhancement to package function 'cpfa' - IDs as output
+	- Previously training and test IDs were not provided in output for function 'cpfa'
+	- Now such IDs are provided for all train-test replications for 'cpfa'
+
+6.) Help file cleanup
+	- Previously various omissions or inconsistencies existed in several package help files
+	- Now such issues have been fixed to make function usage clearer
+
+----------------
+
 Changes: version 1.2-6  (2026-02-06)
 
 1.) Bug fix in package function 'plotcpfa'
@@ -9,7 +37,7 @@ Changes: version 1.2-6  (2026-02-06)
 	- Now 'tunecpfa' scales features consistently across classification methods
 
 3.) Bug fix in package function 'cpfa'
-	- Previous updates included an bug that prevented function 'cpfa' from passing additional arguments to function 'tunecpfa' 
+	- Previous updates included a bug that prevented function 'cpfa' from passing additional arguments to function 'tunecpfa' 
 	- Now additional arguments (e.g., 'const') are passed to 'tunecpfa' successfully
 
 4.) Bug fix in package function 'predict.tunecpfa' and internal function 'kcv.gbm'
@@ -64,7 +92,7 @@ Changes: version 1.2-4  (2025-12-15)
 	- Previously, if 'prior = NULL', default was to use observed proportions of class labels in argument 'y'
 	- Now, if 'prior = NULL', default is to use the inverse of observed proportions of class labels in argument 'y'
 
-7.) Added additional simulation method in function 'simcpfa"
+7.) Added additional simulation method in function 'simcpfa'
 	- Previously only an iterative Monte Carlo rejection sampling technique was available for simulating a data array and class labels
 	- Now an additional method is available that efficiently simulates latent data via the eigendecomposition
 
@@ -384,3 +412,18 @@ Changes:  version 1.0-1  (2022-04-09)
 Changes:  version 1.0-0  (2022-03-09)
 
 1.) Submitted to CRAN a new package called 'cpfa'
+
+----------------
+
+~~~~~~~~~~~~~~~~
+
+Roadmap
+
+Last updated when version 1.2-7 was published
+
+Upcoming updates:
+1.) Add the option to include covariates as additional features alongside estimated components ~ 1.2-8
+2.) Add the option to fit a Tucker model to 3-way and 4-way arrays via R package 'multiway' ~ 1.2-9
+3.) Add the option to calculate probability-based performance measures (i.e., Brier and log-loss) ~ 1.3-0
+
+~~~~~~~~~~~~~~~~

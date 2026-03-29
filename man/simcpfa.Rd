@@ -4,32 +4,36 @@
 Simulate Data for Classification with Parallel Factor Analysis
 }
 \description{
-Simulates a three-way or four-way data array and a set of class labels that are 
-related to the simulated array through one mode of the array. Data array is 
-simulated using either a Parafac or Parafac2 model with no constraints. Weights 
-for mode weight matrices can be drawn from 12 common probability 
-distributions. Alternatively, custom weights can be provided for any mode.
+Simulates a two-way matrix, three-way array, or four-way array; and
+simulates a set of class labels that are related to the simulated matrix or 
+array through one mode of that matrix or array. Data matrix or array is 
+simulated using one of the following component models without constraints: 
+Parafac, Parafac2, or PCA. Weights for mode weight matrices can be drawn from 12 
+common probability distributions. Alternatively, custom weights can be provided 
+for any mode.
 }
 \usage{
 simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2, 
-        smethod = "logistic", nreps = 100, onreps = 10, props = NULL, 
-        corresp = c(0.3, -0.3), meanpred = c(0, 0), modes = 3, 
-        corrpred = matrix(c(1, 0.2, 0.2, 1), nrow = 2), pf2num = NULL, 
-        Amat = NULL, Bmat = NULL, Cmat = NULL, Dmat = NULL, Gmat = NULL, 
-        Emat = NULL, technical = list())
+        smethod = "logistic", nreps = 100, onreps = 10, props = NULL,
+        corresp = NULL, meanpred = NULL, modes = 3, corrpred = NULL, 
+        pf2num = NULL, Amat = NULL, Bmat = NULL, Cmat = NULL, Dmat = NULL, 
+        Gmat = NULL, Emat = NULL, technical = list())
 }
 \arguments{
 \item{arraydim}{
   Numeric vector containing the number of dimensions for each mode of the 
-  simulated data array. Must contain integers greater than or equal to 2.
+  simulated data matrix or array. Must contain integers greater than or equal 
+  to 2. Defaults to \code{c(10, 100)} for \code{modes = 2}; 
+  to \code{c(10, 10, 100)} for \code{modes = 3}; and to 
+  \code{c(10, 10, 10, 100)} for \code{modes = 4}.
 }
 \item{model}{
   Character specifying the model to use for simulating the data array. Must be 
-  either 'parafac' or 'parafac2'.
+  'parafac', 'parafac2', or 'pca'.
 }
 \item{nfac}{
-  Number of components in the Parafac or Parafac2 model. Must be an integer 
-  greater than or equal to 1. 
+  Number of components in the component model. Must be an integer greater than 
+  or equal to 1. 
 }
 \item{nclass}{
   Number of classes in simulated class labels. Must be an integer greater than 
@@ -37,7 +41,7 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2,
 }
 \item{smethod}{
   Simulation method, either "logistic" or "eigende". The former implements an 
-  iterative Monte Carlo rejection sampling technique based on the generalized
+  iterative Monte Carlo rejection sampling method based on the generalized
   linear model (slower). The latter uses a multivariate normal
   distribution and constructs a joint covariance matrix, employing a 
   eigendecomposition and assuming class labels arise from discretizing 
@@ -52,29 +56,32 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2,
   weights. 
 }
 \item{props}{
-  Target proportions for simulated class labels in output 'y'.
+  Target proportions for simulated class labels in output 'y'. Defaults to 
+  equal proportions across classes.
 }
 \item{corresp}{
   Numeric vector of target correlations between simulated class labels and 
   columns of the classification mode component weight matrix. Must have length 
-  equal to 'nfac'.
+  equal to 'nfac'. Defaults to 0.5 for all components.
 }
 \item{meanpred}{
   Numeric vector of means used to generate the classification mode component 
   weights. Must be real numbers. Operates as the mean vector parameterizing a 
   multivariate normal distribution from which classification mode component 
-  weights are generated. Length must be equal to input \code{nfac}.
+  weights are generated. Length must be equal to input \code{nfac}. Defaults to
+  a vector of zeros.
 }
 \item{modes}{
-  Single integer of either 3 or 4, indicating whether to simulate a three-way 
-  or four-way data array, respectively.
+  Single integer of 2, 3, or 4, indicating whether to simulate a two-way matrix, 
+  three-way array, or four-way array, respectively.
 }
 \item{corrpred}{
   A positive definite correlation matrix containing the target correlations for 
   the classification mode component weights. Must have number of rows and 
   columns equal to input 'nfac'. Operates as the covariance matrix 
   parameterizing a multivariate normal distribution from which classification 
-  mode component weights are generated.
+  mode component weights are generated. Defaults to a correlation matrix with 1
+  on the diagonal and 0.2 on the off-diagonals.
 }
 \item{pf2num}{
   When \code{model = 'parafac2'}, number of rows for each simulated matrix in 
@@ -91,26 +98,35 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2,
   equal to the last element of input 'arraydim', where each list element 
   contains a matrix with number of rows of at least 2 and with number 
   of columns equal to input 'nfac'. When provided, replaces a 
-  simulated \code{Amat}.
+  simulated \code{Amat}. When \code{model = 'pca'}, a matrix of loadings with
+  number of rows equal to the second element of input 'arraydim' and with number
+  of columns equal to input 'nfac'.
 }
 \item{Bmat}{
   A matrix of B mode weights with number of rows equal to the second element of 
   input 'arraydim' and with number of columns equal to the input 'nfac'. When 
-  provided, replaces a simulated \code{Bmat}.
+  provided, replaces a simulated \code{Bmat}. When \code{model = 'pca'}, a 
+  matrix of scores with number of rows equal to the first element of input 
+  'arraydim' and with number of columns equal to input 'nfac'. If provided when 
+  \code{modes = 2}, \code{onreps} is reduced to one when \code{smethod} is 
+  \code{logistic}. 
 }
 \item{Cmat}{
   A matrix of C mode weights with number of rows equal to the third element of 
   input 'arraydim' and with number of columns equal to the input 'nfac'. When 
   provided, replaces a simulated \code{Cmat} when \code{modes = 4}. When
   \code{modes = 3}, replaces the simulated classification mode weight matrix. If
-  provided when \code{modes = 3}, \code{onreps} is reduced to one.
+  provided when \code{modes = 3}, \code{onreps} is reduced to one when 
+  \code{smethod} is \code{logistic}. When \code{modes} is 2, this argument is 
+  ignored.
 }
 \item{Dmat}{
   A matrix of D mode weights with number of rows equal to the fourth element of 
   input 'arraydim' and with number of columns equal to the input 'nfac'. When
   \code{modes = 4}, replaces the simulated classification mode weight matrix.
-  When \code{modes = 3}, this argument is ignored.  If provided when 
-  \code{modes = 4}, \code{onreps} is reduced to one.
+  When \code{modes} is 2 or 3, this argument is ignored. If provided when 
+  \code{modes = 4}, \code{onreps} is reduced to one when \code{smethod} is 
+  \code{logistic}. 
 }
 \item{Gmat}{
   When \code{model = 'parafac2'}, a matrix of G mode weights with number of rows 
@@ -118,14 +134,16 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2,
   provided, replaces a simulated \code{Gmat}.
 }
 \item{Emat}{
-  When \code{model = 'parafac'}, an array containing noise to be added to the
-  corresponding elements in the simulated data array. Error array dimensions
-  must be equal to the values contained in \code{arraydim}. When
+  When \code{model = 'parafac'}, a 3-way or 4-way array containing noise to be 
+  added to the corresponding elements in the simulated data array. Error array 
+  dimensions must be equal to the values contained in \code{arraydim}. When
   \code{model = 'parafac2'}, a list containing either matrices 
   (i.e., when \code{modes = 3}) or three-way arrays (i.e., when 
   \code{modes = 4}) whose elements contain noise to be added to corresponding 
   elements in the simulated data array. When provided, replaces a simulated
-  \code{Emat}.
+  \code{Emat}. When \code{model = 'pca'}, a matrix whose elements contain noise
+  to be added to corresponding elements in the simulated data matrix. When
+  provided, replaces a simulated \code{Emat}.
 }
 \item{technical}{
   List containing arguments related to distributions from which to simulate 
@@ -141,13 +159,14 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2,
   List containing arguments specifying the distribution from which deviates 
   are drawn for B mode weights contained in \code{Bmat}. Defaults to standard 
   normal distribution when not specified. See Details section for additional 
-  information on acceptable arguments.
+  information on acceptable arguments. Ignored if \code{model = 'pca'}.
 }
 \item{distC}{
   For when \code{modes = '4'}, list containing arguments specifying the 
   distribution from which deviates are drawn for C mode weights contained in 
   \code{Cmat}. Defaults to standard normal distribution when not specified. 
-  See Details section for additional information on acceptable arguments.
+  See Details section for additional information on acceptable arguments. 
+  Ignored when \code{modes = 3}.
 }
 \item{distG}{
   For when \code{model = 'parafac2'}, list containing arguments specifying the 
@@ -189,28 +208,29 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2,
   Note that, if any simulation replicate produces a set of class labels where 
   all labels are the same (i.e., have no variance), that replicate is discarded.
   Note also that \code{onreps} is ignored when the classification mode weight 
-  matrix (i.e., \code{Cmat} when \code{modes = 3} or \code{Dmat} when 
-  \code{modes = 4}) is provided; in this case, class labels are simulated with 
-  respect to the provided classification mode weight matrix.
+  matrix (i.e., \code{Bmat} when \code{modes = 2}, \code{Cmat} when 
+  \code{modes = 3}, or \code{Dmat} when \code{modes = 4}) is provided; in this 
+  case, class labels are simulated with respect to the provided classification 
+  mode weight matrix.
   
-  Second, depending on the chosen model (i.e., Parafac or Parafac2) specified 
-  via \code{model}, and depending on the number of modes specified 
+  Second, depending on the chosen model (i.e., Parafac, Parafac2, or PCA) 
+  specified via \code{model}, and depending on the number of modes specified 
   via \code{modes}, component matrices are randomly generated for each mode 
-  of the data array. A data array is then constructed using a Parafac or 
-  Parafac2 structure from these weight matrices, including the generated 
-  classification mode weight matrix (i.e., \code{Cmat} or \code{Dmat}) from the 
-  first step. Alternatively, weight matrices can be provided to override random 
-  generation for any weight matrix with the exception of the classification 
-  mode. When provided, weight matrices are used to form the final data array. 
-  Finally, random noise is added to each value in the array. 
-  The resulting output is a synthetic multiway data array 
-  paired, through one mode of the array, with a simulated binary or multiclass 
-  response.
+  of the data matrix or array. A data matrix or array is then constructed using 
+  a Parafac, Parafac2, or PCA structure from these weight matrices, including 
+  the generated classification mode weight matrix (i.e., \code{Bmat}, 
+  \code{Cmat}, or \code{Dmat}) from the first step. Alternatively, weight 
+  matrices can be provided to override random generation for any weight matrix 
+  with the exception of the classification mode. When provided, weight matrices 
+  are used to form the final data matrix or array. Finally, random noise is 
+  added to each value in the matrix or array. The resulting output is a 
+  synthetic data matrix or array paired, through one mode of that matrix or 
+  array, with a simulated binary or multiclass response.
   
   Alternatively, by selecting \code{smethod = "eigende"}, the function 
   simulates component weights and a latent response variable simultaneously 
   from a joint multivariate normal distribution using an eigendecomposition. 
-  The covariance structure is defined by \code{corrpred} and a corrected 
+  The covariance structure is defined by \code{corrpred} and by a corrected 
   version of \code{corresp} that accounts for the attenuation in correlation 
   caused by discretizing the latent response. This continuous latent response 
   vector is then discretized into class labels using quantile cuts defined by 
@@ -275,19 +295,22 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2,
 }
 \value{
   \item{X}{
-    Simulated data array with dimensions specified by \code{arraydim} and, when 
-    \code{model = 'parafac2'}, also by \code{pf2num}. When \code{model = 
-    'parafac'}, \code{X} is an object of class 'array'. When 
-    \code{model = 'parafac2'}, \code{X} is an object of class 'list'.
+    Simulated data matrix or array with dimensions specified by \code{arraydim} 
+    and, when \code{model = 'parafac2'}, also by \code{pf2num}. When 
+    \code{model = 'parafac'}, \code{X} is an object of class 'array'. When 
+    \code{model = 'parafac2'}, \code{X} is an object of class 'list'. When 
+    \code{model = 'pca'}, \code{X} is an object of class 'matrix'.
   }
   \item{y}{
-    Simulated class labels provided as an object of class 'matrix', with number 
-    of rows equal to the last element of \code{arraydim} and with number of 
-    columns equal to 1.
+    Simulated class labels provided as an object of class 'factor'. When 
+    \code{model = 'parafac'} or \code{model = 'parafac2'}, the number 
+    of labels is equal to the last element of \code{arraydim}. When 
+    \code{model = 'pca'}, the number of labels is equal to the first element
+    of \code{arraydim}.
   }
   \item{model}{
-    Character value indicating whether Parafac or Parafac2 model was used to 
-    simulate the data array.
+    Character value indicating the component model that was used to simulate the 
+    data matrix or array.
   }
   \item{Amat}{
     Simulated A mode weights. When \code{model = 'parafac'}, output is a matrix
@@ -295,26 +318,31 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2,
     number of columns equal to the number of components \code{nfac}. When 
     \code{model = 'parafac2'}, output is a list of matrices with number of rows
     for each matrix equal to those specified by \code{pf2num} and with number of
-    columns equal to \code{nfac}. If \code{Amat} was supplied, returns original 
-    \code{Amat} instead of a simulated \code{Amat}.
+    columns equal to \code{nfac}. When \code{model = 'pca'}, output is a matrix
+    with number of rows equal to the second element of \code{arraydim}. If 
+    \code{Amat} was supplied, returns original \code{Amat} instead of a 
+    simulated \code{Amat}.
   }
   \item{Bmat}{
     Simulated B mode weights provided as a matrix with number of rows equal to 
     the second element of \code{arraydim} and with number of columns equal to 
-    the number of components \code{nfac}. If \code{Bmat} was supplied,
-    returns original \code{Bmat} instead of a simulated \code{Bmat}.
+    the number of components \code{nfac}. When \code{model = 'pca'}, output is a 
+    matrix with number of rows equal to the first element of \code{arraydim}. If 
+    \code{Bmat} was supplied, returns original \code{Bmat} instead of a 
+    simulated \code{Bmat}.
   }
    \item{Cmat}{
     Simulated C mode weights provided as a matrix with number of rows equal to 
     the third element of \code{arraydim} and with number of columns equal to 
     the number of components \code{nfac}. If \code{Cmat} was supplied when
     \code{modes = 4}, returns original \code{Cmat} instead of a simulated 
-    \code{Cmat}.
+    \code{Cmat}. Not provided when \code{modes = 2}.
   }
    \item{Dmat}{
     Simulated D mode weights provided when \code{modes = 4}. Output is a matrix 
     with number of rows equal to the fourth element of \code{arraydim} and with 
-    number of columns equal to the number of components \code{nfac}.
+    number of columns equal to the number of components \code{nfac}. Not 
+    provided when \code{modes = 2} or when \code{modes = 3}.
   }
   \item{Gmat}{
     Simulated G weights provided when \code{model = 'parafac2'}. Provided as 
@@ -323,15 +351,17 @@ simcpfa(arraydim = NULL, model = "parafac", nfac = 2, nclass = 2,
     simulated \code{Gmat}.
   }
   \item{Emat}{
-    Error array or list containing noise added to corresponding elements of 
-    simulated data array. Output has dimensions specified by 
-    \code{arraydim} and, when \code{model = 'parafac2'}, also by \code{pf2num}. 
-    When \code{model = 'parafac'}, \code{Emat} is an object of class 'array'. 
-    When \code{model = 'parafac2'}, \code{Emat} is an object of class 'list'. 
+    Error matrix, array, or list containing noise added to corresponding 
+    elements of simulated data matrix or array. Output has dimensions specified 
+    by \code{arraydim} and, when \code{model = 'parafac2'}, also by 
+    \code{pf2num}. When \code{model = 'parafac'}, \code{Emat} is an object of 
+    class 'array'. When \code{model = 'parafac2'}, \code{Emat} is an object of 
+    class 'list'. When \code{model = 'pca'}, \code{Emat} is an object of 
+    class 'matrix'. 
   }
 }
 \author{
- Matthew Asisgress <mattgress@protonmail.ch>
+Matthew Asisgress <mattgress@protonmail.ch>
 }
 \references{
 See help file for function \code{cpfa} for a list of references.
@@ -362,6 +392,7 @@ cor(data$Dmat)
 
 # examine correlations between columns of classification mode matrix Dmat and
 # simulated class labels
-cor(data$Dmat, data$y)
+yproc <- as.numeric(data$y) - 1
+cor(data$Dmat, yproc)
 }
 }

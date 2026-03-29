@@ -1,19 +1,19 @@
 Package: cpfa
 Type: Package
 Title: Classification with Parallel Factor Analysis
-Version: 1.2-6
-Date: 2026-02-06
+Version: 1.2-7
+Date: 2026-03-29
 Authors@R: person(c("Matthew", "A."), "Asisgress", email = "mattgress@protonmail.ch", role = c("aut", "cre"))
 Maintainer: Matthew A. Asisgress <mattgress@protonmail.ch>
 Depends: multiway
 Imports: glmnet, e1071, randomForest, nnet, rda, xgboost, foreach,
         doParallel, doRNG
 Suggests: knitr, rmarkdown
-Description: Classification using Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or Parallel Factor Analysis-2 (Parafac2) model fit to a three-way or four-way data array. See Harshman and Lundy (1994): <doi:10.1016/0167-9473(94)90132-5>. Uses component weights from one mode of a Parafac or Parafac2 model as features to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Allows for constraints on different tensor modes. Supports penalized logistic regression, support vector machine, random forest, feed-forward neural network, regularized discriminant analysis, and gradient boosting machine. Supports binary and multiclass classification. Predicts class labels or class probabilities and calculates multiple classification performance measures. Implements parallel computing via the 'parallel', 'doParallel', and 'doRNG' packages.
+Description: Classification using Richard A. Harshman's Parallel Factor Analysis-1 (Parafac) model or Parallel Factor Analysis-2 (Parafac2) model fit to a three-way or four-way data array. See Harshman and Lundy (1994): <doi:10.1016/0167-9473(94)90132-5>. Principal component analysis (PCA) is also supported for a two-way data matrix. Uses component weights from one mode of a Parafac, Parafac2, or PCA model as features to tune parameters for one or more classification methods via a k-fold cross-validation procedure. Allows for constraints on different tensor modes. Supports penalized logistic regression, support vector machine, random forest, feed-forward neural network, regularized discriminant analysis, and gradient boosting machine. Supports binary and multiclass classification. Predicts class labels or class probabilities and calculates multiple classification performance measures. Implements parallel computing via the 'parallel', 'doParallel', and 'doRNG' packages.
 License: GPL (>= 2)
 VignetteBuilder: knitr, rmarkdown
 NeedsCompilation: no
-Packaged: 2026-02-06 18:33:24 UTC; nr2
+Packaged: 2026-03-29 19:30:58 UTC; nr2
 Author: Matthew A. Asisgress [aut, cre]
 Repository: CRAN
-Date/Publication: 2026-02-06 19:00:02 UTC
+Date/Publication: 2026-03-29 20:30:08 UTC
