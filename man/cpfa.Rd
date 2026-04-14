@@ -11,14 +11,14 @@ Allows for different constraint options on multiple tensor modes. For PCA,
 allows for either an unrotated or varimax rotated solution. Uses component 
 weights from a single mode of the selected component model as predictors to tune 
 parameters for one or more classification methods via a k-fold cross-validation 
-procedure. Predicts class labels and calculates multiple performance measures 
-for binary or multiclass classification across multiple replications with 
-different train-test splits. Provides descriptive statistics to pool output 
-across replications.
+procedure. Allows for additional features to be included. Predicts class labels 
+and calculates multiple performance measures for binary or multiclass 
+classification across multiple replications with different train-test splits. 
+Provides descriptive statistics to pool output across replications.
 }
 \usage{
-cpfa(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1, nrep = 5, 
-     ratio = 0.8, nfolds = 10, 
+cpfa(x, y, z = NULL, model = c("parafac", "parafac2", "pca"), nfac = 1, 
+     nrep = 5, ratio = 0.8, nfolds = 10, 
      method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"), 
      family = c("binomial", "multinomial"), parameters = list(), 
      type.out = c("measures", "descriptives"), foldid = NULL, prior = NULL, 
@@ -42,6 +42,11 @@ cpfa(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1, nrep = 5,
   levels (left to right) is such that negative class is first and positive 
   class is second. Levels should be sequential integers starting from 0, 1, ...,
   etc.
+}
+\item{z}{
+  A matrix containing additional features for classification. Must have number
+  of rows equal to the number of class labels (i.e., equal to the length of 
+  \code{y}). 
 }
 \item{model}{
   Character designating the component model to use, including: 
@@ -312,6 +317,9 @@ replication.
   }
   \item{y}{
     Vector of class labels used in input argument \code{y}.
+  }
+  \item{z}{
+    Matrix of additional features used in input argument \code{z}.
   }
   \item{nfac}{
     Number of components used to fit each Parafac, Parafac2, or PCA model.

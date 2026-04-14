@@ -1,6 +1,6 @@
 tunecpfa <- 
-  function(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1, nfolds = 10,
-           method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"),
+  function(x, y, z = NULL, model = c("parafac", "parafac2", "pca"), nfac = 1, 
+           nfolds = 10, method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"),
            family = c("binomial", "multinomial"), parameters = list(), 
            foldid = NULL, prior = NULL, cmode = NULL, parallel = FALSE, 
            cl = NULL, verbose = TRUE, compscale = TRUE, 
@@ -248,6 +248,20 @@ tunecpfa <-
     if (nfolds > length(y)) {
       stop("Input 'nfolds' must be a single whole number equal to or less \n 
            than the number of labels in 'y'.")
+    }
+    if (!(is.null(z))) {
+      zdim <- dim(z)                                                            
+      lzdim <- length(zdim)
+      if (!((lzdim == 2L))) {stop("Input 'z' must have two modes.")}
+      if (!(is.matrix(z))) {stop("Input 'z' must be of class 'matrix'.")}
+      if (any(is.nan(z)) || any(is.infinite(z))) {
+        stop("Input 'z' cannot contain NaN or Inf values.")
+      }
+      if (any(is.na(z))) {stop("Input 'z' cannot contain missing values.")}
+      if (zdim[1] != length(y)) {
+        stop("Input 'z', when provided, must have number of rows equal to \n
+             the length of input 'y' (i.e., the number of observations).")
+      }
     }
     if (is.null(foldid)) {
       foldid <- sample(rep(1:nfolds, length.out = length(y)))
@@ -498,6 +512,7 @@ tunecpfa <-
          Aweights[[w]] <- pfac$A
          Bweights[[w]] <- pfac$B   
          rtrain <- as.matrix(pfac$C)
+         if (!(is.null(z)) && (lxdim == 3L)) {rtrain <- cbind(rtrain, z)}
          if (compscale == TRUE) {
            strain <- scale(rtrain)
            scenters[[w]] <- scenter <- attr(strain, "scaled:center") 
@@ -511,6 +526,7 @@ tunecpfa <-
          if (lxdim == 4L) {
            Cweights[[w]] <- pfac$C                                               
            rtrain <- as.matrix(pfac$D)
+           if (!(is.null(z))) {rtrain <- cbind(rtrain, z)}
            if (compscale == TRUE) {
              strain <- scale(rtrain)
              scenters[[w]] <- scenter <- attr(strain, "scaled:center") 
@@ -535,6 +551,7 @@ tunecpfa <-
          Aweights[[w]] <- pfac$A
          Bweights[[w]] <- pfac$B                                                  
          rtrain <- as.matrix(pfac$C)
+         if (!(is.null(z)) && (lxdim == 3L)) {rtrain <- cbind(rtrain, z)}
          if (compscale == TRUE) {
            strain <- scale(rtrain)
            scenters[[w]] <- scenter <- attr(strain, "scaled:center") 
@@ -548,6 +565,7 @@ tunecpfa <-
          if (lxdim == 4L) {
            Cweights[[w]] <- pfac$C
            rtrain <- as.matrix(pfac$D)
+           if (!(is.null(z))) {rtrain <- cbind(rtrain, z)}
            if (compscale == TRUE) {
              strain <- scale(rtrain)
              scenters[[w]] <- scenter <- attr(strain, "scaled:center") 
@@ -597,6 +615,7 @@ tunecpfa <-
          }
          Aweights[[w]] <- weights
          rtrain <- as.matrix(scores)
+         if (!(is.null(z))) {rtrain <- cbind(rtrain, z)}
          if (compscale == TRUE) {
            strain <- scale(rtrain)
            scenters[[w]] <- scenter <- attr(strain, "scaled:center") 
@@ -613,7 +632,7 @@ tunecpfa <-
            cat("nfac =", nfac[w], "method = plr", fill = TRUE)
          }
          tic <- proc.time()
-         if (nfac[w] == 1 || nfac[w] == 1L) {
+         if ((nfac[w] == 1) || (nfac[w] == 1L)) {
            train.plr <- cbind(train, 0)
            if (family == "multinomial") {
              stop("Input combination nfac = 1, family = 'multinomial', and \n
@@ -694,7 +713,7 @@ tunecpfa <-
          nn.opt <- nn.grid[nn.id, ]
          optmodel.new[[4]] <- nn.fit <- nn.results$nn.fit
        } else {
-         nn.opt <- error.nn <- time.nn <- NA
+         error.nn <- time.nn <- NA
          nn.opt <- data.frame(NA, NA)
          optmodel.new[[4]] <- NULL
        }
@@ -766,7 +785,7 @@ tunecpfa <-
     if (lxdim == 2L) {
       tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
                         kcv.error = kcv.error, est.time = est.time, 
-                        model = model, method = method, x = x, y = y, 
+                        model = model, method = method, x = x, y = y, z = z,
                         Aweights = Aweights, Bweights = NULL, 
                         Cweights = NULL, Phi = NULL, const = pcarot,
                         cmode = cmode, family = family, xdim = xdim, 
@@ -777,7 +796,7 @@ tunecpfa <-
     if (lxdim == 3L) {
       tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
                         kcv.error = kcv.error, est.time = est.time, 
-                        model = model, method = method, x = x, y = y, 
+                        model = model, method = method, x = x, y = y, z = z,
                         Aweights = Aweights, Bweights = Bweights, 
                         Cweights = NULL, Phi = Phi, const = const,
                         cmode = cmode, family = family, xdim = xdim, 
@@ -788,7 +807,7 @@ tunecpfa <-
     if (lxdim == 4L) {
       tcpfalist <- list(opt.model = opt.model, opt.param = opt.param, 
                         kcv.error = kcv.error, est.time = est.time, 
-                        model = model, method = method, x = x, y = y, 
+                        model = model, method = method, x = x, y = y, z = z,
                         Aweights = Aweights, Bweights = Bweights, 
                         Cweights = Cweights, Phi = Phi, const = const, 
                         cmode = cmode, family = family, xdim = xdim, 

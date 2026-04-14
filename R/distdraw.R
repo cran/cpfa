@@ -167,7 +167,7 @@ distdraw <-
          negbinomial = {
            if (params$size <= 0) {
              stop(sprintf("For mode '%s', for negative binomial distribution, \n
-                          'size' must be a positive integer.", modes))
+                          'size' must be a positive real number.", modes))
            }
            mnumb <- .Machine$double.eps^0.5
            if ((!(abs(params$size - round(params$size)) < mnumb))) {

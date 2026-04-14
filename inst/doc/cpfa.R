@@ -69,13 +69,12 @@ nfac <- c(2, 3)
 family <- "multinomial"
 nrep <- 3
 ratio <- 0.9
-plot.out <- TRUE
 const <- c("uncons", "uncons", "uncons", "nonneg")
 
 # implement train-test splits with inner k-fold CV to optimize classification
 output <- cpfa(x = X, y = y, model = model, nfac = nfac, 
                nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
-               family = family, parameters = parameters, plot.out = plot.out, 
+               family = family, parameters = parameters, plot.out = FALSE, 
                parallel = FALSE, const = const, nstart = nstart, 
                verbose = FALSE)
 
@@ -87,12 +86,12 @@ output$descriptive$median[, 1:2]
 # examine optimal tuning parameters averaged across train-test splits
 output$mean.opt.tune
 
-## -----------------------------------------------------------------------------
-# set seed
-set.seed(500)
-
-# plot heat maps of component weights for optimal model
-results <- plotcpfa(output, nstart = 3, ctol = 1e-1, verbose = FALSE)
+## ----eval = FALSE-------------------------------------------------------------
+# # set seed
+# set.seed(500)
+# 
+# # plot heat maps of component weights for optimal model
+# results <- plotcpfa(output, nstart = 3, ctol = 1e-1, verbose = FALSE)
 
 ## ----message = FALSE, warning = FALSE-----------------------------------------
 # set seed for reproducibility
@@ -151,18 +150,17 @@ nfac <- c(2, 3)
 family <- "binomial"
 nrep <- 3
 ratio <- 0.9
-plot.out <- TRUE
 const <- c("uncons", "orthog", "uncons")
 
 # implement train-test splits with inner k-fold CV to optimize classification
 output <- cpfa(x = X, y = y, model = "parafac", nfac = nfac, 
                nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
-               family = family, parameters = parameters, plot.out = plot.out, 
+               family = family, parameters = parameters, plot.out = FALSE, 
                parallel = FALSE, const = const, nstart = nstart, 
                verbose = FALSE)
 
 ## -----------------------------------------------------------------------------
-# examine classification performance measures - median across train-test splits
+# examine classification performance measures - mean across train-test splits
 output$descriptive$mean[, 1:2]
 
 ## -----------------------------------------------------------------------------
@@ -229,16 +227,15 @@ nfac <- c(2, 3)
 family <- "multinomial"
 nrep <- 3
 ratio <- 0.9
-plot.out <- TRUE
 
 # implement train-test splits with inner k-fold CV to optimize classification
 output <- cpfa(x = X, y = y, model = model, nfac = nfac, 
                nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
-               family = family, parameters = parameters, plot.out = plot.out, 
+               family = family, parameters = parameters, plot.out = FALSE, 
                parallel = FALSE, verbose = FALSE, pcarot = "varimax")
 
 ## -----------------------------------------------------------------------------
-# examine classification performance measures - median across train-test splits
+# examine classification performance measures - mean across train-test splits
 output$descriptive$mean[, 1:2]
 
 ## -----------------------------------------------------------------------------

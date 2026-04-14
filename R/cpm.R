@@ -60,7 +60,7 @@ cpm <-
         stop("When inputted, 'prior' must only contain values between 0 \n
              and 1, inclusive.")
       }
-      if (sum(prior) != 1) {
+      if (abs(sum(prior) - 1) > 1e-8) {
         stop("When inputted, 'prior' must contain values that sum to 1.")
       }
     }
@@ -82,10 +82,9 @@ cpm <-
       for (h in 1:llev) {
          tpr.sum[h] <- (cm[h,h] / sum(cm[h, ]))
          ppv.sum[h] <- (cm[h,h] / sum(cm[, h]))
-         fpr.sum[h] <- ((sum(cm[,h]) - cm[h,h]) / 
-                        (sum(cm[,h]) + sum(diag(cm)) - 2 * (cm[h,h])))
-         npv.sum[h] <- ((sum(diag(cm)) - cm[h,h]) / 
-                        (sum(diag(cm)) + sum(cm[h,]) - 2 * (cm[h,h])))
+         fpr.sum[h] <- (sum(cm[,h]) - cm[h,h]) / (sum(cm) - sum(cm[h,]))
+         npv.sum[h] <- (sum(cm) - sum(cm[h,]) - sum(cm[,h]) + cm[h,h]) / 
+                            (sum(cm) - sum(cm[,h]))
          tnr.sum[h] <- 1 - fpr.sum[h]
          fnr.sum[h] <- 1 - tpr.sum[h]
          fdr.sum[h] <- 1 - ppv.sum[h]

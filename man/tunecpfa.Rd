@@ -11,11 +11,12 @@ Allows for different constraint options on multiple tensor modes. For PCA,
 allows for either an unrotated or varimax rotated solution. Uses component 
 weights from a single mode of the model as predictors to tune parameters for 
 one or more classification methods via a k-fold cross-validation procedure. 
-Supports binary and multiclass classification.
+Allows for additional features to be included. Supports binary and multiclass 
+classification.
 }
 \usage{
-tunecpfa(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1, nfolds = 10,
-         method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"), 
+tunecpfa(x, y, z = NULL, model = c("parafac", "parafac2", "pca"), nfac = 1, 
+         nfolds = 10, method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"), 
          family = c("binomial", "multinomial"), parameters = list(), 
          foldid = NULL, prior = NULL, cmode = NULL, parallel = FALSE, 
          cl = NULL, verbose = TRUE, compscale = TRUE, 
@@ -35,10 +36,16 @@ tunecpfa(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1, nfolds = 10,
   levels (left to right) is such that negative class is first and positive 
   class is second.
 }
+\item{z}{
+  A matrix containing additional features for classification. Must have number
+  of rows equal to the number of class labels (i.e., equal to the length of 
+  \code{y}). 
+}
 \item{model}{
   Character designating the component model to use, including: 
   \code{model = "parafac"} to fit the Parafac model, \code{model = "parafac2"} 
-  to fit the Parafac2 model, or \code{model = "pca"} to fit the PCA model.
+  to fit the Parafac2 model, or \code{model = "pca"} to fit the PCA model. One
+  must be provided.
 }
 \item{nfac}{
   Vector containing integers that specify the number of components for each 
@@ -77,7 +84,7 @@ tunecpfa(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1, nfolds = 10,
   \item{cost}{
   Values for support vector machine cost parameter; default is 
   \code{cost = c(1, 2, 4, 8, 16, 32, 64)}. Must be numeric and contain only 
-  real numbers greater than or equal to 0.
+  real numbers greater than 0.
 }
   \item{gamma}{
   Values for support vector machine gamma parameter; default is 
@@ -137,10 +144,10 @@ tunecpfa(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1, nfolds = 10,
 }
 }
 \item{foldid}{
-  Vector containing fold IDs for k-fold cross-validation. Can be of class 
-  integer, numeric, or data frame. Should contain integers from 1 through the 
-  number of folds. If not provided, fold IDs are generated randomly for 
-  observations using 1 through the number of folds \code{nfolds}.
+  Vector containing fold IDs for k-fold cross-validation. Must be of class 
+  integer. Should contain integers from 1 through the number of folds. If not 
+  provided, fold IDs are generated randomly for observations using integers of 
+  1 through the number of folds \code{nfolds}.
 }
 \item{prior}{
   Prior probabilities of class membership. If specified, the probabilities 
@@ -269,6 +276,9 @@ Returns an object of class \code{tunecpfa} with the following elements:
   from 0 through the number of levels, which are then applied as labels for 
   output \code{y}. 
 }
+\item{z}{
+  Matrix containing additional features for classification.
+}
 \item{Aweights}{
   List containing estimated A weights for each component model that was fit. For
   PCA, contains the loadings.
@@ -331,14 +341,14 @@ Returns an object of class \code{tunecpfa} with the following elements:
 \item{scenters}{
   List containing center of the scale for each Parafac or Parafac2 model that 
   was fit. Note that, for each component, estimated classification weights are 
-  mean-centered before being passed to classification methods. Returns list of 
-  NULL values if argument \code{compscale = FALSE}.
+  mean-centered before being passed to classification methods. Returns 
+  \code{FALSE} if argument \code{compscale = FALSE}.
 }
 \item{sscales}{
   List containing standard devition of the scale for each Parafac or Parafac2 
   model that was fit. Note that, for each component, estimated classification 
   weights are scaled to have a variance of 1 before being passed to 
-  classification methods. Returns list of NULL values if argument 
+  classification methods. Returns \code{FALSE} if argument 
   \code{compscale = FALSE}.
 }
 \item{pcacenter}{
@@ -495,7 +505,7 @@ nstart <- 3
 const <- c("orthog", "uncons", "uncons")
 
 # fit Parafac models and use third mode to tune classification methods
-tune.object <- tunecpfa(x = data$X, y = data$y, model = model, 
+tune.object <- tunecpfa(x = data$X, y = data$y, z = data$Cmat, model = model, 
                         nfac = 3, nfolds = nfolds, method = method, 
                         family = family, parameters = parameters, 
                         parallel = FALSE, const = const, nstart = nstart)

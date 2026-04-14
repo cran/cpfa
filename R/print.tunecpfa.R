@@ -7,7 +7,8 @@ print.tunecpfa <-
     kcv.error <- x$kcv.error; est.time <- x$est.time
     method <- x$method; nfac <- x$opt.param$nfac
     nway <- x$lxdim; model <- x$model
-    consts0 <- x$const
+    consts0 <- x$const; zout <- x$z
+    if (!(is.null(zout))) {ncovari <- dim(zout)[2]}
     consts <- paste(consts0, collapse = "-")
     method.char <- NULL
     mname <- c("PLR", "SVM", "RF", "NN", "RDA", "GBM")
@@ -20,6 +21,10 @@ print.tunecpfa <-
                " component(s)", " and constraint(s): ", consts), "\n")
     cat(paste0("\n", "Classification Methods Tuned:"))
     cat(paste0("\n", method.char), "\n")
+    if (!(is.null(zout))) {
+      cat(paste0("\n", "Number of Additional Features Included:"))
+      cat(paste0("\n", ncovari), "\n")
+    }
     cat(paste0("\n", "KCV Misclassification Error (est. time in seconds) \n 
                by Model and Method:"), "\n")
     for (w in seq_along(nfac)) {

@@ -21,11 +21,11 @@ simcpfa <-
     }
     numcheck(modes)
     if (is.null(props)) {props <- rep(1 / nclass, nclass)}
-    if ((length(props) != nclass) || (!is.numeric(props))) {
+    if ((length(props) != nclass) || (!(is.numeric(props)))) {
       stop("Input 'props' must be a numeric vector of length equal to \n 
            'nclass'.")
     }
-    if (abs(sum(props) - 1) > 1e-6) {stop("Input 'props' must sum to 1.")}
+    if (abs(sum(props) - 1) > 1e-8) {stop("Input 'props' must sum to 1.")}
     if (any(props <= 0) || any(props >= 1)) {
       stop("Input 'props' must contain values strictly between 0 and 1.")
     }
@@ -82,7 +82,6 @@ simcpfa <-
     if (any((corresp < -1) | (corresp > 1))) {
       stop("Input 'corresp' must contain values between -1 and 1, inclusive.")
     }
-    if (model == "pca") {n <- arraydim[1]} else {n <- arraydim[modes]}
     if (is.null(nreps)) {
       warning("Input 'nreps' was NULL. 'nreps' was set to 100."); nreps <- 100
     }
@@ -129,6 +128,7 @@ simcpfa <-
       stop("Input 'modes' was set to 2, but input 'model' was not set to 'pca'.
            When modes is 2, model must be 'pca'.")
     }
+    if (model == "pca") {n <- arraydim[1]} else {n <- arraydim[modes]}
     if ((modes != 2) && (model == "pca")) {
       stop("Input 'model' was set to 'pca', but input 'modes' was not set to 2.
            When model is 'pca', modes must be 2.")

@@ -1,5 +1,5 @@
 predict.tunecpfa <-
-  function(object, newdata = NULL, method = NULL,
+  function(object, newdata = NULL, newdata.z = NULL, method = NULL,
            type = c("response", "prob", "classify.weights"), 
            threshold = NULL, ...)                                               
 {   
@@ -10,6 +10,7 @@ predict.tunecpfa <-
     xold.dim <- object$xdim
     cmode <- object$cmode
     oyold <- object$y
+    zout <- object$z
     if (is.null(newdata)) {
       newdata <- object$x
       xdim <- object$xdim
@@ -183,6 +184,35 @@ predict.tunecpfa <-
              variables used in 'object'.")
       }
     }
+    if ((!(is.null(newdata.z))) && ((is.null(zout)))) {
+      stop("Input 'newdata.z' was provided, but input 'z' from the \n 
+           'tunecpfa' object is NULL. When 'newdata.z' is provided, \n
+           input 'z' from 'tunecpfa' cannot be NULL.")
+    } else if ((is.null(newdata.z)) && (!(is.null(zout)))) {
+      stop("Input 'newdata.z' was not provided, but input 'z' from the \n
+           'tunecpfa' object is not NULL. When 'z' from 'tunecpfa' is not \n
+           NULL, 'newdata.z' must be provided.")
+    } else if ((is.null(newdata.z)) && (is.null(zout))) {
+      newdata.z <- NULL
+    } else {
+      newzdim <- dim(newdata.z)                                                            
+      nlzdim <- length(newzdim)
+      if (!((nlzdim == 2L))) {stop("Input 'newdata.z' must have two modes.")}
+      if (!(is.matrix(newdata.z))) {
+        stop("Input 'newdata.z', when provided, must be of class 'matrix'.")
+      }
+      if (any(is.nan(newdata.z)) || any(is.infinite(newdata.z))) {
+        stop("Input 'newdata.z' cannot contain NaN or Inf values.")
+      }
+      if (any(is.na(newdata.z))) {
+        stop("Input 'newdata.z' cannot contain missing values.")
+      }
+      if (newzdim[2] != dim(zout)[2]) {
+        stop("Input 'newdata.z', when provided, must have the same number of \n
+             number of features as the number of features used in the \n
+             original input 'z' from 'tunecpfa'.")
+      }
+    }
     nfac <- object$opt.param$nfac
     opt.param <- object$opt.param
     lnfac <- length(nfac)
@@ -225,7 +255,8 @@ predict.tunecpfa <-
     classify.weights <- vector("list", lnfac)
     names(classify.weights) <- nfac.names
     if (length(type) != 1) {
-      stop("Input 'type' must be a character of length equal to 1.")
+      stop("Input 'type' must be a character of length equal to 1. Make sure \n
+           to specify 'type'.")
     }
     types <- c("response", "prob", "classify.weights")
     if (!(tolower(type) %in% types)) {
@@ -288,6 +319,15 @@ predict.tunecpfa <-
                             ctol = sqrt(.Machine$double.eps), verbose = FALSE, 
                             const = const, Afixed = Afixed, Bfixed = Bfixed)                
            C.pred0 <- ppfac$C
+           if (!(is.null(newdata.z))) {
+             if (nrow(newdata.z) != nrow(C.pred0)) {
+               stop("Input 'newdata.z', when provided, must have number of \n
+                    observations equal to the number of levels of the \n
+                    classification mode of input 'newdata'.")
+             } else {
+               C.pred0 <- cbind(C.pred0, newdata.z)
+             }
+           }
            C.pred <- scale(C.pred0, center = scenters[[w]], 
                            scale = sscales[[w]])
            classify.weights[[w]] <- C.pred
@@ -299,6 +339,15 @@ predict.tunecpfa <-
                             const = const, Afixed = Afixed, Bfixed = Bfixed,
                             Cfixed = Cfixed)                                
            C.pred0 <- ppfac$D
+           if (!(is.null(newdata.z))) {
+             if (nrow(newdata.z) != nrow(C.pred0)) {
+               stop("Input 'newdata.z', when provided, must have number of \n
+                    observations equal to the number of levels of the \n
+                    classification mode of input 'newdata'.")
+             } else {
+               C.pred0 <- cbind(C.pred0, newdata.z)
+             }
+           }
            C.pred <- scale(C.pred0, center = scenters[[w]], 
                            scale = sscales[[w]])
            classify.weights[[w]] <- C.pred
@@ -317,6 +366,15 @@ predict.tunecpfa <-
                              ctol = sqrt(.Machine$double.eps), verbose = FALSE, 
                              const = const, Gfixed = Gfixed, Bfixed = Bfixed)                
            C.pred0 <- ppfac$C
+           if (!(is.null(newdata.z))) {
+             if (nrow(newdata.z) != nrow(C.pred0)) {
+               stop("Input 'newdata.z', when provided, must have number of \n
+                    observations equal to the number of levels of the \n
+                    classification mode of input 'newdata'.")
+             } else {
+               C.pred0 <- cbind(C.pred0, newdata.z)
+             }
+           }
            C.pred <- scale(C.pred0, center = scenters[[w]], 
                            scale = sscales[[w]])
            classify.weights[[w]] <- C.pred
@@ -328,6 +386,15 @@ predict.tunecpfa <-
                              const = const, Gfixed = Gfixed, Bfixed = Bfixed,
                              Cfixed = Cfixed)                                
            C.pred0 <- ppfac$D
+           if (!(is.null(newdata.z))) {
+             if (nrow(newdata.z) != nrow(C.pred0)) {
+               stop("Input 'newdata.z', when provided, must have number of \n
+                    observations equal to the number of levels of the \n
+                    classification mode of input 'newdata'.")
+             } else {
+               C.pred0 <- cbind(C.pred0, newdata.z)
+             }
+           }
            C.pred <- scale(C.pred0, center = scenters[[w]], 
                            scale = sscales[[w]])
            classify.weights[[w]] <- C.pred
@@ -337,6 +404,15 @@ predict.tunecpfa <-
          Afixed <- Aweights[[w]]
          ndcent <- scale(newdata, center = pcacenter, scale = FALSE)
          C.pred0 <- ndcent %*% Afixed
+         if (!(is.null(newdata.z))) {
+           if (nrow(newdata.z) != nrow(C.pred0)) {
+             stop("Input 'newdata.z', when provided, must have number of \n
+                    observations equal to the number of levels of the \n
+                    classification mode of input 'newdata'.")
+           } else {
+             C.pred0 <- cbind(C.pred0, newdata.z)
+           }
+         }
          C.pred <- scale(C.pred0, center = scenters[[w]], 
                          scale = sscales[[w]])
          classify.weights[[w]] <- C.pred
@@ -354,8 +430,11 @@ predict.tunecpfa <-
                lambda.min <- opt.param[which(
                                        opt.param$nfac == nfac[w]), ]$lambda
              }
-             if (dim(C.pred)[2] == 1) {C.pred.plr <- cbind(C.pred, 0)} 
-             if (dim(C.pred)[2] > 1) {C.pred.plr <- C.pred}
+             if ((nfac[w] == 1) || (nfac[w] == 1L)) {
+               C.pred.plr <- cbind(C.pred, 0)
+             } else {
+               C.pred.plr <- C.pred
+             }
              if (type == "response") {
                type.plr <- "response" 
                if (family == "binomial") {

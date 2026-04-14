@@ -1,5 +1,5 @@
 cpfa <-
-  function(x, y, model = c("parafac", "parafac2", "pca"), nfac = 1,
+  function(x, y, z = NULL, model = c("parafac", "parafac2", "pca"), nfac = 1,
            nrep = 5, ratio = 0.8, nfolds = 10,
            method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"),
            family = c("binomial", "multinomial"), parameters = list(),
@@ -238,6 +238,20 @@ cpfa <-
     } else {
       nobs <- length(x)
     }
+    if (!(is.null(z))) {
+      zdim <- dim(z)                                                            
+      lzdim <- length(zdim)
+      if (!((lzdim == 2L))) {stop("Input 'z' must have two modes.")}
+      if (!(is.matrix(z))) {stop("Input 'z' must be of class 'matrix'.")}
+      if (any(is.nan(z)) || any(is.infinite(z))) {
+        stop("Input 'z' cannot contain NaN or Inf values.")
+      }
+      if (any(is.na(z))) {stop("Input 'z' cannot contain missing values.")}
+      if (zdim[1] != length(y)) {
+        stop("Input 'z', when provided, must have number of rows equal to \n
+             the length of input 'y' (i.e., the number of class labels).")
+      }
+    }
     ntrain <- ceiling(nobs * ratio)
     if (!(is.null(foldid))) {
       if (!(is.list(foldid))) {
@@ -289,6 +303,12 @@ cpfa <-
       testIDs[[i]] <- alllevels[-train.id]
       y.train <- y[train.id]
       y.test <- as.numeric(y[-train.id]) - 1
+      if (!(is.null(z))) {
+        z.train <- z[train.id, , drop = FALSE]
+        z.test <- z[-train.id, , drop = FALSE]
+      } else {
+        z.train <- z.test <- NULL
+      }
       if (model == "parafac") {
         if (lxdim == 3L) {
           X.train <- x[, , train.id]                       
@@ -309,22 +329,24 @@ cpfa <-
       } else {
         cfoldid <- foldid[[i]]
       }
-      tcpfalist <- tunecpfa(x = X.train, y = y.train, model = model,
-                            nfac = nfac, nfolds = nfolds, method = method,
-                            family = family, parameters = parameters,
-                            foldid = cfoldid, prior = prior, cmode = NULL,
-                            parallel = parallel, cl = cl, verbose = verbose,
-                            compscale = compscale, pcarot = pcarot, ...)
+      tcpfalist <- tunecpfa(x = X.train, y = y.train, z = z.train, 
+                            model = model, nfac = nfac, nfolds = nfolds, 
+                            method = method, family = family, 
+                            parameters = parameters, foldid = cfoldid, 
+                            prior = prior, cmode = NULL, parallel = parallel, 
+                            cl = cl, verbose = verbose, compscale = compscale, 
+                            pcarot = pcarot, ...)
       Aw[[i]] <- tcpfalist$Aweights
       Bw[[i]] <- tcpfalist$Bweights
       Cw[[i]] <- tcpfalist$Cweights
       Pw[[i]] <- tcpfalist$Phi
       opara[[i]] <- tcpfalist$opt.param
-      yhat <- predict(object = tcpfalist, newdata = X.test, type = "response")           
+      yhat <- predict(object = tcpfalist, newdata = X.test, newdata.z = z.test, 
+                      type = "response")           
       out <- cpm.all(x = yhat, y = y.test, level = levels(y))
       stor[ , , i] <- as.matrix(out$cpms)
       predstor[[i]] <- predict(object = tcpfalist, newdata = X.test,
-                               type = "classify.weights")
+                               newdata.z = z.test, type = "classify.weights")
     }
     mconst <- tcpfalist$const
     rnam <- rownames(out$cpms)
@@ -367,7 +389,7 @@ cpfa <-
     if (type.out == "measures") {
       cpfalist <- list(measure = stor, predweights = predstor,
                        train.weights = train.weights, opt.tune = opara,
-                       mean.opt.tune = mean.tune.param, X = x, y = y,
+                       mean.opt.tune = mean.tune.param, X = x, y = y, z = z,
                        nfac = nfac, model = model, method = method,
                        const = mconst, cmode = cmode0, family = family, 
                        lxdim = lxdim, trainIDs = trainIDs, testIDs = testIDs,
@@ -387,7 +409,7 @@ cpfa <-
       names(output) <- dfun  
       cpfalist <- list(descriptive = output, predweights = predstor,
                        train.weights = train.weights, opt.tune = opara,
-                       mean.opt.tune = mean.tune.param, X = x, y = y,
+                       mean.opt.tune = mean.tune.param, X = x, y = y, z = z,
                        nfac = nfac, model = model, method = method,
                        const = mconst, cmode = cmode0, family = family, 
                        lxdim = lxdim, trainIDs = trainIDs, testIDs = testIDs,

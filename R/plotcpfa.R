@@ -16,7 +16,7 @@ plotcpfa <-
            file for acceptable values.")
     }
     logicheck(meanvalue); logicheck(supNum); logicheck(parallel)
-    model <- object$model; method <- object$method; const <- object$const
+    model <- object$model; const <- object$const
     X <- object$X
     lxdim <- object$lxdim
     flattened <- object$flattened
@@ -149,8 +149,6 @@ plotcpfa <-
     plotlabels <- c("A Weights", "B Weights", "C Weights")
     plotlabels2 <- c(plotlabels, "D Weights")
     palette_colors <- colorRampPalette(c("red", "white", "green"))(50)
-    oldask <- devAskNewPage(ask = TRUE)
-    on.exit(devAskNewPage(oldask))
     par(mfrow = c(1, 1))
     for (i in 1:3) {
        if (!(is.null(mapstor[[i]]))) {
