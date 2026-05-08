@@ -284,7 +284,7 @@ cpfa <-
     nfac <- sort(nfac)
     stor <- array(0, dim = c(length(nfac) * length(method), 11, nrep))
     predstor <- Aw <- Bw <- Cw <- Pw <- vector(mode = "list", length = nrep)
-    trainIDs <- testIDs <- opara <- predstor
+    trainIDs <- testIDs <- opara <- Tw <- predstor
     cmode0 <- cmode
     if (cmode == lxdim) {cmode <- NULL}
     logicheck(verbose)
@@ -340,6 +340,7 @@ cpfa <-
       Bw[[i]] <- tcpfalist$Bweights
       Cw[[i]] <- tcpfalist$Cweights
       Pw[[i]] <- tcpfalist$Phi
+      Tw[[i]] <- tcpfalist$train.weights
       opara[[i]] <- tcpfalist$opt.param
       yhat <- predict(object = tcpfalist, newdata = X.test, newdata.z = z.test, 
                       type = "response")           
@@ -354,7 +355,8 @@ cpfa <-
     dimnames(stor)[[1]] <- rnam
     dimnames(stor)[[2]] <- cnam
     train.weights <- list(Atrain.weights = Aw, Btrain.weights = Bw,
-                          Ctrain.weights = Cw, Phitrain = Pw)
+                          Ctrain.weights = Cw, Phitrain = Pw, 
+                          Classtrain.weights = Tw)
     mean.tune.param <- Reduce("+", opara) / length(opara)
     if (plot.out == TRUE) {
       ncomps <- length(nfac)

@@ -1,9 +1,9 @@
-6d346ecff2e77bfdd31ec5f93c8ff284 *ChangeLog
-b3de6e4b9d9ad9ac3ea694faa020a5a5 *DESCRIPTION
+73ced5a8d8bd9a89c08b17356a106d95 *ChangeLog
+fc5a92e7b78aab82498621e6d71f2104 *DESCRIPTION
 7c0b9be2ebf2941c649c72dcd775619c *NAMESPACE
-827fd901bdd2744d71f595c568e6594f *R/cpfa.R
+82627e2d3c40eedf3d81976f61dc7928 *R/cpfa.R
 0a54a05395ca6dc6ce32063892ac4bca *R/cpm.R
-a1bf943b8d419b629b8cb89286030730 *R/cpm.all.R
+b57cbd2441258cd6b616ac1749ef18ed *R/cpm.all.R
 daed1f59606fc521aede75573ecbda57 *R/distdraw.R
 30d9b5bd954d1a9b6985ec743dadc6b8 *R/kcv.gbm.R
 fb8cc8992b55f4a8b748aec5cf0dbb26 *R/kcv.nn.R
@@ -19,10 +19,10 @@ fb8cc8992b55f4a8b748aec5cf0dbb26 *R/kcv.nn.R
 7423adfd2bfe9644def974ba0e3cff8c *R/print.tunecpfa.R
 59bb7b8bd8752deb14ed41d84bb60cf1 *R/simcpfa.R
 7ad26efd2c034486e19e6a9729fdc753 *R/tunecpfa.R
-496d17a70f3788f293356fa7ae0460eb *build/vignette.rds
+0a36c90d18a176dfc3ae806ae93a9274 *build/vignette.rds
 cb283eb574e8a4305c058e95496e0e2a *inst/doc/cpfa.R
-ffffb7d9ad1b01b35e4b154f8bb5b5da *inst/doc/cpfa.Rmd
-840ca1b241f7d089fb2fd04fd4382398 *inst/doc/cpfa.pdf
+e1d3f28fc5a63eba7a81d243b282f465 *inst/doc/cpfa.Rmd
+77a77b3f3a36dbb1a2de7e82644acd2f *inst/doc/cpfa.pdf
 a5d17198b19a3c0401ba5700daab4d72 *man/cpfa-internals.Rd
 e1ad352cec7ebac4811dbe4839a5f8cf *man/cpfa.Rd
 0aa3ecc525f3ccf58b3cc1c67b35af8e *man/cpm.Rd
@@ -32,4 +32,4 @@ f5eaf16f1181d26d0a12db49f7c785bb *man/predict.tunecpfa.Rd
 cd2f52b28ef279a4e88110c8f07d30e2 *man/print.tunecpfa.Rd
 06acd75c7c8644f4492661b62a0d6bc2 *man/simcpfa.Rd
 fb22e319056e30f5ddfb00beeff35378 *man/tunecpfa.Rd
-ffffb7d9ad1b01b35e4b154f8bb5b5da *vignettes/cpfa.Rmd
+e1d3f28fc5a63eba7a81d243b282f465 *vignettes/cpfa.Rmd

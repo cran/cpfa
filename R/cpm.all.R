@@ -11,7 +11,7 @@ cpm.all <-
     nvar <- ncol(x)
     cmat <- vector('list', nvar)
     cpms <- NULL
-    values <- apply(x, 2, function(a){cpm(a, y, ...)})
+    values <- apply(x, 2, function(a){cpm(y, a, ...)})
     for (i in 1:nvar) {
        cmat[[i]] <- values[[i]][[1]]
        cpms <- rbind(cpms, values[[i]][[2]]) 

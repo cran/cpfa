@@ -244,8 +244,8 @@ average $\lambda$ values are also displayed. Note that other classifiers were
 not used in this demonstration, but their tuning parameters are indicated in the 
 output with placeholders of NA.
 
-We next can use package function `plotcpfa` to fit the best (in terms of mean 
-accuracy) Parafac2 model and to plot the results:
+Next, we could use the package function `plotcpfa` to fit the best (in terms of 
+mean accuracy) Parafac2 model and to plot the results. The code looks like this:
 
 ```{r, eval = FALSE}
 # set seed
@@ -255,18 +255,15 @@ set.seed(500)
 results <- plotcpfa(output, nstart = 3, ctol = 1e-1, verbose = FALSE)
 ```
 
-Generated plots are heat maps displaying the size of estimated component
+Generated plots are heat maps displaying the magnitude of estimated component
 weights for the second (B) and third (C) modes. Because the input array was 
-simulated, these plots do not display meaningful results but serve only to
-demonstrate the utility of function `plotcpfa` for visualizing the component
-weights of the optimal classification model (i.e., the model with the best 
-classification performance, based on output from function `cpfa`). Thus, where
-function `cpfa` can serve as a guide to identify a meaningful number of 
-components and a meaningful set of constraints for different modes, function 
-`plotcpfa` can be used to visualize component weights of the best model to 
-better understand how different levels of each mode map onto the set of 
-components. Interested readers might explore the application of this package to 
-several real datasets. See here for examples: 
+simulated, these plots would not display meaningful results. As such, we omit 
+the heat maps for this example. For such plots, while `cpfa` can 
+serve as a guide to identify a meaningful number of components and a meaningful 
+set of constraints for different modes, the function `plotcpfa` can be used to 
+visualize component weights of the best model to understand how levels of each 
+mode map onto components. To see heat maps, interested readers might explore the 
+application of this package to several real datasets. See here for examples: 
 <https://github.com/matthewasisgress/multiway-classification/>.
 
 ## Example 2: Three-way Array with Binary Response
@@ -450,7 +447,8 @@ mode's weight matrix and the response vector. For this example, we use the
 second simulation method `eigende`, which simulates component weights and a 
 latent response variable simultaneously from a joint multivariate normal 
 distribution using an eigendecomposition, discretizing the response into class 
-labels using quantile cuts defined by the cumulative sum of `props`. Without specifying `props`, this argument defaults to equal class proportions. We ensure 
+labels using quantile cuts defined by the cumulative sum of `props`. Without 
+specifying `props`, this argument defaults to equal class proportions. We ensure 
 that argument `modes` is set to 2.
 
 ```{r, message = FALSE, warning = FALSE}
@@ -585,7 +583,8 @@ the levels of mode A (i.e., for PCA, the loadings).
 
 Package **cpfa** implements a k-fold cross-validation procedure, connecting 
 Parafac and Parafac2 models fit by **multiway** to classification methods 
-implemented through six popular packages used for classification: **glmnet**; **e1071** (Meyer et al., 2024; Cortes and Vapnik, 1995); **randomForest** (Liaw 
+implemented through six popular packages used for classification: **glmnet**; 
+**e1071** (Meyer et al., 2024; Cortes and Vapnik, 1995); **randomForest** (Liaw 
 and Wiener, 2002; Breiman, 2001); **nnet** (Ripley, 1994; Venables and Ripley, 
 2002); **rda** (Guo, Hastie, and Tibshirani, 2007, 2023; Friedman, 1989), and 
 **xgboost** (Chen et al., 2025; Friedman, 2001). Parallel computing is 

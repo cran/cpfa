@@ -1,3 +1,23 @@
+Changes: version 1.2-9  (2026-05-08)
+
+1.) Added URLs for access to new GitHub repository to allow for bug reports
+	- Previously package did not provide a place for reporting bugs
+	- Now package provides a link to a GitHub repository for bug reports
+
+2.) Vignette fixes
+	- Previously the package vignette contained several inaccuracies due to recent changes
+	- Now the package vignette has been fixed
+
+3.) Added output in package function 'cpfa'
+	- Previously function 'plotcpfa' did not provide classification mode training weights in output 'train.weights'
+	- Now the function provides these weights in 'train.weights' as the list 'Classtrain.weights'
+
+4.) Bug fix in function 'cpm.all'
+	- Previously the function 'cpm.all' incorrectly switched predicted and known labels passed to function 'cpm'
+	- Now values have been ordered correctly in function 'cpm.all'
+
+----------------
+
 Changes: version 1.2-8  (2026-04-13)
 
 1.) Bug fix in package function 'plotcpfa' - issue with incorrect code
