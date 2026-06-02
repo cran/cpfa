@@ -1,10 +1,10 @@
 cpm <- 
   function(x, y, level = NULL, fbeta = NULL, prior = NULL) 
 {   
-    if (!(class(x) %in% c("numeric", "factor", "integer"))) {
+    if (!(inherits(x, c("numeric", "factor", "integer")))) {
       stop("Input 'x' must be of class 'numeric', 'factor', or 'integer'.")
     }
-    if (!(class(y) %in% c("numeric", "factor", "integer"))) {
+    if (!(inherits(y, c("numeric", "factor", "integer")))) {
       stop("Input 'y' must be of class 'numeric', 'factor', or 'integer'.")
     }
     if (any(is.na(x))) {stop("Input 'x' cannot contain missing values.")}

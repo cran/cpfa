@@ -13,6 +13,11 @@
 \alias{kcvcheck}
 \alias{logicheck}
 \alias{numcheck}
+\alias{cutback}
+\alias{alignmod}
+\alias{postalign}
+\alias{imphelper}
+\alias{repsums}
 
 \description{
   Internal functions for the "cpfa" package.

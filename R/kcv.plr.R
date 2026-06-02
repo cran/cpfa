@@ -28,7 +28,9 @@ kcv.plr <-
          weight1 <- fweight[which(fweight[, 1] == 1), 2]
          weight2 <- fweight[which(fweight[, 1] == 2), 2]
          cvlist[[h]] <- fit0 <- glmnet(x, y, family = family, weights = weights, 
-                                       alpha = v.alpha)
+                                       alpha = v.alpha, 
+                                       control = list(maxit = maxit),
+                                       standardize = standardize)
          if (is.null(lambda)) {
            lam <- fit0$lambda
            nlam <- length(fit0$lambda)
@@ -38,9 +40,11 @@ kcv.plr <-
            nlam <- length(lambda)
          }
          fit1 <- glmnet(x1, y1, family = family, lambda = lam, alpha = v.alpha, 
-                        weights = weight1)
+                        weights = weight1, standardize = standardize, 
+                        control = list(maxit = maxit))
          fit2 <- glmnet(x2, y2, family = family, lambda = lam, alpha = v.alpha, 
-                        weights = weight2)
+                        weights = weight2, standardize = standardize, 
+                        control = list(maxit = maxit))
          pred1 <- predict(fit2, newx = x1, type = "response")
          pred2 <- predict(fit1, newx = x2, type = "response")
          cvm <- rep(NA, nlam)
@@ -75,7 +79,8 @@ kcv.plr <-
                                   nfolds = nfolds, foldid = foldid, 
                                   alpha = alpha[h], lambda = lambda, 
                                   grouped = grouped, keep = keep, 
-                                  parallel = parallel, maxit = maxit, 
+                                  parallel = parallel, 
+                                  control = list(maxit = maxit), 
                                   standardize = standardize)
       }
       mincv <- sapply(cvlist, function(x) min(x$cvm))

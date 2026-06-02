@@ -490,7 +490,7 @@ tunecpfa <-
     ccluster <- FALSE
     if (parallel == TRUE) {
       if (is.null(cl)) {
-        cl <- makeCluster(detectCores())
+        cl <- makeCluster(max(1L, detectCores() - 1L))
         ce <- clusterEvalQ(cl, library(multiway))
         ccluster <- TRUE
       }

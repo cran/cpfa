@@ -86,9 +86,14 @@ plotcpfa <-
     nfac.opt <- min(nfac.opt0)
     outstor <- vector("list", 4)
     mapstor <- vector("list", 3)
+    ccluster <- FALSE
     if (parallel == TRUE) {
-      if (is.null(cl)) {cl <- makeCluster(detectCores())}
-      ce <- clusterEvalQ(cl, library(multiway))
+      if (is.null(cl)) {
+        cl <- makeCluster(max(1L, detectCores() - 1L))
+        ce <- clusterEvalQ(cl, library(multiway))
+        ccluster <- TRUE
+      }
+      clusterSetRNGStream(cl, iseed = sample.int(.Machine$integer.max, 1)) 
       registerDoParallel(cl)
     }
     if (model == "parafac") {
@@ -145,7 +150,7 @@ plotcpfa <-
       mapstor[[1]] <- outstor[[1]] <- weights
       outstor[[2]] <- scores
     }
-    if (parallel == TRUE) {stopCluster(cl)}
+    if ((parallel == TRUE) && (ccluster == TRUE)) {stopCluster(cl)}
     plotlabels <- c("A Weights", "B Weights", "C Weights")
     plotlabels2 <- c(plotlabels, "D Weights")
     palette_colors <- colorRampPalette(c("red", "white", "green"))(50)

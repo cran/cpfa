@@ -18,7 +18,7 @@ Provides descriptive statistics to pool output across replications.
 }
 \usage{
 cpfa(x, y, z = NULL, model = c("parafac", "parafac2", "pca"), nfac = 1, 
-     nrep = 5, ratio = 0.8, nfolds = 10, 
+     nrep = 5, ratio = 0.8, nfolds = 10, align = FALSE,
      method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"), 
      family = c("binomial", "multinomial"), parameters = list(), 
      type.out = c("measures", "descriptives"), foldid = NULL, prior = NULL, 
@@ -31,9 +31,9 @@ cpfa(x, y, z = NULL, model = c("parafac", "parafac2", "pca"), nfac = 1,
   A three-way or four-way data array. For Parafac2, can be a list where each 
   element is a matrix or three-way array. Array or list must contain only real 
   numbers. See note below. For PCA, can be a two-way matrix, a three-way array,
-  or a four-way array. If a three-way or four-way array for PCA, array is 
-  unfolded across all modes except the classification mode. Note that if 
-  three-way or four-way array for PCA, classification mode must be the last 
+  or a four-way array. If a three-way or four-way array is provided for PCA, 
+  array is unfolded across all modes except the classification mode. Note that 
+  if a three-way or four-way array for PCA, classification mode must be the last 
   mode.
 } 
 \item{y}{
@@ -67,6 +67,16 @@ cpfa(x, y, z = NULL, model = c("parafac", "parafac2", "pca"), nfac = 1,
 \item{nfolds}{
   Numeric value specifying number of folds for k-fold cross-validation. Must 
   be 2 or greater. Default is \code{nfolds = 10}.
+}
+\item{align}{
+  Logical value indicating whether to solve the permutation (order) 
+  indeterminacy for Parafac or Parafac2 models fit across train-test splits. 
+  Uses Tucker congruence coefficients to compare model weights across splits, 
+  and uses the Hungarian algorithm to identify the order that matches best. 
+  Implements the algorithm through the function \code{solve_LSAP} from the 
+  \bold{clue} package. Finds the best target model among all splits, and aligns 
+  other models to that target. Repeats for each value in \code{nfac}. Only 
+  performs permutation alignment for \code{nfac} values of 2 or more.
 }
 \item{method}{
   Character vector indicating classification methods to use. Possible methods 
@@ -209,16 +219,13 @@ cpfa(x, y, z = NULL, model = c("parafac", "parafac2", "pca"), nfac = 1,
   file for function \code{cpm}. If NULL, defaults to classification accuracy.
 }
 \item{parallel}{
-  Logical indicating if parallel computing should be implemented. If TRUE, the 
-  package \bold{parallel} is used for parallel computing. For all classification 
-  methods except penalized logistic regression, the \bold{doParallel} package 
-  is used as a wrapper. Defaults to FALSE, which implements sequential 
-  computing.
+  Logical indicating if parallel computing should be implemented. Defaults to 
+  FALSE, which implements sequential computing.
 }
 \item{cl}{
   Cluster for parallel computing, which is used when \code{parallel = TRUE}. 
   Note that if \code{parallel = TRUE} and \code{cl = NULL}, then the cluster 
-  is defined as \code{makeCluster(detectCores())}.
+  is defined as \code{makeCluster(max(1L, detectCores() - 1L))}.
 }
 \item{verbose}{
   If TRUE, progress is printed.
@@ -260,20 +267,21 @@ for function \code{cv.glmnet} in package \bold{glmnet}). For SVM, package
 radial basis parameter gamma are used (see \code{svm} in package \bold{e1071}). 
 For RF, package \bold{randomForest} is used and implements Breiman's random 
 forest algorithm. The number of predictors sampled at each node split is set 
-at the default of sqrt(R), where R is the number of Parafac or Parafac2 
-components. Two tuning parameters allowed are ntree, the number of trees to be 
-grown, and nodesize, the minimum size of terminal nodes (see 
-\code{randomForest} in package \bold{randomForest}). For NN, package 
-\bold{nnet} fits a single-hidden-layer, feed-forward neural network model. 
-Penalty parameters size (i.e., number of hidden layer units) and decay (i.e., 
-weight decay) are used (see \bold{nnet}). For RDA, package \bold{rda} fits a 
-shrunken centroids regularized discriminant analysis model. Tuning parameters 
-include rda.alpha, the shrinkage penalty for the within-class covariance matrix, 
-and delta, the shrinkage penalty of class centroids towards the overall dataset 
-centroid. For GBM, package \bold{xgboost} fits a gradient boosting machine 
-model. Four tuning parameters are allowed: (1) eta, the learning rate; (2) 
-max.depth, the maximum tree depth; (3) subsample, the fraction of samples per 
-tree; and (4) nrounds, the number of boosting trees to build.
+at the default of sqrt(R), where R is the number of model components plus the 
+number of additional features from argument \code{z}. Two tuning parameters 
+allowed are ntree, the number of trees to be grown, and nodesize, the minimum 
+size of terminal nodes (see \code{randomForest} in package \bold{randomForest}). 
+For NN, package \bold{nnet} fits a single-hidden-layer, feed-forward neural 
+network model. Penalty parameters size (i.e., number of hidden layer units) and 
+decay (i.e., weight decay) are used (see \bold{nnet}). For RDA, package 
+\bold{rda} fits a shrunken centroids regularized discriminant analysis model. 
+Tuning parameters include rda.alpha, the shrinkage penalty for the within-class 
+covariance matrix, and delta, the shrinkage penalty of class centroids towards 
+the overall dataset centroid. For GBM, package \bold{xgboost} fits a gradient 
+boosting machine model. Four tuning parameters are allowed: (1) eta, the 
+learning rate; (2) max.depth, the maximum tree depth; (3) subsample, the 
+fraction of samples per tree; and (4) nrounds, the number of boosting trees to 
+build.
 
 For all six methods, k-fold cross-validation is implemented to tune 
 classification parameters where the number of folds is set by argument 
@@ -295,20 +303,24 @@ replication.
   descriptive statistics across replications. In addition, for either option, 
   the returned list object includes the following:
   \item{predweights}{
-    List of predicted classification weights for each Parafac, Parafac2, or PCA
-    model and for each replication.
+    List of predicted classification weights for each component model and for 
+    each replication.
   }
   \item{train.weights}{
-    List of lists of training weights for each Parafac, Parafac2, or PCA model 
-    and for each replication.
+    List of lists of training weights for each component model and for each 
+    replication.
   }
   \item{opt.tune}{
     List of optimal tuning parameters for classification methods for each 
-    Parafac or Parafac2 model and for each replication.
+    component model and for each replication.
+  }
+  \item{opt.model}{
+    List of optimal models for training classification methods for each 
+    component model and for each replication.
   }
   \item{mean.opt.tune}{
     Mean across all replications of optimal tuning parameters for 
-    classification methods for each Parafac or Parafac2 model. 
+    classification methods for each model. 
   }
   \item{X}{
     Two-way matrix, or three-way or four-way data array or list used in argument 
@@ -322,7 +334,7 @@ replication.
     Matrix of additional features used in input argument \code{z}.
   }
   \item{nfac}{
-    Number of components used to fit each Parafac, Parafac2, or PCA model.
+    Number of components used to fit each component model.
   }
   \item{model}{
     Character designating the component model that was used, including:
@@ -333,7 +345,7 @@ replication.
     Classification methods used.
   }
   \item{const}{
-    Constraints used in fitting the Parafac, Parafac2, or PCA model. When 
+    Constraints used in fitting the component model. When 
     \code{model} was \code{pca}, contains the value used in input \code{pcarot}
     to indicate whether a rotation was applied to the solution.
   }
@@ -366,6 +378,38 @@ replication.
     Logical indicating whether input \code{x} was flattened into a two-way 
     matrix. Only TRUE when \code{model} was \code{pca} and input \code{x} was
     a 3-way or 4-way array.
+  }
+  \item{targetmod}{
+    If argument \code{align = TRUE}, a vector containing the identified target
+    Parafac or Parafac2 model (split), for each \code{nfac} value greater than 
+    one, to which all other models were aligned. If \code{nfac} is 1, NA is
+    returned. If \code{align = FALSE}, returns NULL instead of a list.
+  }
+  \item{changeorders}{
+    List of length equal to the length of input \code{nfac}. Each element 
+    contains a matrix whose first column contains integers indicating the 
+    split/model that was aligned (excludes the integer indicating the target
+    split/model). Thus, for \code{nrep} splits, each matrix has \code{nrep - 1}
+    rows. Subsequent columns contain the order identified by the Hungarian
+    algorithm to match a given model to the target. Thus, for any given 
+    \code{nfac} value, each matrix has \code{nfac + 1} columns. If \code{nfac} 
+    is 1, returns NULL instead of a matrix. If \code{align = FALSE}, returns 
+    NULL instead of a list.
+  }
+  \item{tccb}{
+    List of length equal to the length of input \code{nfac}. Each element 
+    contains a matrix whose first column contains integers indicating the 
+    split/model that was aligned (excludes the integer indicating the target
+    split/model). Thus, for \code{nrep} splits, each matrix has \code{nrep - 1}
+    rows. Subsequent columns contain Tucker congruence coefficients between
+    a given split/model and the target model for each component for the 
+    B mode (second mode) weights. Thus, for any given \code{nfac} value, each 
+    matrix has \code{nfac + 1} columns. If \code{nfac} is 1, returns NULL 
+    instead of a matrix. If \code{align = FALSE}, returns NULL instead of a 
+    list.
+  }
+  \item{aligned}{
+    Logical indicating whether input \code{align} was set to TRUE or FALSE.
   }
 }
 \note{
@@ -408,6 +452,9 @@ Chen, T., He, T., Benesty, M., Khotilovich, V., Tang, Y., Cho, H., Chen, K.,
 Mitchell, R., Cano, I., Zhou, T., Li, M., Xie, J., Lin, M., Geng, Y., Li, Y., 
 Yuan, J. (2025). xgboost: Extreme gradient boosting. R Package Version 1.7.9.1.
 
+Corporation, M. and Weston S (2022). doParallel: foreach parallel adaptor for 
+the 'parallel' package. R Package Version 1.0.17.
+
 Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine Learning, 
 20(3), 273-297.
 
@@ -446,6 +493,11 @@ via Parafac2 with functional and structural constraints. Biometrical Journal,
 
 Helwig, N. (2025). multiway: Component models for multi-way data. R Package 
 Version 1.0-7.
+
+Hornik, K. (2005). A CLUE for CLUster ensembles. Journal of Statistical 
+Software, 14, 1-25.
+
+Hornik, K. (2026). clue: Cluster ensembles. R Package Version 0.3-68.
 
 Liaw, A. and Wiener, M. (2002). Classification and regression by randomForest. 
 R News 2(3), 18--22.

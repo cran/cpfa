@@ -166,16 +166,13 @@ tunecpfa(x, y, z = NULL, model = c("parafac", "parafac2", "pca"), nfac = 1,
   cmode is set to the first mode. 
 }
 \item{parallel}{
-  Logical indicating whether to use parallel computing. If TRUE, the package 
-  \bold{parallel} is used for parallel computing. For all classification 
-  methods except penalized logistic regression, the \bold{doParallel} package 
-  is used as a wrapper. Defaults to FALSE, which implements sequential 
-  computing.
+  Logical indicating if parallel computing should be implemented. Defaults to 
+  FALSE, which implements sequential computing.
 }
 \item{cl}{
   Cluster for parallel computing, which is used when \code{parallel = TRUE}. 
   Note that if \code{parallel = TRUE} and \code{cl = NULL}, then the cluster 
-  is defined as \code{makeCluster(detectCores())}.
+  is defined as \code{makeCluster(max(1L, detectCores() - 1L))}.
 }
 \item{verbose}{
   If TRUE, progress is printed.
@@ -396,6 +393,9 @@ Breiman, L. (2001). Random forests. Machine Learning, 45(1), 5-32.
 Chen, T., He, T., Benesty, M., Khotilovich, V., Tang, Y., Cho, H., Chen, K., 
 Mitchell, R., Cano, I., Zhou, T., Li, M., Xie, J., Lin, M., Geng, Y., Li, Y., 
 Yuan, J. (2025). xgboost: Extreme gradient boosting. R Package Version 1.7.9.1.
+
+Corporation, M. and Weston S (2022). doParallel: foreach parallel adaptor for 
+the 'parallel' package. R Package Version 1.0.17.
 
 Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine Learning, 
 20(3), 273-297.

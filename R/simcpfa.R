@@ -601,7 +601,6 @@ simcpfa <-
       distnam <- finnam; disttech <- fintech; distmodes <- finlets
     } 
     storXout <- storYout <- NULL; stordatout <- Inf; warnflag <- FALSE; 
-    sdfact <- 1
     if (smethod == "logistic") {
       Sigma.sqrt <- evc$vectors %*% diag(sqrt(evc$values)) %*% t(evc$vectors) 
       mum <- as.matrix(meanpred)
@@ -621,6 +620,7 @@ simcpfa <-
         }
       }
       for (j in 1:onreps) {
+         sdfact <- 1
          storY <- storX <- bbest <- NULL; stordat <- Inf
          if (cmodesup == FALSE) {
            Z <- matrix(rnorm(n * nfac), nrow = n, ncol = nfac)
@@ -674,8 +674,8 @@ simcpfa <-
               stordat <- outdat; storY <- simdat$Y; storX <- simdat$Xq
               bbest <- beta
             }
+            sdfact <- sdfact * 0.95
          }
-         sdfact <- sdfact * 0.95
          if (stordat < stordatout) {
            stordatout <- stordat; storYout <- as.matrix(storY)
            storXout <- storX

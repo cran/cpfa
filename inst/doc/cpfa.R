@@ -76,7 +76,7 @@ output <- cpfa(x = X, y = y, model = model, nfac = nfac,
                nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
                family = family, parameters = parameters, plot.out = FALSE, 
                parallel = FALSE, const = const, nstart = nstart, 
-               verbose = FALSE)
+               verbose = FALSE, align = TRUE)
 
 ## -----------------------------------------------------------------------------
 # examine classification performance measures - median across train-test splits
@@ -92,6 +92,32 @@ output$mean.opt.tune
 # 
 # # plot heat maps of component weights for optimal model
 # results <- plotcpfa(output, nstart = 3, ctol = 1e-1, verbose = FALSE)
+
+## -----------------------------------------------------------------------------
+
+# set seed
+set.seed(500)
+
+# calculate permutation feature importance for each feature
+pfistats <- pficpfa(object = output, nshuffles = 5, type = "marginal")
+
+# examine median pfi for classification accuracy and for nfac = 2
+pfistats[which((pfistats$nfac == 2) & (pfistats$metric == "acc")), ]
+
+
+## -----------------------------------------------------------------------------
+
+# set seed
+set.seed(500)
+
+# calculate permutation feature importance for each feature
+pfistats <- pficpfa(object = output, nshuffles = 5, type = "conditional",
+                    conditional.model = "rf")
+
+# examine median pfi for classification accuracy and for nfac = 2
+pfistats[which((pfistats$nfac == 2) & (pfistats$metric == "acc")), ]
+
+
 
 ## ----message = FALSE, warning = FALSE-----------------------------------------
 # set seed for reproducibility

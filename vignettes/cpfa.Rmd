@@ -2,7 +2,7 @@
 title: "An Introduction to cpfa"
 author: 
   - Matthew Asisgress
-date: "April 2026"
+date: "June 2026"
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{An Introduction to cpfa}
@@ -214,7 +214,7 @@ output <- cpfa(x = X, y = y, model = model, nfac = nfac,
                nrep = nrep, ratio = ratio, nfolds = nfolds, method = method, 
                family = family, parameters = parameters, plot.out = FALSE, 
                parallel = FALSE, const = const, nstart = nstart, 
-               verbose = FALSE)
+               verbose = FALSE, align = TRUE)
 ```
 
 The function can generate box plots of classification accuracy for 
@@ -265,6 +265,51 @@ visualize component weights of the best model to understand how levels of each
 mode map onto components. To see heat maps, interested readers might explore the 
 application of this package to several real datasets. See here for examples: 
 <https://github.com/matthewasisgress/multiway-classification/>.
+
+To obtain a measure of feature importance among features in the model, we 
+calculate permutation feature importance (PFI; see Breiman, 2001). The function 
+`pficpfa` calculates PFI for an object from function `cpfa`.
+
+```{r}
+
+# set seed
+set.seed(500)
+
+# calculate permutation feature importance for each feature
+pfistats <- pficpfa(object = output, nshuffles = 5, type = "marginal")
+
+# examine median pfi for classification accuracy and for nfac = 2
+pfistats[which((pfistats$nfac == 2) & (pfistats$metric == "acc")), ]
+
+```
+
+As shown, we can observe the mean or median drop in classification accuracy, 
+pooled across replications, after permuting observations for each feature.
+
+Alternatively, we can set `type = conditional` to fit a conditioning model 
+to predict each feature from the others; and the model's residuals are permuted 
+and added back to the fitted values, preserving the feature's dependence on the 
+other features (for more information, see Huang, 2025, and O'Gorman, 2005). We
+can choose random forest as the conditioning model by setting 
+`conditional.model = "rf"`. 
+
+```{r}
+
+# set seed
+set.seed(500)
+
+# calculate permutation feature importance for each feature
+pfistats <- pficpfa(object = output, nshuffles = 5, type = "conditional",
+                    conditional.model = "rf")
+
+# examine median pfi for classification accuracy and for nfac = 2
+pfistats[which((pfistats$nfac == 2) & (pfistats$metric == "acc")), ]
+
+
+```
+
+As shown, the mean and median importance calculations are lower. Conditional
+permutation feature importance is useful when features are correlated.
 
 ## Example 2: Three-way Array with Binary Response
 
@@ -602,7 +647,11 @@ Breiman, L. (2001). Random forests. Machine Learning, 45(1), 5-32.
 
 Chen, T., He, T., Benesty, M., Khotilovich, V., Tang, Y., Cho, H., Chen, K., 
 Mitchell, R., Cano, I., Zhou, T., Li, M., Xie, J., Lin, M., Geng, Y., Li, Y., 
-Yuan, J. (2025). xgboost: Extreme gradient boosting. R Package Version 1.7.9.1.
+and Yuan, J. (2025). xgboost: Extreme gradient boosting. R Package Version 
+1.7.9.1.
+
+Corporation, M. and Weston S (2022). doParallel: foreach parallel adaptor for 
+the 'parallel' package. R Package Version 1.0.17.
 
 Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine Learning, 
 20(3), 273-297.
@@ -643,8 +692,20 @@ via Parafac2 with functional and structural constraints. Biometrical Journal,
 Helwig, N. (2025). multiway: Component models for multi-way data. R Package 
 Version 1.0-7.
 
+Hornik, K. (2005). A CLUE for CLUster ensembles. Journal of Statistical 
+Software, 14, 1-25.
+
+Hornik, K. (2026). clue: Cluster ensembles. R Package Version 0.3-68.
+
+Huang, P. (2025). Residual permutation tests for feature importance in machine 
+learning. British Journal of Mathematical and Statistical Psychology.
+
 Liaw, A. and Wiener, M. (2002). Classification and regression by randomForest. 
 R News 2(3), 18-22.
+
+O'Gorman, T. (2005). The performance of randomization tests that use 
+permutations of independent variables. Communications in Statistics - Simulation 
+and Computation, 34(4), 895-908.
 
 Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2024). 
 e1071: Misc functions of the Department of Statistics, Probability Theory 

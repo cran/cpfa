@@ -1,6 +1,6 @@
 cpfa <-
   function(x, y, z = NULL, model = c("parafac", "parafac2", "pca"), nfac = 1,
-           nrep = 5, ratio = 0.8, nfolds = 10,
+           nrep = 5, ratio = 0.8, nfolds = 10, align = FALSE,
            method = c("PLR", "SVM", "RF", "NN", "RDA", "GBM"),
            family = c("binomial", "multinomial"), parameters = list(),
            type.out = c("measures", "descriptives"), foldid = NULL,
@@ -265,7 +265,13 @@ cpfa <-
              ceiling(nobs * ratio).")
       }
     }
-    logicheck(plot.out)
+    logicheck(plot.out); logicheck(align)
+    if ((align == TRUE) && (model == "pca")) {
+      warning("Input 'align' was set to 'TRUE' while input 'model' was 'pca'. \n
+              However, permutation alignment is only implemented for Parafac \n 
+              or Parafac2. Thus, alignment was not implemented.")
+      align <- FALSE
+    }
     if (plot.out) {
       if (is.null(plot.measures)) {
         plottype <- 5
@@ -284,13 +290,13 @@ cpfa <-
     nfac <- sort(nfac)
     stor <- array(0, dim = c(length(nfac) * length(method), 11, nrep))
     predstor <- Aw <- Bw <- Cw <- Pw <- vector(mode = "list", length = nrep)
-    trainIDs <- testIDs <- opara <- Tw <- predstor
+    trainIDs <- testIDs <- opara <- optmod <- Tw <- predstor
     cmode0 <- cmode
     if (cmode == lxdim) {cmode <- NULL}
     logicheck(verbose)
     ccreated <- FALSE
     if ((parallel == TRUE) && (is.null(cl))) {
-      cl <- makeCluster(detectCores())
+      cl <- makeCluster(max(1L, detectCores() - 1L))
       ccreated <- TRUE
       registerDoParallel(cl)
       clusterEvalQ(cl, library(multiway))
@@ -342,6 +348,7 @@ cpfa <-
       Pw[[i]] <- tcpfalist$Phi
       Tw[[i]] <- tcpfalist$train.weights
       opara[[i]] <- tcpfalist$opt.param
+      optmod[[i]] <- tcpfalist$opt.model
       yhat <- predict(object = tcpfalist, newdata = X.test, newdata.z = z.test, 
                       type = "response")           
       out <- cpm.all(x = yhat, y = y.test, level = levels(y))
@@ -391,14 +398,24 @@ cpfa <-
     if (type.out == "measures") {
       cpfalist <- list(measure = stor, predweights = predstor,
                        train.weights = train.weights, opt.tune = opara,
-                       mean.opt.tune = mean.tune.param, X = x, y = y, z = z,
-                       nfac = nfac, model = model, method = method,
-                       const = mconst, cmode = cmode0, family = family, 
-                       lxdim = lxdim, trainIDs = trainIDs, testIDs = testIDs,
-                       flattened = flattened)
+                       opt.model = optmod, mean.opt.tune = mean.tune.param, 
+                       X = x, y = y, z = z, nfac = nfac, model = model, 
+                       method = method, const = mconst, cmode = cmode0, 
+                       family = family, lxdim = lxdim, trainIDs = trainIDs, 
+                       testIDs = testIDs, flattened = flattened, 
+                       targetmod = NULL, changeorders = NULL, tccb = NULL,
+                       aligned = FALSE)
       class(cpfalist) <- "wrapcpfa"
+      if (align == TRUE) {
+        paligned <- postalign(cpfalist)
+        cpfalist <- paligned$object
+        cpfalist$targetmod <- paligned$targetmod
+        cpfalist$changeorders <- paligned$changeorders
+        cpfalist$tccb <- paligned$tccb
+        cpfalist$aligned <- TRUE
+      }
       return(cpfalist)                              
-    } else {
+    } else { 
       dfun <- c("mean", "median", "sd")
       output <- vector(mode = "list", length = length(dfun))
       for (j in seq_along(dfun)) {
@@ -411,12 +428,22 @@ cpfa <-
       names(output) <- dfun  
       cpfalist <- list(descriptive = output, predweights = predstor,
                        train.weights = train.weights, opt.tune = opara,
-                       mean.opt.tune = mean.tune.param, X = x, y = y, z = z,
-                       nfac = nfac, model = model, method = method,
-                       const = mconst, cmode = cmode0, family = family, 
-                       lxdim = lxdim, trainIDs = trainIDs, testIDs = testIDs,
-                       flattened = flattened)
+                       opt.model = optmod, mean.opt.tune = mean.tune.param, 
+                       X = x, y = y, z = z, nfac = nfac, model = model, 
+                       method = method, const = mconst, cmode = cmode0, 
+                       family = family, lxdim = lxdim, trainIDs = trainIDs, 
+                       testIDs = testIDs, flattened = flattened, 
+                       targetmod = NULL, changeorders = NULL, tccb = NULL,
+                       aligned = FALSE)
       class(cpfalist) <- "wrapcpfa"
+      if (align == TRUE) {
+        paligned <- postalign(cpfalist)
+        cpfalist <- paligned$object
+        cpfalist$targetmod <- paligned$targetmod
+        cpfalist$changeorders <- paligned$changeorders
+        cpfalist$tccb <- paligned$tccb
+        cpfalist$aligned <- TRUE
+      }
       return(cpfalist)
     }
 }
