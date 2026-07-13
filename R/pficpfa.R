@@ -130,11 +130,30 @@ pficpfa <-
         if ((safealign == TRUE) && (!(i %in% aggreps[[w]]))) next
         trainweight <- trweights[[i]][[w]]
         C.pred <- as.matrix(predstor[[i]][[w]])
+        cnfac <- nfac[w]
+        component.order <- seq_len(cnfac)
+        if (cnfac > 1L) {
+          change <- object$changeorders[[w]]
+          change.row <- match(i, change[, 1L])
+          if (!(is.na(change.row))) {
+            component.order <- as.integer(change[change.row, -1L])
+          }
+        }
+        inverse.order <- order(component.order)
+        model.order <- c(inverse.order,
+                         if (ncol(C.pred) > cnfac) {
+                           seq.int(cnfac + 1L, ncol(C.pred))
+                         } else {
+                           integer(0L)
+                         })
+        C.pred.model <- C.pred[, model.order, drop = FALSE]
+        trainweight.model <- trainweight[, model.order, drop = FALSE]
         preds <- imphelper(w = w, method = method, opt.model = opt.model,
-                           C.pred = C.pred, nfac = nfac, threshold = threshold, 
-                           storrows = storrows, family = family, y = y,
-                           ytrain = ytrain, ylab = ylab, 
-                           opt.param = opt.param.i, train.weights = trainweight)
+                           C.pred = C.pred.model, nfac = nfac,
+                           threshold = threshold, storrows = storrows,
+                           family = family, y = y, ytrain = ytrain, ylab = ylab,
+                           opt.param = opt.param.i, 
+                           train.weights = trainweight.model)
         ground0 <- cpm.all(x = as.data.frame(preds), y = as.numeric(ylab) - 1)
         ground <- ground0$cpms
         flit <- vector(mode = "list", length = ncol(C.pred))
@@ -176,16 +195,19 @@ pficpfa <-
                                   C.pred.shuf[, ss] <- sample(C.pred.shuf[, ss], 
                                                               replace = FALSE)
                                 }
+                                C.pred.shuf.model <- C.pred.shuf[, model.order, 
+                                                                 drop = FALSE]
                                 preds <- imphelper(w = w, method = method, 
                                                    opt.model = opt.model,
-                                                   C.pred = C.pred.shuf, 
+                                                   C.pred = C.pred.shuf.model, 
                                                    nfac = nfac, y = y,
                                                    threshold = threshold, 
                                                    storrows = storrows, 
                                                    family = family, 
                                                    ytrain = ytrain, ylab = ylab, 
                                                    opt.param = opt.param.i, 
-                                                   train.weights = trainweight)
+                                                   train.weights = 
+                                                     trainweight.model)
                                 shufper0 <- cpm.all(x = as.data.frame(preds), 
                                                     y = as.numeric(ylab) - 1)
                                 shufper <- shufper0$cpms
@@ -206,13 +228,15 @@ pficpfa <-
                   C.pred.shuf[, ss] <- sample(C.pred.shuf[, ss], 
                                               replace = FALSE)
                 }
+                C.pred.shuf.model <- C.pred.shuf[, model.order, drop = FALSE]
                 preds <- imphelper(w = w, method = method, 
-                                   opt.model = opt.model, C.pred = C.pred.shuf, 
+                                   opt.model = opt.model,
+                                   C.pred = C.pred.shuf.model, 
                                    nfac = nfac, y = y, threshold = threshold, 
                                    storrows = storrows, family = family, 
                                    ytrain = ytrain, ylab = ylab, 
                                    opt.param = opt.param.i, 
-                                   train.weights = trainweight)
+                                   train.weights = trainweight.model)
                 shufper0 <- cpm.all(x = as.data.frame(preds), 
                                     y = as.numeric(ylab) - 1)
                 shufper <- shufper0$cpms

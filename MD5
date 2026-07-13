@@ -1,5 +1,5 @@
-253828016028c34b88b96bdc0c02d677 *ChangeLog
-3dcd754601d6557070ea53b9863727da *DESCRIPTION
+001b73e59e04e8340491ddbc13a427cd *ChangeLog
+45304922c0089b70a7e6a8440262541f *DESCRIPTION
 af9f3fbcb005be5668bd4d212feb5d9d *NAMESPACE
 c0495918c764fb31f44f5cb2627501cc *R/alignmod.R
 918762d49893b9b3112c31623780414f *R/cpfa.R
@@ -17,7 +17,7 @@ fb8cc8992b55f4a8b748aec5cf0dbb26 *R/kcv.nn.R
 527bf32d35f92449a609c664b3370252 *R/kcvcheck.R
 9e0190a993bf25b64686989ee7a55a1d *R/logicheck.R
 9bbebffeb20eab609c0deaf81ebafc63 *R/numcheck.R
-2f495cfeab972bc05125be7f9369b7f0 *R/pficpfa.R
+16ef4419ffcd180830f587ee205be551 *R/pficpfa.R
 c91d662474ea8f2138dd6122c7ef3235 *R/plotcpfa.R
 f86f7eb802390030e9d6a687db277a3f *R/postalign.R
 2a7b0ec46d61c05dfbc061b6c49da0bd *R/predict.tunecpfa.R
@@ -28,9 +28,9 @@ cd21444b0c46508aef8f569d15ad2031 *R/simcpfa.R
 0a36c90d18a176dfc3ae806ae93a9274 *build/vignette.rds
 d7e3585dc71a43f6f5ed95d7b5df9ea3 *inst/doc/cpfa.R
 6311cb76c656f2ac6c2a054f5554456a *inst/doc/cpfa.Rmd
-bbdaddafb04da052c82be56e1248aab0 *inst/doc/cpfa.pdf
+7ed633ceeb022d9d06c3a8667d527804 *inst/doc/cpfa.pdf
 7ae060af1d0b0ae4e4c8f085e6399b1d *man/cpfa-internals.Rd
-64c09626b359b4f1b8b6a51a8b4b3171 *man/cpfa.Rd
+10a6cdda13a6ff74c7cb4a3d98932497 *man/cpfa.Rd
 0aa3ecc525f3ccf58b3cc1c67b35af8e *man/cpm.Rd
 b9a10bacced48ac27ca25981c41b4eda *man/cpm.all.Rd
 ae9f40ddda901501feecf322cadd4bc1 *man/pficpfa.Rd

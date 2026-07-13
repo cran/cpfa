@@ -316,7 +316,8 @@ replication.
   }
   \item{opt.model}{
     List of optimal models for training classification methods for each 
-    component model and for each replication.
+    component model and for each replication. Note that when 
+    \code{align = TRUE}, component order in \code{opt.model} is not changed.
   }
   \item{mean.opt.tune}{
     Mean across all replications of optimal tuning parameters for 
